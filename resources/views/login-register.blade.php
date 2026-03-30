@@ -312,7 +312,7 @@
         </form>
     </div>
     <div class="form-container sign-in-container">
-        <form action="{{ route('login') }}" method="POST">
+        <form action="{{ route('login.post') }}" method="POST">
             @csrf
             <h1>Masuk</h1>
             <div class="social-container">

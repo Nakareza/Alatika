@@ -327,6 +327,7 @@
                 <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100" data-aos="fade-left">
                     <h3 class="text-2xl font-bold text-slate-900 mb-6">Kirim Pesan</h3>
                     <form action="#" method="POST" class="space-y-6">
+                        @csrf
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-2">Nama</label>

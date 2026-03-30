@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TelegramController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
@@ -19,9 +21,26 @@ Route::get('/login-new', function () {
 })->name('login-new');
 
 // Authentication Routes
+Route::get('/login', function () {
+    return redirect()->route('login-new');
+})->name('login'); // Laravel auth middleware redirects here by default
+
 Route::post('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Telegram Webhook (no CSRF, public endpoint for Telegram API)
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])
+    ->name('telegram.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
+// Telegram API Routes (authenticated users)
+Route::middleware('auth')->prefix('telegram')->name('telegram.')->group(function () {
+    Route::post('/generate-code', [TelegramController::class, 'generateLinkCode'])->name('generate-code');
+    Route::post('/disconnect', [TelegramController::class, 'disconnect'])->name('disconnect');
+    Route::get('/status', [TelegramController::class, 'status'])->name('status');
+    Route::post('/test', [TelegramController::class, 'testNotification'])->name('test');
+});
 
 // Admin Routes (requires authentication + admin role)
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->group(function () {

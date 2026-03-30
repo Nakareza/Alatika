@@ -24,6 +24,7 @@ class User extends Authenticatable
         'nip',
         'password',
         'role',
+        'telegram_chat_id',
     ];
 
     /**
@@ -47,5 +48,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Check if user has Telegram linked
+     */
+    public function hasTelegram(): bool
+    {
+        return !empty($this->telegram_chat_id);
+    }
+
+    /**
+     * Get telegram link codes for this user
+     */
+    public function telegramLinkCodes()
+    {
+        return $this->hasMany(TelegramLinkCode::class);
     }
 }

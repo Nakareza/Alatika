@@ -158,6 +158,18 @@
                   x-transition:enter-end="opacity-100"
                   class="font-medium text-sm whitespace-nowrap">Laporan</span>
         </a>
+
+        <!-- Profil -->
+        <a href="{{ route('admin.profil') }}" 
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.profil*') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''">
+            <i class="fas fa-user-circle w-5 text-center"></i>
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="font-medium text-sm whitespace-nowrap">Profil</span>
+        </a>
     </nav>
 </aside>
 
