@@ -65,4 +65,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(TelegramLinkCode::class);
     }
+
+    /**
+     * Get all peminjaman for this user
+     */
+    public function peminjaman()
+    {
+        return $this->hasMany(Peminjaman::class);
+    }
+
+    /**
+     * Get peminjaman that this user approved
+     */
+    public function approvedPeminjaman()
+    {
+        return $this->hasMany(Peminjaman::class, 'approved_by');
+    }
+
+    /**
+     * Get active peminjaman count
+     */
+    public function activePeminjamanCount(): int
+    {
+        return $this->peminjaman()->whereIn('status', ['dipinjam', 'disetujui'])->count();
+    }
 }

@@ -1,24 +1,46 @@
-*.log
-.DS_Store
-.env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
+# Laravel storage
+/storage/*.key
+/storage/pail
+/storage/framework/sessions/*
+/storage/framework/cache/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Jangan upload public storage symlink
+/public/storage
+
+# Node & build
 /node_modules
 /public/build
 /public/hot
-/public/storage
-/storage/*.key
-/storage/pail
+
+# Env files
+.env
+.env.backup
+.env.production
+
+# Logs
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.fleet
+/.zed
+
+# PHP / Tools
+.phpactor.json
+.phpunit.result.cache
+/.phpunit.cache
+
+# Auth
+/auth.json
+
+# Vendor
 /vendor
+
+# Laravel misc
 Homestead.json
 Homestead.yaml
-Thumbs.db

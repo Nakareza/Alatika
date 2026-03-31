@@ -154,6 +154,24 @@ class TelegramService
     }
 
     /**
+     * Notify Kalab about escalated overdue return
+     */
+    public function notifyEscalation(User $kalab, array $data): bool
+    {
+        if (!$kalab->hasTelegram()) return false;
+
+        $message = "🚨 <b>ESKALASI KETERLAMBATAN</b> 🚨\n\n"
+            . "📋 Kode: <code>{$data['kode']}</code>\n"
+            . "👤 Peminjam: <b>{$data['peminjam_nama']}</b>\n"
+            . "🔧 Alat: <b>{$data['alat']}</b>\n"
+            . "⏳ Terlambat: <b>{$data['hari_terlambat']} hari</b>\n\n"
+            . "Mohon tindak lanjut dari Kepala Laboratorium.";
+
+        $result = $this->sendMessage($kalab->telegram_chat_id, $message);
+        return $result['ok'] ?? false;
+    }
+
+    /**
      * Notify user about overdue return
      */
     public function notifyOverdue(User $user, array $data): bool
@@ -210,9 +228,14 @@ class TelegramService
             . "👤 Peminjam: <b>{$data['peminjam_nama']}</b>\n"
             . "🔧 Alat: <b>{$data['alat']}</b>\n"
             . "📋 Kode: <code>{$data['kode']}</code>\n\n"
+            . "📸 <i>Menerima bukti foto (lihat foto di atas atau cek web)</i>\n\n"
             . "⚠️ Silakan cek kondisi fisik alat dan verifikasi di web.";
 
-        $result = $this->sendMessage($admin->telegram_chat_id, $message);
+        if (!empty($data['telegram_photo_file_id'])) {
+            $result = $this->sendPhoto($admin->telegram_chat_id, $data['telegram_photo_file_id'], $message);
+        } else {
+            $result = $this->sendMessage($admin->telegram_chat_id, $message);
+        }
         return $result['ok'] ?? false;
     }
 
@@ -230,6 +253,47 @@ class TelegramService
 
         $result = $this->sendMessage($user->telegram_chat_id, $message);
         return $result['ok'] ?? false;
+    }
+
+    /**
+     * Send a photo to a Telegram chat
+     */
+    public function sendPhoto(string $chatId, string $photoUrlOrId, string $caption = '', array $options = []): array
+    {
+        $params = array_merge([
+            'chat_id' => $chatId,
+            'photo' => $photoUrlOrId,
+            'caption' => $caption,
+            'parse_mode' => 'HTML',
+        ], $options);
+
+        return $this->request('sendPhoto', $params);
+    }
+
+    /**
+     * Get file info from Telegram
+     */
+    public function getFile(string $fileId): array
+    {
+        return $this->request('getFile', ['file_id' => $fileId]);
+    }
+
+    /**
+     * Download file from Telegram
+     */
+    public function downloadFile(string $filePath): ?string
+    {
+        $url = "https://api.telegram.org/file/bot{$this->token}/{$filePath}";
+        try {
+            $response = Http::get($url);
+            if ($response->successful()) {
+                return $response->body();
+            }
+            return null;
+        } catch (\Exception $e) {
+            Log::error("Telegram download error", ['message' => $e->getMessage()]);
+            return null;
+        }
     }
 
     // ===================================================

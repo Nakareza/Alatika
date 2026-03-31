@@ -42,19 +42,25 @@ Route::middleware('auth')->prefix('telegram')->name('telegram.')->group(function
     Route::post('/test', [TelegramController::class, 'testNotification'])->name('test');
 });
 
+// API routes for Real-Time Sync (Dashboard Polling)
+Route::prefix('api')->middleware('auth')->name('api.')->group(function () {
+    Route::get('/peminjaman/stats', [\App\Http\Controllers\Api\PeminjamanApiController::class, 'stats'])->name('peminjaman.stats');
+    Route::get('/pengembalian/pending', [\App\Http\Controllers\Api\PeminjamanApiController::class, 'pendingVerifications'])->name('pengembalian.pending');
+});
+
 // Admin Routes (requires authentication + admin role)
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Kelola Peminjaman Routes
-    Route::get('/peminjaman', function () {
-        return view('admin.peminjaman.index');
-    })->name('peminjaman');
+    Route::get('/peminjaman', [\App\Http\Controllers\Admin\PeminjamanController::class, 'index'])->name('peminjaman');
+    Route::post('/peminjaman/{id}/approve', [\App\Http\Controllers\Admin\PeminjamanController::class, 'approve'])->name('peminjaman.approve');
+    Route::post('/peminjaman/{id}/reject', [\App\Http\Controllers\Admin\PeminjamanController::class, 'reject'])->name('peminjaman.reject');
+    Route::post('/peminjaman/{id}/dipinjam', [\App\Http\Controllers\Admin\PeminjamanController::class, 'markAsBorrowed'])->name('peminjaman.dipinjam');
     
     // Kelola Pengembalian Routes
-    Route::get('/pengembalian', function () {
-        return view('admin.pengembalian.index');
-    })->name('pengembalian');
+    Route::get('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'index'])->name('pengembalian');
+    Route::post('/pengembalian/{id}/verify', [\App\Http\Controllers\Admin\PengembalianController::class, 'verify'])->name('pengembalian.verify');
     
     // Data Alat Routes
     Route::get('/alat', function () {
@@ -91,21 +97,15 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
 
 // Mahasiswa Routes (requires authentication + mahasiswa role)
 Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasiswa.')->group(function () {
-    Route::get('/dashboard', [MahasiswaDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Mahasiswa\DashboardController::class, 'index'])->name('dashboard');
     
     // Peminjaman Routes
-    Route::get('/peminjaman/ajukan', function () {
-        return view('mahasiswa.peminjaman.ajukan');
-    })->name('peminjaman.ajukan');
-    
-    Route::get('/peminjaman/riwayat', function () {
-        return view('mahasiswa.peminjaman.riwayat');
-    })->name('peminjaman.riwayat');
+    Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
+    Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'store'])->name('peminjaman.store');
+    Route::get('/peminjaman/riwayat', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'riwayat'])->name('peminjaman.riwayat');
     
     // Alat Routes
-    Route::get('/alat', function () {
-        return view('mahasiswa.alat.index');
-    })->name('alat');
+    Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
     
     // Profil Routes
     Route::get('/profil', function () {
@@ -115,22 +115,20 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
 
 // KA Lab Routes (requires authentication + kalab role)
 Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->group(function () {
-    Route::get('/dashboard', [KalabDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Kalab\DashboardController::class, 'index'])->name('dashboard');
     
     // Persetujuan Peminjaman
-    Route::get('/persetujuan', function () {
-        return view('kalab.persetujuan.index');
-    })->name('persetujuan');
+    Route::get('/persetujuan', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'persetujuan'])->name('persetujuan');
+    Route::post('/persetujuan/{id}/approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'approve'])->name('persetujuan.approve');
+    Route::post('/persetujuan/{id}/reject', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'reject'])->name('persetujuan.reject');
     
-    // Data Alat
+    // Data Alat - Use Admin Controller since Kalab might just want to view it exactly like admin
     Route::get('/alat', function () {
         return view('kalab.alat.index');
     })->name('alat');
     
     // Riwayat Peminjaman
-    Route::get('/riwayat', function () {
-        return view('kalab.riwayat.index');
-    })->name('riwayat');
+    Route::get('/riwayat', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'riwayat'])->name('riwayat');
     
     // Laporan
     Route::get('/laporan', function () {
@@ -145,22 +143,17 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
 
 // Dosen Routes (requires authentication + dosen role)
 Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->group(function () {
-    Route::get('/dashboard', [DosenDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Dosen\DashboardController::class, 'index'])->name('dashboard');
     
-    // Peminjaman Mahasiswa
-    Route::get('/peminjaman', function () {
-        return view('dosen.peminjaman.index');
-    })->name('peminjaman');
-    
-    // Daftar Alat
-    Route::get('/alat', function () {
-        return view('dosen.alat.index');
-    })->name('alat');
+    // Peminjaman Mahasiswa (ini sebenarnya fitur dosen pinjam alat, ganti nama aja biar wajar)
+    Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
+    Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'store'])->name('peminjaman.store');
     
     // Riwayat
-    Route::get('/riwayat', function () {
-        return view('dosen.riwayat.index');
-    })->name('riwayat');
+    Route::get('/riwayat', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'riwayat'])->name('riwayat');
+    
+    // Daftar Alat
+    Route::get('/alat', [\App\Http\Controllers\Dosen\AlatController::class, 'index'])->name('alat');
     
     // Profil
     Route::get('/profil', function () {

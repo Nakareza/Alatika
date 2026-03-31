@@ -33,8 +33,8 @@ class TelegramWebhookController extends Controller
                 return response()->json(['ok' => true]);
             }
 
-            // Handle text messages
-            if (isset($update['message']['text'])) {
+            // Handle messages (text or photo)
+            if (isset($update['message']['text']) || isset($update['message']['photo'])) {
                 $this->handleMessage($update['message']);
             }
         } catch (\Exception $e) {
@@ -45,13 +45,16 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Handle incoming text messages
+     * Handle incoming messages (text or photo)
      */
     protected function handleMessage(array $message): void
     {
         $chatId = (string) $message['chat']['id'];
-        $text = trim($message['text']);
+        $text = trim($message['text'] ?? $message['caption'] ?? '');
         $firstName = $message['from']['first_name'] ?? 'User';
+
+        // Get highest resolution photo if exists
+        $photo = isset($message['photo']) ? end($message['photo']) : null;
 
         // Parse command
         if (str_starts_with($text, '/')) {
@@ -67,7 +70,7 @@ class TelegramWebhookController extends Controller
                 '/link'    => $this->commandLink($chatId, $arg1),
                 '/unlink'  => $this->commandUnlink($chatId),
                 '/status'  => $this->commandStatus($chatId),
-                '/kembali' => $this->commandKembali($chatId, $arg1),
+                '/kembali' => $this->commandKembali($chatId, $arg1, $photo),
                 '/approve' => $this->commandApprove($chatId, $arg1),
                 '/reject'  => $this->commandReject($chatId, $arg1, $arg2),
                 '/pending' => $this->commandPending($chatId),
@@ -205,25 +208,64 @@ class TelegramWebhookController extends Controller
         $user = $this->getLinkedUser($chatId);
         if (!$user) return;
 
-        // Since there's no peminjaman table yet, we show a demo response
-        // This will be updated once the peminjaman system is fully implemented
         $roleLabel = $this->getRoleLabel($user->role);
 
         if (in_array($user->role, ['mahasiswa', 'dosen'])) {
-            $this->telegram->sendMessage($chatId,
-                "📊 <b>Status Peminjaman</b>\n\n"
-                . "👤 {$user->name} ({$roleLabel})\n"
-                . "━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                . "📭 Tidak ada peminjaman aktif saat ini.\n\n"
-                . "💡 Ajukan peminjaman melalui web Alatika."
-            );
+            $peminjaman = \App\Models\Peminjaman::where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'disetujui', 'dipinjam', 'menunggu_verifikasi'])
+                ->get();
+                
+            if ($peminjaman->isEmpty()) {
+                $this->telegram->sendMessage($chatId,
+                    "📊 <b>Status Peminjaman</b>\n\n"
+                    . "👤 {$user->name} ({$roleLabel})\n"
+                    . "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    . "📭 Tidak ada peminjaman aktif saat ini.\n\n"
+                    . "💡 Ajukan peminjaman melalui web Alatika."
+                );
+                return;
+            }
+
+            $message = "📊 <b>Status Peminjaman Aktif</b>\n\n";
+            $message .= "👤 {$user->name} ({$roleLabel})\n";
+            $message .= "━━━━━━━━━━━━━━━━━━━━━━\n\n";
+
+            foreach ($peminjaman as $p) {
+                $icon = match($p->status) {
+                    'pending' => '⏳',
+                    'disetujui' => '✅',
+                    'dipinjam' => '📦',
+                    'menunggu_verifikasi' => '🔍',
+                    default => '⚙️',
+                };
+                
+                $message .= "{$icon} <b>{$p->alat->nama}</b> ({$p->jumlah} unit)\n";
+                $message .= "📋 Kode: <code>{$p->kode_peminjaman}</code>\n";
+                $message .= "📅 Status: <b>{$p->status_label}</b>\n";
+                if ($p->status === 'dipinjam') {
+                    $message .= "⏰ Deadline: {$p->tanggal_kembali->format('d M Y')}\n";
+                }
+                $message .= "\n";
+            }
+            
+            $this->telegram->sendMessage($chatId, $message);
         } else {
+            $targetRole = $user->role === 'admin' ? 'mahasiswa' : 'dosen';
+            $pendingCount = \App\Models\Peminjaman::whereHas('user', function($q) use ($targetRole) {
+                $q->where('role', $targetRole);
+            })->where('status', 'pending')->count();
+            
+            $returnCount = \App\Models\Peminjaman::whereHas('user', function($q) use ($targetRole) {
+                $q->where('role', $targetRole);
+            })->where('status', 'menunggu_verifikasi')->count();
+
             $this->telegram->sendMessage($chatId,
                 "📊 <b>Status Sistem</b>\n\n"
                 . "👤 {$user->name} ({$roleLabel})\n"
                 . "━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                . "📭 Tidak ada pengajuan pending saat ini.\n\n"
-                . "Ketik /pending untuk melihat pengajuan yang perlu diproses."
+                . "📝 <b>Peminjaman Pending:</b> {$pendingCount} antrean\n"
+                . "🔍 <b>Menunggu Verifikasi (Pengembalian):</b> {$returnCount} alat\n\n"
+                . "Ketik /pending untuk melihat detail pengajuan."
             );
         }
     }
@@ -231,7 +273,7 @@ class TelegramWebhookController extends Controller
     /**
      * /kembali KODE - Confirm return of borrowed item
      */
-    protected function commandKembali(string $chatId, ?string $kode): void
+    protected function commandKembali(string $chatId, ?string $kode, ?array $photo = null): void
     {
         $user = $this->getLinkedUser($chatId);
         if (!$user) return;
@@ -248,34 +290,82 @@ class TelegramWebhookController extends Controller
                 "⚠️ Format salah!\n\n"
                 . "Gunakan: <code>/kembali KODE_PEMINJAMAN</code>\n"
                 . "Contoh: <code>/kembali PMJ-001</code>\n\n"
-                . "Kode peminjaman bisa dilihat di web atau gunakan /status"
+                . "💡 Jika diminta bukti foto, kirim foto alat dengan caption: <code>/kembali KODE_PEMINJAMAN</code>"
             );
             return;
         }
 
-        // For now, send a confirmation message
-        // This will be connected to actual peminjaman system later
-        $this->telegram->sendMessage($chatId,
-            "📦 <b>Konfirmasi Pengembalian</b>\n\n"
-            . "📋 Kode: <code>{$kode}</code>\n"
-            . "👤 Peminjam: {$user->name}\n\n"
-            . "✅ Konfirmasi pengembalian telah dikirim ke petugas.\n"
-            . "Silakan serahkan alat ke laboratorium untuk verifikasi fisik."
-        );
+        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))
+            ->where('user_id', $user->id)
+            ->where('status', 'dipinjam')
+            ->first();
 
-        // Notify admins (for mahasiswa) or kalab (for dosen)
-        $approverRole = $user->role === 'mahasiswa' ? 'admin' : 'kalab';
-        $approvers = User::where('role', $approverRole)
-            ->whereNotNull('telegram_chat_id')
-            ->get();
-
-        foreach ($approvers as $approver) {
-            $this->telegram->notifyReturnConfirmation($approver, [
-                'peminjam_nama' => $user->name,
-                'alat' => "(Kode: {$kode})",
-                'kode' => $kode,
-            ]);
+        if (!$peminjaman) {
+            $this->telegram->sendMessage($chatId,
+                "❌ Peminjaman tidak ditemukan, tidak aktif, atau bukan milik Anda.\n"
+                . "Cek kode peminjaman dengan perintah <code>/status</code>"
+            );
+            return;
         }
+
+        if (!$photo) {
+            $this->telegram->sendMessage($chatId,
+                "📸 <b>Bukti Foto Diperlukan!</b>\n\n"
+                . "Mohon kirimkan <b>foto kondisi alat</b> beserta kabel/komponen lain secara lengkap.\n\n"
+                . "👉 <b>Caranya:</b>\n"
+                . "1. Buka kamera / upload foto di Telegram\n"
+                . "2. Ketik di bagian 'Caption': <code>/kembali {$kode}</code>\n"
+                . "3. Kirim fotonya ke sini."
+            );
+            return;
+        }
+
+        $fileId = $photo['file_id'];
+        $fileInfo = $this->telegram->getFile($fileId);
+        
+        if (isset($fileInfo['ok']) && $fileInfo['ok']) {
+            $filePath = $fileInfo['result']['file_path'];
+            $fileData = $this->telegram->downloadFile($filePath);
+            
+            if ($fileData) {
+                $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+                if (empty($ext)) $ext = 'jpg';
+                $fileName = 'bukti-' . strtolower($kode) . '-' . time() . '.' . $ext;
+                $savePath = 'bukti-pengembalian/' . $fileName;
+                
+                \Illuminate\Support\Facades\Storage::disk('public')->put($savePath, $fileData);
+                
+                $peminjaman->update([
+                    'status' => 'menunggu_verifikasi',
+                    'foto_bukti_kembali' => $savePath,
+                    'telegram_photo_file_id' => $fileId,
+                    'tanggal_dikembalikan' => now(),
+                ]);
+
+                $this->telegram->sendMessage($chatId,
+                    "✅ <b>Bukti Foto Diterima!</b>\n\n"
+                    . "📋 Kode: <code>{$kode}</code>\n"
+                    . "🔧 Alat: {$peminjaman->alat->nama}\n\n"
+                    . "Pengajuan pengembalian telah dikirim ke petugas.\n"
+                    . "Silakan serahkan fisik alat ke laboratorium."
+                );
+
+                $approverRole = $user->role === 'mahasiswa' ? 'admin' : 'kalab';
+                $approvers = User::where('role', $approverRole)->whereNotNull('telegram_chat_id')->get();
+
+                foreach ($approvers as $approver) {
+                    $this->telegram->notifyReturnConfirmation($approver, [
+                        'peminjam_nama' => $user->name,
+                        'alat' => $peminjaman->alat->nama . " (Kode: {$kode})",
+                        'kode' => $kode,
+                        'telegram_photo_file_id' => $fileId,
+                    ]);
+                }
+                return;
+            }
+        }
+        
+        $this->telegram->sendMessage($chatId, "❌ Gagal mengunduh foto dari Telegram. Silakan coba kirim ulang.");
     }
 
     /**
@@ -302,10 +392,42 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        // Approval confirmation
-        $roleDesc = $user->role === 'admin'
-            ? 'peminjaman mahasiswa'
-            : 'peminjaman dosen';
+        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))->first();
+        if (!$peminjaman) {
+            $this->telegram->sendMessage($chatId, "❌ Peminjaman tidak ditemukan.");
+            return;
+        }
+
+        if ($peminjaman->status !== 'pending') {
+            $this->telegram->sendMessage($chatId, "⚠️ Peminjaman ini sudah diproses sebelumnya (Status: {$peminjaman->status}).");
+            return;
+        }
+
+        // Logic routing role
+        if ($user->role === 'admin' && $peminjaman->user->role !== 'mahasiswa') {
+            $this->telegram->sendMessage($chatId, "⚠️ Admin hanya bisa menyetujui peminjaman dari Mahasiswa.");
+            return;
+        }
+        if ($user->role === 'kalab' && $peminjaman->user->role !== 'dosen') {
+            $this->telegram->sendMessage($chatId, "⚠️ Kepala Lab hanya memproses peminjaman Dosen.");
+            return;
+        }
+
+        $peminjaman->update([
+            'status' => 'disetujui',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        $this->telegram->notifyPeminjamanApproved($peminjaman->user, [
+            'kode' => $peminjaman->kode_peminjaman,
+            'alat' => $peminjaman->alat->nama,
+            'jumlah' => $peminjaman->jumlah,
+            'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+            'approver_role' => $user->role === 'kalab' ? 'Kepala Lab' : 'Admin',
+        ]);
+
+        $roleDesc = $user->role === 'admin' ? 'mahasiswa' : 'dosen';
 
         $this->telegram->sendMessage($chatId,
             "✅ <b>Peminjaman Disetujui!</b>\n\n"
@@ -342,6 +464,40 @@ class TelegramWebhookController extends Controller
 
         $alasan = $alasan ?: 'Tidak ada alasan yang disertakan';
 
+        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))->first();
+        if (!$peminjaman) {
+            $this->telegram->sendMessage($chatId, "❌ Peminjaman tidak ditemukan.");
+            return;
+        }
+
+        if ($peminjaman->status !== 'pending') {
+            $this->telegram->sendMessage($chatId, "⚠️ Peminjaman ini sudah diproses sebelumnya.");
+            return;
+        }
+
+        // Logic routing role
+        if ($user->role === 'admin' && $peminjaman->user->role !== 'mahasiswa') {
+            $this->telegram->sendMessage($chatId, "⚠️ Admin hanya bisa menolak peminjaman Mahasiswa.");
+            return;
+        }
+        if ($user->role === 'kalab' && $peminjaman->user->role !== 'dosen') {
+            $this->telegram->sendMessage($chatId, "⚠️ Kepala Lab hanya memproses peminjaman Dosen.");
+            return;
+        }
+
+        $peminjaman->update([
+            'status' => 'ditolak',
+            'rejected_reason' => $alasan,
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        $this->telegram->notifyPeminjamanRejected($peminjaman->user, [
+            'kode' => $peminjaman->kode_peminjaman,
+            'alat' => $peminjaman->alat->nama,
+            'alasan' => $alasan,
+        ]);
+
         $this->telegram->sendMessage($chatId,
             "❌ <b>Peminjaman Ditolak</b>\n\n"
             . "📋 Kode: <code>{$kode}</code>\n"
@@ -366,17 +522,35 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $roleDesc = $user->role === 'admin'
-            ? 'mahasiswa'
-            : 'dosen';
+        $roleDesc = $user->role === 'admin' ? 'mahasiswa' : 'dosen';
+        $targetRole = $roleDesc;
 
-        $this->telegram->sendMessage($chatId,
-            "📋 <b>Pengajuan Pending</b>\n\n"
-            . "👤 {$user->name} ({$this->getRoleLabel($user->role)})\n"
-            . "━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            . "📭 Tidak ada pengajuan {$roleDesc} yang pending saat ini.\n\n"
-            . "💡 Anda akan mendapat notifikasi saat ada pengajuan baru."
-        );
+        $pending = \App\Models\Peminjaman::whereHas('user', function($q) use ($targetRole) {
+            $q->where('role', $targetRole);
+        })->where('status', 'pending')->get();
+
+        if ($pending->isEmpty()) {
+            $this->telegram->sendMessage($chatId,
+                "📋 <b>Pengajuan Pending</b>\n\n"
+                . "👤 {$user->name} ({$this->getRoleLabel($user->role)})\n"
+                . "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                . "📭 Tidak ada pengajuan {$roleDesc} yang pending saat ini.\n\n"
+                . "💡 Anda akan mendapat notifikasi saat ada pengajuan baru."
+            );
+            return;
+        }
+
+        $message = "📋 <b>Pengajuan Pending ({$roleDesc})</b>\n\n";
+        foreach ($pending as $p) {
+            $message .= "👤 <b>{$p->user->name}</b>\n";
+            $message .= "🔧 Alat: {$p->alat->nama} ({$p->jumlah} unit)\n";
+            $message .= "📋 Kode: <code>{$p->kode_peminjaman}</code>\n";
+            $message .= "📅 Pinjam: {$p->tanggal_pinjam->format('d/m')} s.d. {$p->tanggal_kembali->format('d/m/Y')}\n";
+            $message .= "📝 Tujuan: <i>{$p->keperluan}</i>\n\n";
+        }
+        $message .= "Ketik <code>/approve KODE</code> atau <code>/reject KODE alasan</code> untuk memproses.";
+
+        $this->telegram->sendMessage($chatId, $message);
     }
 
     /**

@@ -286,7 +286,7 @@
                             <span class="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">+15%</span>
                         </div>
                         <p class="text-sm text-gray-600 mb-1">Total Peminjaman</p>
-                        <p class="text-3xl font-bold text-gray-900">12</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ $stats['total'] }}</p>
                     </div>
                     
                     <!-- Card 2 -->
@@ -297,7 +297,7 @@
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-1">Sedang Dipinjam</p>
-                        <p class="text-3xl font-bold text-gray-900">3</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ $stats['dipinjam'] }}</p>
                     </div>
                     
                     <!-- Card 3 -->
@@ -309,7 +309,7 @@
                             <span class="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">+25%</span>
                         </div>
                         <p class="text-sm text-gray-600 mb-1">Selesai</p>
-                        <p class="text-3xl font-bold text-gray-900">8</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ $stats['selesai'] }}</p>
                     </div>
                     
                     <!-- Card 4 -->
@@ -320,7 +320,7 @@
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-1">Ditolak</p>
-                        <p class="text-3xl font-bold text-gray-900">1</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ $stats['ditolak'] }}</p>
                     </div>
                 </div>
 
@@ -339,81 +339,29 @@
                             </div>
                             
                             <div class="space-y-3">
-                                <!-- Item 1 -->
+                                @forelse($recent as $p)
                                 <div class="list-item">
                                     <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-microchip text-blue-600 text-sm"></i>
+                                        <div class="w-10 h-10 {{ strtok($p->status_config['color'], ' ') }} bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas {{ $p->status_config['icon'] }} text-sm"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-start justify-between gap-2">
                                                 <div>
-                                                    <p class="font-semibold text-gray-900 text-sm mb-1">Arduino Uno R3</p>
-                                                    <p class="text-xs text-gray-500">Kode: ARD-001</p>
-                                                    <p class="text-xs text-gray-500 mt-1">Dipinjam sejak 01 Des 2025</p>
+                                                    <p class="font-semibold text-gray-900 text-sm mb-1">{{ $p->alat->nama }}</p>
+                                                    <p class="text-xs text-gray-500">Kode: {{ $p->kode_peminjaman }}</p>
+                                                    <p class="text-xs text-gray-500 mt-1">{{ $p->created_at->diffForHumans() }}</p>
                                                 </div>
-                                                <span class="badge badge-info flex-shrink-0">Dipinjam</span>
+                                                <span class="badge {{ $p->status_config['color'] }} flex-shrink-0">{{ $p->status_label }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Item 2 -->
-                                <div class="list-item">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-wifi text-gray-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <p class="font-semibold text-gray-900 text-sm mb-1">ESP32 Dev Board</p>
-                                                    <p class="text-xs text-gray-500">Kode: ESP-012</p>
-                                                    <p class="text-xs text-gray-500 mt-1">Dikembalikan 05 Des 2025</p>
-                                                </div>
-                                                <span class="badge badge-success flex-shrink-0">Selesai</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                @empty
+                                <div class="text-center py-4">
+                                    <p class="text-sm text-gray-500">Belum ada aktivitas peminjaman</p>
                                 </div>
-                                
-                                <!-- Item 3 -->
-                                <div class="list-item">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-thermometer-half text-gray-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <p class="font-semibold text-gray-900 text-sm mb-1">DHT22 Sensor</p>
-                                                    <p class="text-xs text-gray-500">Kode: SEN-045</p>
-                                                    <p class="text-xs text-gray-500 mt-1">Diajukan 03 Des 2025</p>
-                                                </div>
-                                                <span class="badge badge-warning flex-shrink-0">Pending</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Item 4 -->
-                                <div class="list-item">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-plug text-gray-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <p class="font-semibold text-gray-900 text-sm mb-1">Multimeter Digital</p>
-                                                    <p class="text-xs text-gray-500">Kode: TOOL-008</p>
-                                                    <p class="text-xs text-gray-500 mt-1">Ditolak 25 Nov 2025</p>
-                                                </div>
-                                                <span class="badge badge-danger flex-shrink-0">Ditolak</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -481,15 +429,15 @@
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <span class="text-sm text-gray-600">Menunggu Persetujuan</span>
-                                    <span class="font-semibold text-gray-900">1</span>
+                                    <span class="font-semibold text-gray-900">{{ $statusSummary['pending'] }}</span>
                                 </div>
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <span class="text-sm text-gray-600">Dalam Penggunaan</span>
-                                    <span class="font-semibold text-gray-900">3</span>
+                                    <span class="font-semibold text-gray-900">{{ $statusSummary['dipinjam'] }}</span>
                                 </div>
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <span class="text-sm text-gray-600">Total Selesai</span>
-                                    <span class="font-semibold text-gray-900">8</span>
+                                    <span class="font-semibold text-gray-900">{{ $statusSummary['selesai'] }}</span>
                                 </div>
                             </div>
                         </div>
