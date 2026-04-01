@@ -17,7 +17,14 @@ class PengembalianController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
             
-        return view('admin.pengembalian.index', compact('pengembalian'));
+        $stats = [
+            'total' => $pengembalian->count(),
+            'verifikasi' => $pengembalian->where('status', 'menunggu_verifikasi')->count(),
+            'dipinjam' => $pengembalian->where('status', 'dipinjam')->count(),
+            'selesai' => $pengembalian->where('status', 'selesai')->count(),
+        ];
+            
+        return view('admin.pengembalian.index', compact('pengembalian', 'stats'));
     }
 
     public function verify(Request $request, $id, TelegramService $telegram)
@@ -52,6 +59,25 @@ class PengembalianController extends Controller
             'kode' => $peminjaman->kode_peminjaman,
             'alat' => $peminjaman->alat->nama,
         ]);
+
+        // Process waitlist
+        if ($alat->stok_tersedia > 0) {
+            $waitlists = \App\Models\Waitlist::where('alat_id', $alat->id)
+                ->where('status', 'waiting')
+                ->get();
+
+            foreach ($waitlists as $waiter) {
+                // Send telegram notification to each waitlisted user
+                if ($waiter->user) {
+                    $telegram->notifyWaitlistRestock($waiter->user, [
+                        'alat' => $alat->nama
+                    ]);
+                }
+                
+                // Update status to notified so they don't get spammed next return
+                $waiter->update(['status' => 'notified']);
+            }
+        }
 
         return redirect()->back()->with('success', 'Pengembalian berhasil diverifikasi');
     }

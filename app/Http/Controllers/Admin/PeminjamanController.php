@@ -16,7 +16,14 @@ class PeminjamanController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
             
-        return view('admin.peminjaman.index', compact('peminjaman'));
+        $stats = [
+            'total' => Peminjaman::count(),
+            'pending' => Peminjaman::where('status', 'pending')->count(),
+            'aktif' => Peminjaman::where('status', 'dipinjam')->count(),
+            'ditolak' => Peminjaman::where('status', 'ditolak')->count(),
+        ];
+            
+        return view('admin.peminjaman.index', compact('peminjaman', 'stats'));
     }
 
     public function approve($id, TelegramService $telegram)

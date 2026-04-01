@@ -55,7 +55,7 @@
                         </div>
                         <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Total</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">142</h3>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['total'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Total Pengajuan</p>
                 </div>
 
@@ -66,7 +66,7 @@
                         </div>
                         <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Pending</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">8</h3>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['pending'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Menunggu Persetujuan</p>
                 </div>
 
@@ -77,7 +77,7 @@
                         </div>
                         <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Aktif</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">24</h3>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['aktif'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Sedang Dipinjam</p>
                 </div>
 
@@ -88,7 +88,7 @@
                         </div>
                         <span class="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">Ditolak</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">5</h3>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['ditolak'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Ditolak</p>
                 </div>
             </div>
@@ -130,70 +130,64 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @php
-                                $peminjaman = [
-                                    ['id' => 1, 'nama' => 'Ahmad Rizki Saputra', 'nim' => '23010001', 'alat' => 'Arduino Uno R3', 'kode' => 'ARD-001', 'tgl_pinjam' => '2025-12-08', 'deadline' => '2025-12-15', 'status' => 'pending', 'jumlah' => 2],
-                                    ['id' => 2, 'nama' => 'Siti Nurhaliza', 'nim' => '23010002', 'alat' => 'Oscilloscope Digital', 'kode' => 'OSC-005', 'tgl_pinjam' => '2025-12-07', 'deadline' => '2025-12-10', 'status' => 'dipinjam', 'jumlah' => 1],
-                                    ['id' => 3, 'nama' => 'Budi Santoso', 'nim' => '23010003', 'alat' => 'Multimeter Digital', 'kode' => 'MUL-012', 'tgl_pinjam' => '2025-12-06', 'deadline' => '2025-12-13', 'status' => 'disetujui', 'jumlah' => 1],
-                                    ['id' => 4, 'nama' => 'Dewi Lestari', 'nim' => '23010004', 'alat' => 'Raspberry Pi 4', 'kode' => 'RPI-008', 'tgl_pinjam' => '2025-12-05', 'deadline' => '2025-12-12', 'status' => 'pending', 'jumlah' => 1],
-                                    ['id' => 5, 'nama' => 'Eko Prasetyo', 'nim' => '23010005', 'alat' => 'Soldering Station', 'kode' => 'SOL-003', 'tgl_pinjam' => '2025-12-04', 'deadline' => '2025-12-11', 'status' => 'selesai', 'jumlah' => 1],
-                                    ['id' => 6, 'nama' => 'Fitria Rahmawati', 'nim' => '23010006', 'alat' => 'ESP32 DevKit V1', 'kode' => 'ESP-015', 'tgl_pinjam' => '2025-12-09', 'deadline' => '2025-12-16', 'status' => 'pending', 'jumlah' => 3],
-                                    ['id' => 7, 'nama' => 'Galih Purnama', 'nim' => '23010007', 'alat' => 'Sensor DHT22', 'kode' => 'SNS-022', 'tgl_pinjam' => '2025-12-03', 'deadline' => '2025-12-10', 'status' => 'ditolak', 'jumlah' => 5],
-                                    ['id' => 8, 'nama' => 'Hana Maharani', 'nim' => '23010008', 'alat' => 'Power Supply Digital', 'kode' => 'PWR-007', 'tgl_pinjam' => '2025-12-10', 'deadline' => '2025-12-17', 'status' => 'pending', 'jumlah' => 1],
-                                ];
-                                $statusConfig = [
-                                    'pending' => ['label' => 'Pending', 'color' => 'bg-amber-100 text-amber-700', 'icon' => 'fa-clock'],
-                                    'disetujui' => ['label' => 'Disetujui', 'color' => 'bg-blue-100 text-blue-700', 'icon' => 'fa-check'],
-                                    'dipinjam' => ['label' => 'Dipinjam', 'color' => 'bg-indigo-100 text-indigo-700', 'icon' => 'fa-hand-holding'],
-                                    'selesai' => ['label' => 'Selesai', 'color' => 'bg-emerald-100 text-emerald-700', 'icon' => 'fa-check-double'],
-                                    'ditolak' => ['label' => 'Ditolak', 'color' => 'bg-red-100 text-red-700', 'icon' => 'fa-times'],
-                                ];
-                            @endphp
-
-                            @foreach($peminjaman as $index => $p)
+                            @forelse($peminjaman as $index => $p)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4 text-sm text-slate-500">{{ $index + 1 }}</td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                            {{ strtoupper(substr($p['nama'], 0, 1)) }}
+                                            {{ strtoupper(substr($p->user->name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <span class="text-sm font-medium text-slate-800 block">{{ $p['nama'] }}</span>
-                                            <span class="text-xs text-slate-400">{{ $p['nim'] }}</span>
+                                            <span class="text-sm font-medium text-slate-800 block">{{ $p->user->name }}</span>
+                                            <span class="text-xs text-slate-400">{{ $p->user->nim ?? '-' }}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm font-medium text-slate-800 block">{{ $p['alat'] }}</span>
-                                    <span class="text-xs text-slate-400 font-mono">{{ $p['kode'] }} · {{ $p['jumlah'] }} unit</span>
+                                    <span class="text-sm font-medium text-slate-800 block">{{ $p->alat->nama }}</span>
+                                    <span class="text-xs text-slate-400 font-mono">{{ $p->kode_peminjaman }} · {{ $p->jumlah }} unit</span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-slate-600">{{ \Carbon\Carbon::parse($p['tgl_pinjam'])->format('d M Y') }}</td>
-                                <td class="px-6 py-4 text-sm text-slate-600">{{ \Carbon\Carbon::parse($p['deadline'])->format('d M Y') }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-600">{{ $p->tanggal_pinjam->format('d M Y') }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-600">{{ $p->tanggal_kembali->format('d M Y') }}</td>
                                 <td class="px-6 py-4">
-                                    @php $sc = $statusConfig[$p['status']]; @endphp
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full {{ $sc['color'] }}">
-                                        <i class="fas {{ $sc['icon'] }} text-[10px]"></i>
-                                        {{ $sc['label'] }}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full {{ $p->status_config['color'] }}">
+                                        <i class="fas {{ $p->status_config['icon'] }} text-[10px]"></i>
+                                        {{ $p->status_label }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
-                                        @if($p['status'] === 'pending')
-                                        <button class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
-                                            <i class="fas fa-check text-sm"></i>
-                                        </button>
-                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Tolak">
-                                            <i class="fas fa-times text-sm"></i>
-                                        </button>
+                                        @if($p->status === 'pending')
+                                        <form action="{{ route('admin.peminjaman.approve', $p->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
+                                                <i class="fas fa-check text-sm"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.peminjaman.reject', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tolak peminjaman ini?');">
+                                            @csrf
+                                            <input type="hidden" name="alasan" value="Ditolak admin">
+                                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Tolak">
+                                                <i class="fas fa-times text-sm"></i>
+                                            </button>
+                                        </form>
+                                        @elseif($p->status === 'disetujui')
+                                        <form action="{{ route('admin.peminjaman.dipinjam', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tandai alat sebagai dipinjam (diserahkan fisik)?');">
+                                            @csrf
+                                            <button type="submit" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Tandai Dipinjam (Serahkan Alat)">
+                                                <i class="fas fa-hand-holding text-sm"></i>
+                                            </button>
+                                        </form>
                                         @endif
-                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Detail">
-                                            <i class="fas fa-eye text-sm"></i>
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-slate-500">Belum ada data peminjaman.</td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

@@ -75,4 +75,37 @@ class PeminjamanController extends Controller
 
         return redirect()->back()->with('success', 'Peminjaman Dosen ditolak');
     }
+
+    public function bulkApprove(Request $request, TelegramService $telegram)
+    {
+        $request->validate([
+            'peminjaman_ids' => 'required|array',
+            'peminjaman_ids.*' => 'exists:peminjaman,id',
+        ]);
+
+        $ids = $request->peminjaman_ids;
+        $peminjamans = Peminjaman::whereIn('id', $ids)->where('status', 'pending')->get();
+
+        $approvedCount = 0;
+
+        foreach ($peminjamans as $peminjaman) {
+            $peminjaman->update([
+                'status' => 'disetujui',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
+            $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                'kode' => $peminjaman->kode_peminjaman,
+                'alat' => $peminjaman->alat->nama,
+                'jumlah' => $peminjaman->jumlah,
+                'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                'approver_role' => 'Kepala Lab',
+            ]);
+
+            $approvedCount++;
+        }
+
+        return redirect()->back()->with('success', "$approvedCount Peminjaman Dosen berhasil disetujui secara massal!");
+    }
 }

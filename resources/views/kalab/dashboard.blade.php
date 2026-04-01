@@ -136,7 +136,7 @@
                         </div>
                         <span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">Pending</span>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-800">8</h3>
+                    <h3 class="text-3xl font-black text-slate-800">{{ $stats['pending_dosen'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Menunggu Persetujuan</p>
                 </div>
 
@@ -146,9 +146,9 @@
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center">
                             <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
                         </div>
-                        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">+12 bulan ini</span>
+                        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Bulan ini</span>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-800">45</h3>
+                    <h3 class="text-3xl font-black text-slate-800">{{ $stats['disetujui'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Disetujui</p>
                 </div>
 
@@ -160,7 +160,7 @@
                         </div>
                         <span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Aktif</span>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-800">24</h3>
+                    <h3 class="text-3xl font-black text-slate-800">{{ $stats['dipinjam'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Sedang Dipinjam</p>
                 </div>
 
@@ -170,9 +170,9 @@
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center">
                             <i class="fas fa-laptop text-indigo-600 text-xl"></i>
                         </div>
-                        <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">87 Unit</span>
+                        <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Tersedia: {{ $stats['tersedia'] }}</span>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-800">87</h3>
+                    <h3 class="text-3xl font-black text-slate-800">{{ $stats['total_alat'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Total Alat Lab</p>
                 </div>
             </div>
@@ -191,7 +191,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold text-slate-800 text-sm">Persetujuan</h3>
-                            <p class="text-xs text-slate-500">8 menunggu</p>
+                            <p class="text-xs text-slate-500">{{ $stats['pending_dosen'] }} menunggu</p>
                         </div>
                     </a>
 
@@ -254,90 +254,52 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
+                            @forelse($pending_approvals as $peminjaman)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="py-3 px-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">AR</div>
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {{ strtoupper(substr($peminjaman->user->name, 0, 2)) }}
+                                        </div>
                                         <div>
-                                            <p class="text-sm font-medium text-slate-800">Ahmad Rizki Saputra</p>
-                                            <p class="text-xs text-slate-500">23010001</p>
+                                            <p class="text-sm font-medium text-slate-800">{{ $peminjaman->user->name }}</p>
+                                            <p class="text-xs text-slate-500">{{ $peminjaman->user->role }}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <p class="text-sm font-medium text-slate-700">Arduino Uno R3</p>
-                                    <p class="text-xs text-slate-500">ARD-001</p>
+                                    <p class="text-sm font-medium text-slate-700">{{ $peminjaman->alat->nama }}</p>
+                                    <p class="text-xs text-slate-500">{{ $peminjaman->alat->kode_alat ?? 'Q-'.$peminjaman->jumlah }}</p>
                                 </td>
-                                <td class="py-3 px-4 text-sm text-slate-600">08 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">15 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">Dr. Budi Santoso</td>
+                                <td class="py-3 px-4 text-sm text-slate-600">{{ $peminjaman->tanggal_pinjam ? $peminjaman->tanggal_pinjam->format('d M Y') : '-' }}</td>
+                                <td class="py-3 px-4 text-sm text-slate-600">{{ $peminjaman->tanggal_kembali ? $peminjaman->tanggal_kembali->format('d M Y') : '-' }}</td>
+                                <td class="py-3 px-4 text-sm text-slate-600">-</td>
                                 <td class="py-3 px-4">
                                     <div class="flex gap-2">
-                                        <button class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-emerald-200 transition-colors">
-                                            <i class="fas fa-check mr-1"></i>Setujui
-                                        </button>
-                                        <button class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-lg hover:bg-red-200 transition-colors">
-                                            <i class="fas fa-times mr-1"></i>Tolak
-                                        </button>
+                                        <form action="{{ route('kalab.persetujuan.approve', $peminjaman->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-emerald-200 transition-colors">
+                                                <i class="fas fa-check mr-1"></i>Setujui
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('kalab.persetujuan.reject', $peminjaman->id) }}" method="POST" onsubmit="return confirm('Tolak peminjaman ini?');">
+                                            @csrf
+                                            <input type="hidden" name="alasan" value="Ditolak oleh Kepala Lab">
+                                            <button type="submit" class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-lg hover:bg-red-200 transition-colors">
+                                                <i class="fas fa-times mr-1"></i>Tolak
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">DL</div>
-                                        <div>
-                                            <p class="text-sm font-medium text-slate-800">Dewi Lestari</p>
-                                            <p class="text-xs text-slate-500">23010004</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <p class="text-sm font-medium text-slate-700">Raspberry Pi 4</p>
-                                    <p class="text-xs text-slate-500">RPI-008</p>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-600">05 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">12 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">Dr. Eko Prasetyo</td>
-                                <td class="py-3 px-4">
-                                    <div class="flex gap-2">
-                                        <button class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-emerald-200 transition-colors">
-                                            <i class="fas fa-check mr-1"></i>Setujui
-                                        </button>
-                                        <button class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-lg hover:bg-red-200 transition-colors">
-                                            <i class="fas fa-times mr-1"></i>Tolak
-                                        </button>
-                                    </div>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="py-6 text-center text-slate-500 text-sm">
+                                    <i class="fas fa-inbox text-slate-300 text-3xl mb-2 block"></i>
+                                    Tidak ada permintaan persetujuan pending.
                                 </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center text-white text-xs font-bold">FH</div>
-                                        <div>
-                                            <p class="text-sm font-medium text-slate-800">Fajar Hidayat</p>
-                                            <p class="text-xs text-slate-500">23010007</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <p class="text-sm font-medium text-slate-700">Oscilloscope Digital</p>
-                                    <p class="text-xs text-slate-500">OSC-005</p>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-600">09 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">16 Des 2025</td>
-                                <td class="py-3 px-4 text-sm text-slate-600">Dr. Budi Santoso</td>
-                                <td class="py-3 px-4">
-                                    <div class="flex gap-2">
-                                        <button class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-emerald-200 transition-colors">
-                                            <i class="fas fa-check mr-1"></i>Setujui
-                                        </button>
-                                        <button class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-lg hover:bg-red-200 transition-colors">
-                                            <i class="fas fa-times mr-1"></i>Tolak
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -356,19 +318,19 @@
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                             <span class="text-sm text-slate-600">Total Alat Terdaftar</span>
-                            <span class="text-sm font-bold text-slate-800">87 Unit</span>
+                            <span class="text-sm font-bold text-slate-800">{{ $stats['total_alat'] }} Unit</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                             <span class="text-sm text-slate-600">Alat Tersedia</span>
-                            <span class="text-sm font-bold text-green-600">63 Unit</span>
+                            <span class="text-sm font-bold text-green-600">{{ $stats['tersedia'] }} Unit</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                             <span class="text-sm text-slate-600">Alat Sedang Dipinjam</span>
-                            <span class="text-sm font-bold text-blue-600">24 Unit</span>
+                            <span class="text-sm font-bold text-blue-600">{{ $stats['dipinjam'] }} Unit</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                            <span class="text-sm text-slate-600">Alat Dalam Perbaikan</span>
-                            <span class="text-sm font-bold text-amber-600">3 Unit</span>
+                            <span class="text-sm text-slate-600">Peminjaman Melewati Batas</span>
+                            <span class="text-sm font-bold text-amber-600">{{ $stats['overdue'] }} Unit</span>
                         </div>
                     </div>
                 </div>
@@ -382,33 +344,19 @@
                         <h3 class="text-lg font-bold text-slate-800">Aktivitas Terbaru</h3>
                     </div>
                     <div class="space-y-3">
+                        @forelse($recent_activities as $act)
                         <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                <i class="fas fa-check text-xs"></i>
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br {{ $act->status == 'disetujui' || $act->status == 'selesai' ? 'from-emerald-500 to-teal-600' : ($act->status == 'ditolak' ? 'from-red-500 to-red-600' : 'from-blue-500 to-blue-600') }} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                <i class="fas {{ $act->status == 'disetujui' ? 'fa-check' : ($act->status == 'ditolak' ? 'fa-times' : 'fa-bell') }} text-xs"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Anda menyetujui peminjaman Budi Santoso</p>
-                                <p class="text-xs text-slate-500">1 jam yang lalu</p>
+                                <p class="text-sm font-medium text-slate-800">{{ $act->user->name }} - {{ $act->alat->nama }} ({{ ucfirst($act->status) }})</p>
+                                <p class="text-xs text-slate-500">{{ $act->updated_at->diffForHumans() }}</p>
                             </div>
                         </div>
-                        <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                <i class="fas fa-plus text-xs"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Permintaan baru dari Ahmad Rizki</p>
-                                <p class="text-xs text-slate-500">3 jam yang lalu</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                <i class="fas fa-times text-xs"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Anda menolak peminjaman Dina Rahayu</p>
-                                <p class="text-xs text-slate-500">Kemarin, 15:30</p>
-                            </div>
-                        </div>
+                        @empty
+                        <p class="text-sm text-slate-500 p-3 text-center">Belum ada aktivitas.</p>
+                        @endforelse
                     </div>
                 </div>
             </div>

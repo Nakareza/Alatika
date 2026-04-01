@@ -51,9 +51,24 @@
                             <div class="text-sm text-right">
                                 <span class="text-gray-500 block">Tersedia</span>
                                 <span class="font-bold {{ $item->stok_tersedia > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $item->stok_tersedia }} / {{ $item->stok_total }}
+                                    {{ $item->stok_tersedia }} / {{ $item->stok_total }} Unit
                                 </span>
                             </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            @if($item->stok_tersedia > 0)
+                                <a href="{{ route('mahasiswa.peminjaman.ajukan', ['alat_id' => $item->id]) }}" class="block w-full text-center py-2 px-4 rounded-lg bg-blue-50 text-blue-600 font-semibold text-sm hover:bg-blue-100 transition-colors">
+                                    <i class="fas fa-hand-holding mr-1"></i> Pinjam Sekarang
+                                </a>
+                            @else
+                                <form action="{{ route('mahasiswa.alat.waitlist', $item->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full text-center py-2 px-4 rounded-lg bg-amber-50 text-amber-600 font-semibold text-sm hover:bg-amber-100 transition-colors flex justify-center items-center gap-2">
+                                        <i class="fas fa-bell"></i> Kabari Saya
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </div>

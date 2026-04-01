@@ -271,6 +271,22 @@ class TelegramService
     }
 
     /**
+     * Notify user that the item in their waitlist is available
+     */
+    public function notifyWaitlistRestock(User $user, array $data): bool
+    {
+        if (!$user->hasTelegram()) return false;
+
+        $message = "🔔 <b>ALAT TERSEDIA!</b>\n\n"
+            . "Halo <b>{$user->name}</b>,\n"
+            . "Alat <b>{$data['alat']}</b> yang Anda masukkan dalam daftar tunggu telah tersedia di Laboratorium sekarang!\n\n"
+            . "Segera login ke web Alatika dan ajukan peminjaman sebelum dipinjam oleh orang lain! 🏃‍♂️💨";
+
+        $result = $this->sendMessage($user->telegram_chat_id, $message);
+        return $result['ok'] ?? false;
+    }
+
+    /**
      * Get file info from Telegram
      */
     public function getFile(string $fileId): array

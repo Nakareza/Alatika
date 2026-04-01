@@ -55,7 +55,7 @@
                         </div>
                         <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Menunggu</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">12</h3>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['dipinjam'] }}</h3>
                     <p class="text-sm text-slate-500 mt-1">Menunggu Dikembalikan</p>
                 </div>
 
@@ -66,8 +66,8 @@
                         </div>
                         <span class="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">Terlambat</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">3</h3>
-                    <p class="text-sm text-slate-500 mt-1">Terlambat Dikembalikan</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['verifikasi'] }}</h3>
+                    <p class="text-sm text-slate-500 mt-1">Butuh Verifikasi</p>
                 </div>
 
                 <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -77,8 +77,8 @@
                         </div>
                         <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Hari Ini</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">5</h3>
-                    <p class="text-sm text-slate-500 mt-1">Dikembalikan Hari Ini</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['selesai'] }}</h3>
+                    <p class="text-sm text-slate-500 mt-1">Selesai Dikembalikan</p>
                 </div>
 
                 <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -88,8 +88,8 @@
                         </div>
                         <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Total</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800">105</h3>
-                    <p class="text-sm text-slate-500 mt-1">Total Pengembalian</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['total'] }}</h3>
+                    <p class="text-sm text-slate-500 mt-1">Total Peminjaman Aktif</p>
                 </div>
             </div>
 
@@ -130,79 +130,66 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @php
-                                $pengembalian = [
-                                    ['nama' => 'Siti Nurhaliza', 'nim' => '23010002', 'alat' => 'Oscilloscope Digital', 'kode' => 'OSC-005', 'tgl_pinjam' => '2025-12-07', 'deadline' => '2025-12-10', 'kondisi' => 'Baik', 'status' => 'menunggu'],
-                                    ['nama' => 'Budi Santoso', 'nim' => '23010003', 'alat' => 'Multimeter Digital', 'kode' => 'MUL-012', 'tgl_pinjam' => '2025-12-06', 'deadline' => '2025-12-13', 'kondisi' => 'Baik', 'status' => 'menunggu'],
-                                    ['nama' => 'Rini Puspitasari', 'nim' => '23010009', 'alat' => 'Logic Analyzer', 'kode' => 'LGA-003', 'tgl_pinjam' => '2025-11-28', 'deadline' => '2025-12-05', 'kondisi' => '-', 'status' => 'terlambat'],
-                                    ['nama' => 'Eko Prasetyo', 'nim' => '23010005', 'alat' => 'Soldering Station', 'kode' => 'SOL-003', 'tgl_pinjam' => '2025-12-04', 'deadline' => '2025-12-11', 'kondisi' => 'Baik', 'status' => 'dikembalikan'],
-                                    ['nama' => 'Doni Firmansyah', 'nim' => '23010010', 'alat' => 'Function Generator', 'kode' => 'FNG-002', 'tgl_pinjam' => '2025-11-25', 'deadline' => '2025-12-02', 'kondisi' => '-', 'status' => 'terlambat'],
-                                    ['nama' => 'Galih Purnama', 'nim' => '23010007', 'alat' => 'Breadboard Set', 'kode' => 'BRD-010', 'tgl_pinjam' => '2025-12-09', 'deadline' => '2025-12-16', 'kondisi' => 'Baik', 'status' => 'dikembalikan'],
-                                    ['nama' => 'Hana Maharani', 'nim' => '23010008', 'alat' => 'Power Supply Digital', 'kode' => 'PWR-007', 'tgl_pinjam' => '2025-12-10', 'deadline' => '2025-12-17', 'kondisi' => 'Baik', 'status' => 'menunggu'],
-                                    ['nama' => 'Irfan Hakim', 'nim' => '23010011', 'alat' => 'Raspberry Pi 4 + Case', 'kode' => 'RPI-004', 'tgl_pinjam' => '2025-11-30', 'deadline' => '2025-12-07', 'kondisi' => '-', 'status' => 'terlambat'],
-                                ];
-                                $statusConfig = [
-                                    'menunggu' => ['label' => 'Menunggu Kembali', 'color' => 'bg-amber-100 text-amber-700'],
-                                    'terlambat' => ['label' => 'Terlambat', 'color' => 'bg-red-100 text-red-700'],
-                                    'dikembalikan' => ['label' => 'Dikembalikan', 'color' => 'bg-emerald-100 text-emerald-700'],
-                                ];
-                            @endphp
-
-                            @foreach($pengembalian as $index => $p)
+                            @forelse($pengembalian as $index => $p)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4 text-sm text-slate-500">{{ $index + 1 }}</td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                            {{ strtoupper(substr($p['nama'], 0, 1)) }}
+                                            {{ strtoupper(substr($p->user->name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <span class="text-sm font-medium text-slate-800 block">{{ $p['nama'] }}</span>
-                                            <span class="text-xs text-slate-400">{{ $p['nim'] }}</span>
+                                            <span class="text-sm font-medium text-slate-800 block">{{ $p->user->name }}</span>
+                                            <span class="text-xs text-slate-400">{{ $p->user->nim ?? '-' }}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm font-medium text-slate-800 block">{{ $p['alat'] }}</span>
-                                    <span class="text-xs text-slate-400 font-mono">{{ $p['kode'] }}</span>
+                                    <span class="text-sm font-medium text-slate-800 block">{{ $p->alat->nama }}</span>
+                                    <span class="text-xs text-slate-400 font-mono">{{ $p->kode_peminjaman }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-slate-600">{{ \Carbon\Carbon::parse($p['tgl_pinjam'])->format('d M Y') }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-600">{{ $p->tanggal_pinjam->format('d M Y') }}</td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm {{ $p['status'] === 'terlambat' ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
-                                        {{ \Carbon\Carbon::parse($p['deadline'])->format('d M Y') }}
+                                    <span class="text-sm {{ $p->isOverdue() ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
+                                        {{ $p->tanggal_kembali->format('d M Y') }}
                                     </span>
-                                    @if($p['status'] === 'terlambat')
-                                        <span class="text-xs text-red-500 block">⚠ Lewat batas</span>
+                                    @if($p->isOverdue())
+                                        <span class="text-xs text-red-500 block">⚠ Terlambat</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($p['kondisi'] === 'Baik')
+                                    @if($p->kondisi_kembali)
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700">
-                                            <i class="fas fa-check-circle text-[10px]"></i> Baik
+                                            <i class="fas fa-check-circle text-[10px]"></i> {{ ucfirst($p->kondisi_kembali) }}
                                         </span>
                                     @else
                                         <span class="text-xs text-slate-400">Belum dicek</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    @php $sc = $statusConfig[$p['status']]; @endphp
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full {{ $sc['color'] }}">
-                                        {{ $sc['label'] }}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full {{ $p->status_config['color'] }}">
+                                        <i class="fas {{ $p->status_config['icon'] }} text-[10px]"></i> {{ $p->status_label }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
-                                        @if($p['status'] !== 'dikembalikan')
-                                        <button class="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-sm" title="Verifikasi">
-                                            <i class="fas fa-check mr-1"></i> Verifikasi
-                                        </button>
+                                        @if($p->status !== 'selesai')
+                                        <form action="{{ route('admin.pengembalian.verify', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Verifikasi pengembalian alat ini dengan kondisi BAIK?');">
+                                            @csrf
+                                            <input type="hidden" name="kondisi_kembali" value="baik">
+                                            <button type="submit" class="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-sm" title="Verifikasi">
+                                                <i class="fas fa-check mr-1"></i> Verifikasi
+                                            </button>
+                                        </form>
                                         @else
                                         <span class="text-xs text-emerald-600 font-medium"><i class="fas fa-check-double mr-1"></i> Selesai</span>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr><td colspan="8" class="text-center py-8 text-slate-500">Belum ada data pengembalian alat.</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
