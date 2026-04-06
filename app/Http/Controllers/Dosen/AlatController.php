@@ -9,7 +9,7 @@ class AlatController extends Controller
 {
     public function index()
     {
-        $alat = Alat::where('status', 'tersedia')
+        $alat = Alat::orderBy('stok_tersedia', 'desc')
             ->orderBy('nama')
             ->get();
             

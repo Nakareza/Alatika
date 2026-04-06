@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -97,7 +98,7 @@
     <div class="fixed top-0 left-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
     <div class="fixed top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
 
-    <nav class="fixed w-full z-50 transition-all duration-300 glass shadow-sm">
+    <nav x-data="{ mobileMenuOpen: false }" class="fixed w-full z-50 transition-all duration-300 glass shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
@@ -107,17 +108,47 @@
                     <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">Alatika</span>
                 </div>
                 
-                <div class="hidden md:flex space-x-1">
+                <div class="hidden md:flex items-center space-x-1">
                     <a href="#beranda" class="px-4 py-2 text-slate-600 font-medium hover:text-blue-600 rounded-full hover:bg-blue-50 transition-all">Beranda</a>
                     <a href="#katalog" class="px-4 py-2 text-slate-600 font-medium hover:text-blue-600 rounded-full hover:bg-blue-50 transition-all">Katalog</a>
                     <a href="#prosedur" class="px-4 py-2 text-slate-600 font-medium hover:text-blue-600 rounded-full hover:bg-blue-50 transition-all">Prosedur</a>
                     <a href="#kontak" class="px-4 py-2 text-slate-600 font-medium hover:text-blue-600 rounded-full hover:bg-blue-50 transition-all">Kontak</a>
+                    
+                    <div class="ml-4 pl-4 border-l border-slate-200">
+                        <a href="{{ route('login-new') }}" class="group relative px-6 py-2.5 font-semibold text-white rounded-full bg-slate-900 overflow-hidden shadow-lg hover:shadow-blue-500/30 transition-all duration-300 inline-block">
+                            <span class="relative z-10 group-hover:text-white transition-colors">Masuk / Daftar</span>
+                            <div class="absolute inset-0 h-full w-full scale-0 rounded-full transition-all duration-300 group-hover:scale-100 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600"></div>
+                        </a>
+                    </div>
                 </div>
-                
-                <div>
-                    <a href="{{ route('login-new') }}" class="group relative px-6 py-2.5 font-semibold text-white rounded-full bg-slate-900 overflow-hidden shadow-lg hover:shadow-blue-500/30 transition-all duration-300">
-                        <span class="relative z-10 group-hover:text-white transition-colors">Masuk / Daftar</span>
-                        <div class="absolute inset-0 h-full w-full scale-0 rounded-full transition-all duration-300 group-hover:scale-100 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600"></div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="text-slate-600 hover:text-blue-600 focus:outline-none p-2 rounded-md transition-colors">
+                        <i class="fas fa-bars text-2xl" x-show="!mobileMenuOpen"></i>
+                        <i class="fas fa-times text-2xl" x-show="mobileMenuOpen" style="display: none;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="md:hidden glass border-t border-slate-200" style="display: none;">
+            <div class="px-4 pt-2 pb-6 space-y-2 flex flex-col bg-white">
+                <a @click="mobileMenuOpen = false" href="#beranda" class="block px-4 py-3 text-base font-medium text-slate-800 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Beranda</a>
+                <a @click="mobileMenuOpen = false" href="#katalog" class="block px-4 py-3 text-base font-medium text-slate-800 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Katalog</a>
+                <a @click="mobileMenuOpen = false" href="#prosedur" class="block px-4 py-3 text-base font-medium text-slate-800 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Prosedur</a>
+                <a @click="mobileMenuOpen = false" href="#kontak" class="block px-4 py-3 text-base font-medium text-slate-800 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Kontak</a>
+                <div class="pt-2 mt-2 border-t border-slate-100">
+                    <a href="{{ route('login-new') }}" class="block text-center px-4 py-3 text-base font-extrabold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-md">
+                        Masuk / Daftar
                     </a>
                 </div>
             </div>

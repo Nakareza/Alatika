@@ -73,8 +73,8 @@
                   class="font-medium text-sm whitespace-nowrap">Dashboard</span>
         </a>
 
-        <!-- Peminjaman Mahasiswa -->
-        <a href="{{ route('dosen.peminjaman') }}" 
+        <!-- Ajukan Peminjaman -->
+        <a href="{{ route('dosen.peminjaman.ajukan') }}" 
            class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dosen.peminjaman*') ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-200' : 'text-gray-700 hover:bg-amber-50 hover:text-amber-700' }}"
            x-bind:class="collapsed ? 'justify-center' : ''">
             <i class="fas fa-clipboard-list w-5 text-center"></i>
@@ -82,12 +82,12 @@
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Peminjaman Mahasiswa</span>
+                  class="font-medium text-sm whitespace-nowrap">Ajukan Peminjaman</span>
         </a>
 
         <!-- Daftar Alat -->
         <a href="{{ route('dosen.alat') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dosen.alat*') ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-200' : 'text-gray-700 hover:bg-amber-50 hover:text-amber-700' }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dosen.alat') ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-200' : 'text-gray-700 hover:bg-amber-50 hover:text-amber-700' }}"
            x-bind:class="collapsed ? 'justify-center' : ''">
             <i class="fas fa-laptop w-5 text-center"></i>
             <span x-show="!collapsed"
@@ -95,6 +95,22 @@
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
                   class="font-medium text-sm whitespace-nowrap">Daftar Alat</span>
+        </a>
+
+        <!-- Keranjang -->
+        @php $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count(); @endphp
+        <a href="{{ route('dosen.keranjang') }}" 
+           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dosen.keranjang*') ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-200' : 'text-gray-700 hover:bg-amber-50 hover:text-amber-700' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''">
+            <i class="fas fa-shopping-cart w-5 text-center"></i>
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="font-medium text-sm whitespace-nowrap flex-1">Keranjang</span>
+            @if($cartCount > 0)
+            <span x-show="!collapsed" class="bg-red-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{{ $cartCount }}</span>
+            @endif
         </a>
 
         <!-- Riwayat -->

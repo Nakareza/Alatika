@@ -107,6 +107,12 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     // Alat Routes
     Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
     Route::post('/alat/{id}/waitlist', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'waitlist'])->name('alat.waitlist');
+
+    // Keranjang (Cart) Routes
+    Route::get('/keranjang', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'index'])->name('keranjang');
+    Route::post('/keranjang/{alat_id}/add', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'add'])->name('keranjang.add');
+    Route::delete('/keranjang/{id}/remove', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'remove'])->name('keranjang.remove');
+    Route::post('/keranjang/checkout', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'checkout'])->name('keranjang.checkout');
     
     // Profil Routes
     Route::get('/profil', function () {
@@ -156,6 +162,12 @@ Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->grou
     
     // Daftar Alat
     Route::get('/alat', [\App\Http\Controllers\Dosen\AlatController::class, 'index'])->name('alat');
+
+    // Keranjang (Cart) Routes for Dosen
+    Route::get('/keranjang', [\App\Http\Controllers\Dosen\KeranjangController::class, 'index'])->name('keranjang');
+    Route::post('/keranjang/{alat_id}/add', [\App\Http\Controllers\Dosen\KeranjangController::class, 'add'])->name('keranjang.add');
+    Route::delete('/keranjang/{id}/remove', [\App\Http\Controllers\Dosen\KeranjangController::class, 'remove'])->name('keranjang.remove');
+    Route::post('/keranjang/checkout', [\App\Http\Controllers\Dosen\KeranjangController::class, 'checkout'])->name('keranjang.checkout');
     
     // Profil
     Route::get('/profil', function () {

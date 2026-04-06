@@ -108,6 +108,22 @@
                   class="font-medium text-sm whitespace-nowrap">Daftar Alat</span>
         </a>
 
+        <!-- Keranjang -->
+        @php $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count(); @endphp
+        <a href="{{ route('mahasiswa.keranjang') }}" 
+           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.keranjang') ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-200' : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''">
+            <i class="fas fa-shopping-cart w-5 text-center"></i>
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="font-medium text-sm whitespace-nowrap flex-1">Keranjang</span>
+            @if($cartCount > 0)
+            <span x-show="!collapsed" class="bg-red-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{{ $cartCount }}</span>
+            @endif
+        </a>
+
         <div x-show="!collapsed" class="border-t border-gray-200 my-2"></div>
 
         <!-- Profil -->

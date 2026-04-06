@@ -116,7 +116,7 @@
             overflow: hidden;
             width: 768px;
             max-width: 100%;
-            min-height: 480px;
+            min-height: 580px;
         }
 
         .form-container {
@@ -269,6 +269,66 @@
         .container.right-panel-active .logo-polines {
             left: calc(100% - 65px);
         }
+
+        .mobile-switch {
+            display: none;
+            margin-top: 20px;
+            color: #4C6EF5;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                height: auto;
+                background: #fff;
+            }
+            .container {
+                width: 100%;
+                min-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .form-container {
+                width: 100%;
+                height: 100vh;
+                transition: opacity 0.3s ease-in-out;
+            }
+            .sign-in-container {
+                z-index: 2;
+                left: 0;
+                transform: translateX(0) !important;
+            }
+            .sign-up-container {
+                z-index: 1;
+                left: 0;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateX(0) !important;
+            }
+            .container.right-panel-active .sign-in-container {
+                opacity: 0;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .container.right-panel-active .sign-up-container {
+                opacity: 1;
+                pointer-events: auto;
+                z-index: 5;
+            }
+            .overlay-container {
+                display: none; /* Hide sliding panel on small screens */
+            }
+            .mobile-switch {
+                display: block; /* Show manual switch links */
+            }
+            .logo-polines {
+                left: 15px !important; /* Keep logo fixed on mobile */
+            }
+        }
     </style>
 </head>
 <body>
@@ -304,11 +364,19 @@
             @endif
             
             <input type="text" name="name" placeholder="Nama Lengkap" value="{{ old('name') }}" required />
-            <input type="text" name="nim" placeholder="NIM (Nomor Induk Mahasiswa)" value="{{ old('nim') }}" required />
+            
+            <select name="role" id="roleSelect" required style="background-color: #eee; border: none; padding: 12px 15px; margin: 8px 0; width: 100%; border-radius: 5px; outline: none; font-family: 'Montserrat', sans-serif; color: #757575;">
+                <option value="mahasiswa" {{ old('role') == 'mahasiswa' ? 'selected' : '' }}>Saya adalah Mahasiswa</option>
+                <option value="dosen" {{ old('role') == 'dosen' ? 'selected' : '' }}>Saya adalah Dosen</option>
+            </select>
+            
+            <input type="text" name="nomor_induk" id="nomorInduk" placeholder="NIM (Nomor Induk Mahasiswa)" value="{{ old('nomor_induk') }}" required pattern="[0-9]+" title="Hanya angka yang diperbolehkan" />
             <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required />
             <input type="password" name="password" placeholder="Kata Sandi" required />
             <input type="password" name="password_confirmation" placeholder="Konfirmasi Password" required />
             <button type="submit">Daftar</button>
+
+            <span class="mobile-switch" onclick="document.getElementById('container').classList.remove('right-panel-active')">Sudah punya akun? Masuk di sini</span>
         </form>
     </div>
     <div class="form-container sign-in-container">
@@ -332,6 +400,8 @@
             <input type="password" name="password" placeholder="Password" required />
             <a href="#">Lupa kata sandi?</a>
             <button type="submit">Masuk</button>
+
+            <span class="mobile-switch" onclick="document.getElementById('container').classList.add('right-panel-active')">Belum punya akun? Daftar di sini</span>
         </form>
     </div>
 
@@ -358,6 +428,25 @@
 
     console.log('signUpButton:', signUpButton);
     console.log('signInButton:', signInButton);
+
+    // Dynamic Input untuk NIM/NIP
+    const roleSelect = document.getElementById('roleSelect');
+    const nomorInduk = document.getElementById('nomorInduk');
+
+    if (roleSelect && nomorInduk) {
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'dosen') {
+                nomorInduk.placeholder = 'NIP (Nomor Induk Pegawai)';
+            } else {
+                nomorInduk.placeholder = 'NIM (Nomor Induk Mahasiswa)';
+            }
+        });
+        
+        // Trigger saat halaman dimuat (untuk mempertahankan state old input)
+        if(roleSelect.value) {
+            roleSelect.dispatchEvent(new Event('change'));
+        }
+    }
 
     // Tambahkan class 'right-panel-active' untuk menggeser ke mode Register
     if (signUpButton) {

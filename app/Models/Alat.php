@@ -27,6 +27,11 @@ class Alat extends Model
         return $this->hasMany(Peminjaman::class);
     }
 
+    public function waitlists()
+    {
+        return $this->hasMany(\App\Models\Waitlist::class);
+    }
+
     /**
      * Get active (dipinjam) count
      */

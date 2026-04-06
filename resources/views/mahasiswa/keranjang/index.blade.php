@@ -63,6 +63,7 @@
                                 
                                 <form action="{{ route('mahasiswa.keranjang.remove', $item->id) }}" method="POST">
                                     @csrf
+                                    @method('DELETE')
                                     <button type="submit" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition tooltip" title="Hapus dari Keranjang">
                                         <i class="fas fa-trash"></i>
                                     </button>

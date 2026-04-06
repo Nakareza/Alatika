@@ -195,37 +195,33 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <x-card-stats-admin 
                     title="Total Peminjaman" 
-                    value="142" 
+                    :value="$stats['total']" 
                     icon="fas fa-clipboard-list" 
-                    color="blue"
-                    :trend="12" />
+                    color="blue" />
                 
                 <x-card-stats-admin 
                     title="Menunggu Persetujuan" 
-                    value="8" 
+                    :value="$stats['pending']" 
                     icon="fas fa-clock" 
                     color="yellow" />
                 
                 <x-card-stats-admin 
                     title="Sedang Dipinjam" 
-                    value="24" 
+                    :value="$stats['dipinjam']" 
                     icon="fas fa-hand-holding" 
-                    color="indigo"
-                    :trend="5" />
+                    color="indigo" />
                 
                 <x-card-stats-admin 
                     title="Selesai" 
-                    value="105" 
+                    :value="$stats['selesai']" 
                     icon="fas fa-check-double" 
-                    color="green"
-                    :trend="8" />
+                    color="green" />
                 
                 <x-card-stats-admin 
-                    title="Ditolak" 
-                    value="5" 
-                    icon="fas fa-times-circle" 
-                    color="red"
-                    :trend="-3" />
+                    title="Terlambat" 
+                    :value="$stats['overdue']" 
+                    icon="fas fa-exclamation-triangle" 
+                    color="red" />
             </div>
 
             {{-- Quick Actions --}}
@@ -293,85 +289,116 @@
             </div>
 
             {{-- Recent Borrowing Table --}}
-            <x-table-recent-admin :peminjaman="[
-                [
-                    'mahasiswa_nama' => 'Ahmad Rizki Saputra',
-                    'mahasiswa_nim' => '23010001',
-                    'nama_alat' => 'Arduino Uno R3',
-                    'kode_alat' => 'ARD-001',
-                    'tanggal_pinjam' => '2025-12-08 10:30:00',
-                    'tanggal_kembali' => '2025-12-15',
-                    'status' => 'pending'
-                ],
-                [
-                    'mahasiswa_nama' => 'Siti Nurhaliza',
-                    'mahasiswa_nim' => '23010002',
-                    'nama_alat' => 'Oscilloscope Digital',
-                    'kode_alat' => 'OSC-005',
-                    'tanggal_pinjam' => '2025-12-07 14:00:00',
-                    'tanggal_kembali' => '2025-12-10',
-                    'status' => 'dipinjam'
-                ],
-                [
-                    'mahasiswa_nama' => 'Budi Santoso',
-                    'mahasiswa_nim' => '23010003',
-                    'nama_alat' => 'Multimeter Digital',
-                    'kode_alat' => 'MUL-012',
-                    'tanggal_pinjam' => '2025-12-06 09:15:00',
-                    'tanggal_kembali' => '2025-12-13',
-                    'status' => 'disetujui'
-                ],
-                [
-                    'mahasiswa_nama' => 'Dewi Lestari',
-                    'mahasiswa_nim' => '23010004',
-                    'nama_alat' => 'Raspberry Pi 4',
-                    'kode_alat' => 'RPI-008',
-                    'tanggal_pinjam' => '2025-12-05 11:45:00',
-                    'tanggal_kembali' => '2025-12-12',
-                    'status' => 'pending'
-                ],
-                [
-                    'mahasiswa_nama' => 'Eko Prasetyo',
-                    'mahasiswa_nim' => '23010005',
-                    'nama_alat' => 'Soldering Station',
-                    'kode_alat' => 'SOL-003',
-                    'tanggal_pinjam' => '2025-12-04 13:20:00',
-                    'tanggal_kembali' => '2025-12-11',
-                    'status' => 'selesai'
-                ]
-            ]" />
+            <div class="glassmorphism rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-list-alt text-blue-500"></i> Peminjaman Terbaru
+                    </h2>
+                    <a href="{{ route('admin.peminjaman') }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">Lihat semua →</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Peminjam</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Alat</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($recentPeminjaman as $p)
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                            {{ strtoupper(substr($p->user->name, 0, 2)) }}
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 text-sm">{{ $p->user->name }}</p>
+                                            <p class="text-xs text-slate-400">{{ $p->user->nim ?? $p->user->nip ?? $p->user->email }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm font-medium text-slate-800">{{ $p->alat->nama }}</p>
+                                    <p class="text-xs text-slate-400">{{ $p->kode_peminjaman }}</p>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    <p>{{ $p->tanggal_pinjam->format('d M Y') }}</p>
+                                    <p class="text-xs text-slate-400">Kembali: {{ $p->tanggal_kembali->format('d M Y') }}</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @php
+                                        $badge = match($p->status) {
+                                            'pending'   => 'bg-amber-100 text-amber-700',
+                                            'disetujui' => 'bg-blue-100 text-blue-700',
+                                            'dipinjam'  => 'bg-indigo-100 text-indigo-700',
+                                            'menunggu_verifikasi' => 'bg-purple-100 text-purple-700',
+                                            'selesai'   => 'bg-emerald-100 text-emerald-700',
+                                            'ditolak'   => 'bg-red-100 text-red-700',
+                                            default     => 'bg-gray-100 text-gray-700',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $badge }}">
+                                        {{ $p->status_label }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{{ route('admin.peminjaman') }}" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">Detail</a>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                    <i class="fas fa-inbox text-3xl text-slate-200 mb-3 block"></i>
+                                    Belum ada data peminjaman
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             {{-- Additional Info Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{-- System Info --}}
+                {{-- System Info (Dynamic) --}}
                 <div class="glassmorphism rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                             <i class="fas fa-info-circle text-white"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-800">Informasi Sistem</h3>
+                        <h3 class="text-lg font-bold text-slate-800">Ringkasan Inventaris</h3>
                     </div>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                            <span class="text-sm text-slate-600">Total Alat Terdaftar</span>
-                            <span class="text-sm font-bold text-slate-800">87 Unit</span>
+                            <span class="text-sm text-slate-600">Total Stok Alat</span>
+                            <span class="text-sm font-bold text-slate-800">{{ $alatStats['total_alat'] }} Unit</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                            <span class="text-sm text-slate-600">Alat Tersedia</span>
-                            <span class="text-sm font-bold text-green-600">63 Unit</span>
+                            <span class="text-sm text-slate-600">Stok Tersedia</span>
+                            <span class="text-sm font-bold text-green-600">{{ $alatStats['tersedia'] }} Unit</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                            <span class="text-sm text-slate-600">Alat Dipinjam</span>
-                            <span class="text-sm font-bold text-blue-600">24 Unit</span>
+                            <span class="text-sm text-slate-600">Sedang Dipinjam</span>
+                            <span class="text-sm font-bold text-blue-600">{{ $stats['dipinjam'] }} Peminjaman</span>
                         </div>
                         <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                             <span class="text-sm text-slate-600">Total Mahasiswa</span>
-                            <span class="text-sm font-bold text-slate-800">256 Orang</span>
+                            <span class="text-sm font-bold text-slate-800">{{ $alatStats['total_mahasiswa'] }} Orang</span>
                         </div>
+                        @if($stats['overdue'] > 0)
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-100">
+                            <span class="text-sm text-red-600 font-medium"><i class="fas fa-exclamation-triangle mr-1"></i> Terlambat Kembali</span>
+                            <span class="text-sm font-bold text-red-600">{{ $stats['overdue'] }} Peminjaman</span>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
-                {{-- Recent Activity --}}
+                {{-- Recent Activity (Dynamic) --}}
                 <div class="glassmorphism rounded-2xl p-6 shadow-sm border border-slate-100">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -380,33 +407,32 @@
                         <h3 class="text-lg font-bold text-slate-800">Aktivitas Terbaru</h3>
                     </div>
                     <div class="space-y-3">
+                        @forelse($recentActivities as $act)
+                        @php
+                            $colors = ['from-blue-500 to-blue-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-500', 'from-purple-500 to-indigo-600', 'from-rose-500 to-pink-500'];
+                            $color = $colors[$loop->index % count($colors)];
+                            $actionText = match($act->status) {
+                                'pending'   => 'mengajukan peminjaman',
+                                'disetujui' => 'peminjaman disetujui',
+                                'dipinjam'  => 'mengambil alat',
+                                'menunggu_verifikasi' => 'mengirim bukti kembali',
+                                'selesai'   => 'mengembalikan alat',
+                                'ditolak'   => 'pengajuan ditolak',
+                                default     => 'melakukan aktivitas',
+                            };
+                        @endphp
                         <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                AR
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br {{ $color }} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {{ strtoupper(substr($act->user->name, 0, 2)) }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Ahmad Rizki mengajukan peminjaman</p>
-                                <p class="text-xs text-slate-500">5 menit yang lalu</p>
+                                <p class="text-sm font-medium text-slate-800">{{ $act->user->name }} {{ $actionText }}</p>
+                                <p class="text-xs text-slate-400">{{ $act->updated_at->diffForHumans() }}</p>
                             </div>
                         </div>
-                        <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                SN
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Siti Nurhaliza mengembalikan alat</p>
-                                <p class="text-xs text-slate-500">1 jam yang lalu</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 p-3 rounded-lg bg-slate-50">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                BS
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800">Peminjaman Budi Santoso disetujui</p>
-                                <p class="text-xs text-slate-500">3 jam yang lalu</p>
-                            </div>
-                        </div>
+                        @empty
+                        <p class="text-sm text-slate-400 text-center py-4">Belum ada aktivitas terbaru.</p>
+                        @endforelse
                     </div>
                 </div>
             </div>

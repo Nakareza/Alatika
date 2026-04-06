@@ -15,14 +15,22 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'name' => 'required|string|max:255',
-            'nim' => 'required|string|max:20|unique:users,nim',
+            'role' => 'required|in:mahasiswa,dosen',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-        ], [
-            'nim.required' => 'NIM wajib diisi.',
-            'nim.unique' => 'NIM sudah terdaftar.',
+        ];
+
+        if ($request->role === 'dosen') {
+            $rules['nomor_induk'] = 'required|string|max:30|unique:users,nip';
+        } else {
+            $rules['nomor_induk'] = 'required|string|max:20|unique:users,nim';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
+            'nomor_induk.required' => 'Nomor Identitas wajib diisi.',
+            'nomor_induk.unique' => 'Nomor Identitas sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -33,10 +41,11 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'nim' => $request->nim,
+            'nim' => $request->role === 'mahasiswa' ? $request->nomor_induk : null,
+            'nip' => $request->role === 'dosen' ? $request->nomor_induk : null,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'mahasiswa', // Registrasi publik selalu mahasiswa
+            'role' => $request->role,
         ]);
 
         Auth::login($user);

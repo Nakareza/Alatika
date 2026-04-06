@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('waitlists', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('alat_id')->constrained('alats')->onDelete('cascade');
+            $table->foreignId('alat_id')->constrained('alat')->onDelete('cascade');
             $table->enum('status', ['waiting', 'notified'])->default('waiting');
             $table->timestamps();
         });
