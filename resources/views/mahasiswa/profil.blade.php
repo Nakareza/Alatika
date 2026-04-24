@@ -120,6 +120,30 @@
         </div>
     </div>
 
+    <script>
+        // Sidebar collapse handler
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('sidebarHandler', () => ({
+                collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+                
+                toggle() {
+                    this.collapsed = !this.collapsed;
+                    localStorage.setItem('sidebarCollapsed', this.collapsed);
+                    this.updateMainContent();
+                },
+                
+                updateMainContent() {
+                    const mainContent = document.getElementById('mainContent');
+                    if (mainContent) {
+                        mainContent.className = this.collapsed 
+                            ? 'transition-all duration-300 ease-in-out ml-20'
+                            : 'transition-all duration-300 ease-in-out ml-64';
+                    }
+                }
+            }));
+        });
+    </script>
+
 </body>
 </html>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\Alat;
+use App\Models\Keranjang;
 
 class AlatController extends Controller
 {
@@ -12,8 +13,10 @@ class AlatController extends Controller
         $alat = Alat::orderBy('stok_tersedia', 'desc')
             ->orderBy('nama')
             ->get();
+        
+        $cartCount = Keranjang::where('user_id', auth()->id())->count();
             
-        return view('mahasiswa.alat.index', compact('alat'));
+        return view('mahasiswa.alat.index', compact('alat', 'cartCount'));
     }
 
     public function waitlist($id)

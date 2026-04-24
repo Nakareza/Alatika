@@ -60,7 +60,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'nim' => 'required|string',
             'password' => 'required',
         ]);
 
@@ -70,18 +70,21 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        $credentials = $request->only('email', 'password');
+        // Find user by NIM
+        $user = User::where('nim', $request->nim)->orWhere('nip', $request->nim)->first();
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            
-            // Redirect based on role
-            return $this->redirectBasedOnRole(Auth::user());
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return redirect()->back()
+                ->withErrors(['nim' => 'NIM atau password salah.'])
+                ->withInput();
         }
 
-        return redirect()->back()
-            ->withErrors(['email' => 'The provided credentials do not match our records.'])
-            ->withInput();
+        // Login the user
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // Redirect based on role
+        return $this->redirectBasedOnRole($user);
     }
 
     /**

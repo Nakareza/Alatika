@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,18 +13,12 @@
         .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; }
     </style>
 </head>
-<body class="bg-gray-50 antialiased">
+<body class="bg-gray-50 antialiased" x-data="{}">
     <x-sidebar-mahasiswa />
     <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
         
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-            <div class="px-8 py-4 flex justify-between">
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900">Riwayat Peminjaman</h1>
-                    <p class="text-sm text-gray-500">Daftar semua permintaan peminjaman alat Anda</p>
-                </div>
-            </div>
-        </header>
+        <!-- Navbar Component -->
+        <x-header-dashboard :title="'Riwayat Peminjaman'" :breadcrumbs="[]" />
 
         <main class="p-8 min-h-screen">
             @if(session('success'))
@@ -95,5 +89,29 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Sidebar collapse handler
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('sidebarHandler', () => ({
+                collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+                
+                toggle() {
+                    this.collapsed = !this.collapsed;
+                    localStorage.setItem('sidebarCollapsed', this.collapsed);
+                    this.updateMainContent();
+                },
+                
+                updateMainContent() {
+                    const mainContent = document.getElementById('mainContent');
+                    if (mainContent) {
+                        mainContent.className = this.collapsed 
+                            ? 'transition-all duration-300 ease-in-out ml-20'
+                            : 'transition-all duration-300 ease-in-out ml-64';
+                    }
+                }
+            }));
+        });
+    </script>
 </body>
 </html>

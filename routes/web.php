@@ -9,10 +9,15 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
 use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
+use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
 
 // Landing Page (Public)
 Route::get('/', function () {
-    return view('landing-page');
+    $cartCount = 0;
+    if (auth()->check()) {
+        $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count();
+    }
+    return view('landing-page', compact('cartCount'));
 })->name('home');
 
 // Login & Register Page
@@ -23,7 +28,7 @@ Route::get('/login-new', function () {
 // Authentication Routes
 Route::get('/login', function () {
     return redirect()->route('login-new');
-})->name('login'); // Laravel auth middleware redirects here by default
+})->name('login'); // Laravel auth middleware redirects here by defl');
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');

@@ -3,484 +3,697 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Register Slide</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;800&display=swap');
+    <title>Alatika — Masuk & Daftar</title>
 
-        * {
-            box-sizing: border-box;
-        }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background: #f6f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: 'Montserrat', sans-serif;
-            height: 100vh;
-            margin: -20px 0 50px;
-        }
-
-        h1 {
-            font-weight: bold;
-            margin: 0;
-        }
-
-        p {
-            font-size: 14px;
-            font-weight: 100;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            margin: 20px 0 30px;
-        }
-
-        span {
-            font-size: 12px;
-        }
-
-        a {
-            color: #333;
-            font-size: 14px;
-            text-decoration: none;
-            margin: 15px 0;
-        }
-
-        button {
-            border-radius: 20px;
-            border: 1px solid #4C6EF5; /* Warna Biru Utama */
-            background-color: #4C6EF5;
-            color: #FFFFFF;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 12px 45px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: transform 80ms ease-in;
-            cursor: pointer;
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        button:focus {
-            outline: none;
-        }
-
-        button.ghost {
-            background-color: transparent;
-            border-color: #FFFFFF;
-            position: relative;
-            z-index: 1;
-            cursor: pointer;
-        }
-
-        button.ghost:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        form {
-            background-color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            background: #F5F8FF;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
-            padding: 0 50px;
-            height: 100%;
-            text-align: center;
-        }
-
-        form h1 {
-            margin-bottom: 20px;
-        }
-
-        input {
-            background-color: #eee;
-            border: none;
-            padding: 12px 15px;
-            margin: 8px 0;
-            width: 100%;
-            border-radius: 5px; /* Sedikit rounded di input */
-        }
-
-        /* Container Utama */
-        .container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
-                        0 10px 10px rgba(0,0,0,0.22);
-            position: relative;
+            padding: 24px 16px;
             overflow: hidden;
-            width: 768px;
-            max-width: 100%;
-            min-height: 580px;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            width: 560px; height: 560px;
+            background: radial-gradient(circle, rgba(55,138,221,0.10) 0%, transparent 65%);
+            top: -160px; right: -120px;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(24,95,165,0.07) 0%, transparent 65%);
+            bottom: -100px; left: -80px;
+            pointer-events: none;
         }
 
-        .form-container {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            transition: all 0.6s ease-in-out;
-        }
-
-        /* Sign In Container (Default Visible) */
-        .sign-in-container {
-            left: 0;
-            width: 50%;
-            z-index: 2;
-        }
-
-        .container.right-panel-active .sign-in-container {
-            transform: translateX(100%);
-        }
-
-        /* Sign Up Container (Default Hidden) */
-        .sign-up-container {
-            left: 0;
-            width: 50%;
-            opacity: 0;
-            z-index: 1;
-        }
-
-        .container.right-panel-active .sign-up-container {
-            transform: translateX(100%);
-            opacity: 1;
-            z-index: 5;
-            animation: show 0.6s;
-        }
-
-        @keyframes show {
-            0%, 49.99% {
-                opacity: 0;
-                z-index: 1;
-            }
-            50%, 100% {
-                opacity: 1;
-                z-index: 5;
-            }
-        }
-
-        /* Overlay Container (Bagian Biru Bergerak) */
-        .overlay-container {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
-            transition: transform 0.6s ease-in-out;
-            z-index: 100;
-            pointer-events: auto;
-        }
-
-        .container.right-panel-active .overlay-container {
-            transform: translateX(-100%);
-        }
-
-        .overlay {
-            background: #4C6EF5;
-            background: -webkit-linear-gradient(to right, #5B86E5, #36D1DC);
-            background: linear-gradient(to right, #5B86E5, #36D1DC); /* Gradient Biru seperti di video */
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: 0 0;
-            color: #FFFFFF;
+        /* ══════════════════════════════════════
+           CARD — posisi relative, overflow hidden
+           agar overlay tidak keluar card
+        ══════════════════════════════════════ */
+        .card-wrapper {
             position: relative;
-            left: -100%;
-            height: 100%;
-            width: 200%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .container.right-panel-active .overlay {
-            transform: translateX(50%);
-        }
-
-        .overlay-panel {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 40px;
-            text-align: center;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-            z-index: 1;
-        }
-
-        .overlay-panel button {
-            pointer-events: auto;
             z-index: 10;
+            width: 860px;
+            max-width: 100%;
+            height: 580px;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #EBF3FD;
+            box-shadow: 0 8px 48px rgba(30,43,74,0.10), 0 2px 12px rgba(30,43,74,0.06);
         }
 
-        .overlay-left {
-            transform: translateX(-20%);
-        }
-
-        .container.right-panel-active .overlay-left {
-            transform: translateX(0);
-        }
-
-        .overlay-right {
-            right: 0;
-            transform: translateX(0);
-        }
-
-        .container.right-panel-active .overlay-right {
-            transform: translateX(20%);
-        }
-
-        .social-container {
-            margin: 20px 0;
-        }
-
-        .social-container a {
-            border: 1px solid #DDDDDD;
-            border-radius: 50%;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 5px;
-            height: 40px;
-            width: 40px;
-        }
-
-        /* Logo Polines */
-        .logo-polines {
+        /* ══════════════════════════════════════
+           DUA FORM PANEL
+           Keduanya absolute, full height, lebar 50%.
+           Login di kiri, Register di kanan.
+        ══════════════════════════════════════ */
+        .form-panel {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 50px;
-            height: auto;
-            z-index: 150;
-            transition: all 0.6s ease-in-out;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+            top: 0;
+            height: 100%;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px 44px;
+            background: #fff;
+            transition: opacity 0.45s ease, transform 0.45s ease;
+            z-index: 1;
         }
 
-        /* Logo pindah ke kanan atas saat register aktif */
-        .container.right-panel-active .logo-polines {
-            left: calc(100% - 65px);
+        /* Login — kiri, tampil default */
+        .panel-login {
+            left: 0;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
         }
 
-        .mobile-switch {
-            display: none;
-            margin-top: 20px;
-            color: #4C6EF5;
-            font-weight: bold;
+        /* Register — kanan, tersembunyi default */
+        .panel-register {
+            left: 50%;
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+        }
+
+        /* Register mode: login fade keluar */
+        .card-wrapper.register-mode .panel-login {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
+        }
+
+        /* Register mode: register fade masuk */
+        .card-wrapper.register-mode .panel-register {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        /* ══════════════════════════════════════
+           OVERLAY BIRU
+           Awalnya di kanan (left:50%).
+           Saat register-mode: geser ke kiri (left:0).
+           Transisi pada left + border-radius.
+        ══════════════════════════════════════ */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 50%;                /* default: di kanan */
+            width: 50%;
+            height: 100%;
+            z-index: 10;
+            background: linear-gradient(145deg, #1E2B4A 0%, #185FA5 55%, #378ADD 100%);
+            transition: left 0.65s cubic-bezier(0.77, 0, 0.175, 1),
+                        border-radius 0.65s cubic-bezier(0.77, 0, 0.175, 1);
+            overflow: hidden;
+        }
+
+        /* Register mode: overlay geser ke kiri */
+        .card-wrapper.register-mode .overlay {
+            left: 0;
+        }
+
+        /* Dot grid dekoratif di dalam overlay */
+        .overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+        /* Glow dekoratif */
+        .overlay::after {
+            content: '';
+            position: absolute;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, rgba(55,138,221,0.28) 0%, transparent 65%);
+            top: -80px; right: -60px;
+            pointer-events: none;
+        }
+
+        /* ── Isi overlay: dua konten fade bergantian ── */
+        .overlay-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 44px 36px;
+            text-align: center;
+            z-index: 1;
+            transition: opacity 0.3s ease 0.15s, transform 0.35s ease 0.15s;
+        }
+
+        /* Konten login: tampil default */
+        .overlay-for-login {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        /* Konten register: tersembunyi default */
+        .overlay-for-register {
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+        }
+
+        .card-wrapper.register-mode .overlay-for-login {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
+            transition-delay: 0s;
+        }
+        .card-wrapper.register-mode .overlay-for-register {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        /* ══════════════════════════════════════
+           OVERLAY ELEMENTS
+        ══════════════════════════════════════ */
+        .overlay-logo-box {
+            width: 60px; height: 60px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 22px;
+        }
+        .overlay-logo-box img { width: 38px; height: 38px; object-fit: contain; }
+
+        .overlay-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 23px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+        .overlay-title span { color: #93c5fd; }
+
+        .overlay-desc {
+            font-size: 12.5px;
+            color: rgba(255,255,255,0.62);
+            line-height: 1.65;
+            max-width: 215px;
+            margin-bottom: 28px;
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 26px;
+            background: rgba(255,255,255,0.10);
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1.5px solid rgba(255,255,255,0.35);
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            letter-spacing: .3px;
+            transition: all .2s;
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.7);
         }
 
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            body {
-                margin: 0;
-                height: auto;
-                background: #fff;
-            }
-            .container {
-                width: 100%;
-                min-height: 100vh;
-                border-radius: 0;
-                box-shadow: none;
-            }
-            .form-container {
-                width: 100%;
-                height: 100vh;
-                transition: opacity 0.3s ease-in-out;
-            }
-            .sign-in-container {
-                z-index: 2;
-                left: 0;
-                transform: translateX(0) !important;
-            }
-            .sign-up-container {
-                z-index: 1;
-                left: 0;
-                opacity: 0;
-                pointer-events: none;
-                transform: translateX(0) !important;
-            }
-            .container.right-panel-active .sign-in-container {
-                opacity: 0;
-                pointer-events: none;
-                z-index: 1;
-            }
-            .container.right-panel-active .sign-up-container {
-                opacity: 1;
-                pointer-events: auto;
-                z-index: 5;
-            }
-            .overlay-container {
-                display: none; /* Hide sliding panel on small screens */
-            }
-            .mobile-switch {
-                display: block; /* Show manual switch links */
-            }
-            .logo-polines {
-                left: 15px !important; /* Keep logo fixed on mobile */
-            }
+        .overlay-dots {
+            position: absolute;
+            bottom: 24px;
+            display: flex;
+            gap: 5px;
+        }
+        .overlay-dots span {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transition: all .35s;
+        }
+        .overlay-dots span.active {
+            width: 18px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.85);
+        }
+
+        /* ══════════════════════════════════════
+           FORM ELEMENTS
+        ══════════════════════════════════════ */
+        .form-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #185FA5;
+            background: #EBF3FD;
+            padding: 4px 12px;
+            border-radius: 99px;
+            margin-bottom: 16px;
+            width: fit-content;
+        }
+
+        .form-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #1E2B4A;
+            margin-bottom: 5px;
+            letter-spacing: -0.02em;
+        }
+        .form-sub {
+            font-size: 12.5px;
+            color: #64748b;
+            margin-bottom: 22px;
+            line-height: 1.6;
+        }
+
+        .inp-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 4px;
+            letter-spacing: .02em;
+        }
+        .inp-group {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .inp-group .inp { padding-left: 40px; }
+
+        .inp {
+            width: 100%;
+            padding: 10.5px 14px;
+            background: #F5F8FF;
+            border: 1.5px solid #D4E6F8;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #1E2B4A;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .inp:focus {
+            border-color: #378ADD;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(55,138,221,0.10);
+        }
+        .inp::placeholder { color: #A0BBCC; font-size: 12.5px; }
+
+        select.inp {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 15px;
+            padding-right: 32px;
+            cursor: pointer;
+        }
+
+        .inp-icon {
+            position: absolute;
+            left: 13px; top: 50%;
+            transform: translateY(-50%);
+            color: #B5D4F4;
+            font-size: 12px;
+            pointer-events: none;
+            transition: color .2s;
+        }
+        .inp-group:focus-within .inp-icon { color: #378ADD; }
+
+        .toggle-pw {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: #B5D4F4;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color .15s;
+        }
+        .toggle-pw:hover { color: #185FA5; }
+
+        .btn-primary {
+            width: 100%;
+            padding: 11.5px;
+            background: #1E2B4A;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            letter-spacing: .3px;
+            transition: all .2s;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            background: #185FA5;
+            box-shadow: 0 8px 22px rgba(24,95,165,0.28);
+            transform: translateY(-1px);
+        }
+
+        .error-box {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #DC2626;
+            padding: 9px 13px;
+            border-radius: 9px;
+            font-size: 11.5px;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .link-subtle {
+            font-size: 11.5px;
+            color: #64748b;
+            text-decoration: none;
+            transition: color .15s;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+        .link-subtle:hover { color: #185FA5; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 12px;
+            font-size: 11px;
+            color: #B5D4F4;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: #EBF3FD;
+        }
+
+        /* ── Back link ── */
+        .back-link {
+            position: fixed;
+            top: 20px; left: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid #EBF3FD;
+            padding: 7px 14px;
+            border-radius: 9px;
+            box-shadow: 0 2px 10px rgba(30,43,74,0.07);
+            transition: all .2s;
+            z-index: 200;
+        }
+        .back-link:hover { color: #185FA5; border-color: #B5D4F4; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            top: 20px; right: 20px;
+            background: #fff;
+            border: 1px solid #B5D4F4;
+            color: #185FA5;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 9999;
+            box-shadow: 0 8px 24px rgba(30,43,74,0.10);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn .3s ease;
+        }
+        @keyframes toastIn {
+            from { transform: translateX(80px); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 640px) {
+            .card-wrapper { height: auto; min-height: unset; border-radius: 20px; }
+            .form-panel   { position: relative; width: 100%; height: auto; left: 0 !important;
+                            opacity: 1 !important; transform: none !important; pointer-events: all !important; }
+            .panel-register { display: none; }
+            .card-wrapper.register-mode .panel-login    { display: none; }
+            .card-wrapper.register-mode .panel-register { display: flex; }
+            .overlay { display: none; }
         }
     </style>
 </head>
 <body>
 
 @if(session('success'))
-    <div style="position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; z-index: 9999; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-        {{ session('success') }}
-    </div>
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle" style="color:#378ADD;"></i>
+    {{ session('success') }}
+</div>
 @endif
 
-<div class="container" id="container">
-    
-    <!-- Logo Polines -->
-    <img src="{{ asset('images/logo-polines.png') }}" alt="Logo Polines" class="logo-polines">
+<a href="{{ url('/') }}" class="back-link">
+    <i class="fas fa-arrow-left text-xs"></i>
+    Kembali
+</a>
 
-    <div class="form-container sign-up-container">
-        <form action="{{ route('register') }}" method="POST">
-            @csrf
-            <h1>Buat akun</h1>
-            <div class="social-container">
-                <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-                <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
-            </div>
-            <span>Atau gunakan email Anda untuk mendaftar</span>
-            
-            @if($errors->any() && old('_token') && request()->route()->getName() !== 'login')
-                <div style="background: #f44336; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 12px;">
-                    @foreach($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
-                </div>
-            @endif
-            
-            <input type="text" name="name" placeholder="Nama Lengkap" value="{{ old('name') }}" required />
-            
-            <select name="role" id="roleSelect" required style="background-color: #eee; border: none; padding: 12px 15px; margin: 8px 0; width: 100%; border-radius: 5px; outline: none; font-family: 'Montserrat', sans-serif; color: #757575;">
-                <option value="mahasiswa" {{ old('role') == 'mahasiswa' ? 'selected' : '' }}>Saya adalah Mahasiswa</option>
-                <option value="dosen" {{ old('role') == 'dosen' ? 'selected' : '' }}>Saya adalah Dosen</option>
-            </select>
-            
-            <input type="text" name="nomor_induk" id="nomorInduk" placeholder="NIM (Nomor Induk Mahasiswa)" value="{{ old('nomor_induk') }}" required pattern="[0-9]+" title="Hanya angka yang diperbolehkan" />
-            <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required />
-            <input type="password" name="password" placeholder="Kata Sandi" required />
-            <input type="password" name="password_confirmation" placeholder="Konfirmasi Password" required />
-            <button type="submit">Daftar</button>
+<!-- ══════════ CARD ══════════ -->
+<div class="card-wrapper" id="cardWrapper">
 
-            <span class="mobile-switch" onclick="document.getElementById('container').classList.remove('right-panel-active')">Sudah punya akun? Masuk di sini</span>
-        </form>
-    </div>
-    <div class="form-container sign-in-container">
+    <!-- ── PANEL LOGIN (kiri) ── -->
+    <div class="form-panel panel-login">
+
+        <h2 class="form-title">Selamat datang</h2>
+        <p class="form-sub">Masuk ke akun Alatika kamu untuk mengelola peminjaman alat lab.</p>
+
+        @if($errors->has('nim') && !old('name'))
+        <div class="error-box">
+            <i class="fas fa-circle-exclamation mr-1"></i>
+            {{ $errors->first('nim') }}
+        </div>
+        @endif
+
         <form action="{{ route('login.post') }}" method="POST">
             @csrf
-            <h1>Masuk</h1>
-            <div class="social-container">
-                <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-                <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
+            <label class="inp-label">NIM</label>
+            <div class="inp-group">
+                <input type="text" name="nim" class="inp" placeholder="Nomor induk mahasiswa"
+                       value="{{ old('nim') }}" required pattern="[0-9]+" title="Hanya angka">
+                <i class="fas fa-id-card inp-icon"></i>
             </div>
-            <span>or use your account</span>
-            
-            @if($errors->has('email') && !old('name'))
-                <div style="background: #f44336; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 12px;">
-                    {{ $errors->first('email') }}
-                </div>
-            @endif
-            
-            <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required />
-            <input type="password" name="password" placeholder="Password" required />
-            <a href="#">Lupa kata sandi?</a>
-            <button type="submit">Masuk</button>
 
-            <span class="mobile-switch" onclick="document.getElementById('container').classList.add('right-panel-active')">Belum punya akun? Daftar di sini</span>
+            <label class="inp-label">Password</label>
+            <div class="inp-group">
+                <input type="password" name="password" class="inp" placeholder="Kata sandi" id="pwLogin" required>
+                <i class="fas fa-lock inp-icon"></i>
+                <span class="toggle-pw" onclick="togglePw('pwLogin',this)"><i class="fas fa-eye"></i></span>
+            </div>
+
+            <a href="#" class="link-subtle">Lupa kata sandi?</a>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-right-to-bracket"></i> Masuk
+            </button>
         </form>
+
+        <div class="divider">atau</div>
+        <p style="font-size:12px;color:#64748b;text-align:center;">
+            Belum punya akun?
+            <span onclick="setMode(true)" style="color:#185FA5;font-weight:700;cursor:pointer;">Daftar sekarang</span>
+        </p>
     </div>
 
-    <div class="overlay-container">
-        <div class="overlay">
-            <div class="overlay-panel overlay-left">
-                <h1>Selamat Datang Kembali!</h1>
-                <p>Tetap terhubung dengan kami, silakan masuk dengan info pribadi Anda</p>
-                <button type="button" class="ghost" id="signIn">Masuk</button>
+    <!-- ── PANEL REGISTER (kanan) ── -->
+    <div class="form-panel panel-register">
+        <h2 class="form-title">Daftar Alatika</h2>
+        <p class="form-sub">Isi data diri kamu untuk mulai meminjam alat laboratorium.</p>
+
+        @if($errors->any() && old('name'))
+        <div class="error-box">
+            <i class="fas fa-circle-exclamation mr-1"></i>
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+        @endif
+
+        <form action="{{ route('register') }}" method="POST">
+            @csrf
+            <label class="inp-label">Nama Lengkap</label>
+            <div class="inp-group">
+                <input type="text" name="name" class="inp" placeholder="Nama lengkap kamu"
+                       value="{{ old('name') }}" required>
+                <i class="fas fa-user inp-icon"></i>
             </div>
-            <div class="overlay-panel overlay-right">
-                <h1>Halo, Teman!</h1>
-                <p>Masukkan detail pribadi Anda dan mulai perjalanan bersama kami</p>
-                <button type="button" class="ghost" id="signUp">Daftar</button>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label class="inp-label">Peran / Role</label>
+                    <select name="role" id="roleSelect" class="inp" required>
+                        <option value="mahasiswa" {{ old('role')=='mahasiswa'?'selected':'' }}>Mahasiswa</option>
+                        <option value="dosen"     {{ old('role')=='dosen'    ?'selected':'' }}>Dosen</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="inp-label" id="nimLabel">NIM</label>
+                    <div class="inp-group" style="margin-bottom:0;">
+                        <input type="text" name="nomor_induk" id="nomorInduk" class="inp"
+                               placeholder="NIM" value="{{ old('nomor_induk') }}"
+                               required pattern="[0-9]+" title="Hanya angka">
+                        <i class="fas fa-id-card inp-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <label class="inp-label">Email</label>
+                <div class="inp-group">
+                    <input type="email" name="email" class="inp" placeholder="nama@email.com"
+                           value="{{ old('email') }}" required>
+                    <i class="fas fa-envelope inp-icon"></i>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label class="inp-label">Password</label>
+                    <div class="inp-group">
+                        <input type="password" name="password" class="inp" placeholder="Kata sandi" id="pwReg" required>
+                        <i class="fas fa-lock inp-icon"></i>
+                        <span class="toggle-pw" onclick="togglePw('pwReg',this)"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="inp-label">Konfirmasi</label>
+                    <div class="inp-group">
+                        <input type="password" name="password_confirmation" class="inp" placeholder="Ulangi" required>
+                        <i class="fas fa-lock inp-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Buat Akun
+            </button>
+        </form>
+
+        <div class="divider">atau</div>
+        <p style="font-size:12px;color:#64748b;text-align:center;">
+            Sudah punya akun?
+            <span onclick="setMode(false)" style="color:#185FA5;font-weight:700;cursor:pointer;">Masuk di sini</span>
+        </p>
+    </div>
+
+    <!-- ══════════ OVERLAY BIRU ══════════
+         Default: di kanan (left:50%)
+         Register mode: geser ke kiri (left:0)
+    ═══════════════════════════════════ -->
+    <div class="overlay" id="overlay">
+
+        {{-- Konten saat LOGIN aktif: ajak daftar --}}
+        <div class="overlay-content overlay-for-login">
+            <div class="overlay-logo-box">
+                <img src="{{ asset('images/logo-polines.png') }}" alt="Logo Polines">
+            </div>
+            <h2 class="overlay-title">Belum punya<br>akun <span>Alatika</span>?</h2>
+            <p class="overlay-desc">Daftar sekarang dan nikmati kemudahan peminjaman alat lab secara digital.</p>
+            <button class="btn-ghost" onclick="setMode(true)">
+                <i class="fas fa-user-plus"></i> Daftar Sekarang
+            </button>
+            <div class="overlay-dots">
+                <span class="active"></span>
+                <span></span>
             </div>
         </div>
+
+        {{-- Konten saat REGISTER aktif: ajak login --}}
+        <div class="overlay-content overlay-for-register">
+            <div class="overlay-logo-box">
+                <img src="{{ asset('images/logo-polines.png') }}" alt="Logo Polines">
+            </div>
+            <h2 class="overlay-title">Sudah punya<br>akun <span>Alatika</span>?</h2>
+            <p class="overlay-desc">Masuk ke akunmu dan kelola peminjaman alat lab kapan saja, di mana saja.</p>
+            <button class="btn-ghost" onclick="setMode(false)">
+                <i class="fas fa-right-to-bracket"></i> Masuk Sekarang
+            </button>
+            <div class="overlay-dots">
+                <span></span>
+                <span class="active"></span>
+            </div>
+        </div>
+
     </div>
+
 </div>
 
 <script>
-    const signUpButton = document.getElementById('signUp');
-    const signInButton = document.getElementById('signIn');
-    const container = document.getElementById('container');
+    const card = document.getElementById('cardWrapper');
 
-    console.log('signUpButton:', signUpButton);
-    console.log('signInButton:', signInButton);
+    function setMode(isRegister) {
+        card.classList.toggle('register-mode', isRegister);
+    }
 
-    // Dynamic Input untuk NIM/NIP
+    function togglePw(id, el) {
+        const inp  = document.getElementById(id);
+        const icon = el.querySelector('i');
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        icon.classList.toggle('fa-eye',       !show);
+        icon.classList.toggle('fa-eye-slash',  show);
+        el.style.color = show ? '#185FA5' : '#B5D4F4';
+    }
+
+    // NIM ↔ NIP
     const roleSelect = document.getElementById('roleSelect');
     const nomorInduk = document.getElementById('nomorInduk');
-
-    if (roleSelect && nomorInduk) {
-        roleSelect.addEventListener('change', function() {
-            if (this.value === 'dosen') {
-                nomorInduk.placeholder = 'NIP (Nomor Induk Pegawai)';
-            } else {
-                nomorInduk.placeholder = 'NIM (Nomor Induk Mahasiswa)';
-            }
+    const nimLabel   = document.getElementById('nimLabel');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function () {
+            const d = this.value === 'dosen';
+            nomorInduk.placeholder = d ? 'NIP' : 'NIM';
+            nimLabel.textContent   = d ? 'NIP' : 'NIM';
         });
-        
-        // Trigger saat halaman dimuat (untuk mempertahankan state old input)
-        if(roleSelect.value) {
-            roleSelect.dispatchEvent(new Event('change'));
-        }
+        roleSelect.dispatchEvent(new Event('change'));
     }
 
-    // Tambahkan class 'right-panel-active' untuk menggeser ke mode Register
-    if (signUpButton) {
-        signUpButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Sign Up clicked');
-            container.classList.add("right-panel-active");
-        });
-    }
-
-    // Hapus class 'right-panel-active' untuk kembali ke mode Login
-    if (signInButton) {
-        signInButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Sign In clicked');
-            container.classList.remove("right-panel-active");
-        });
-    }
-
-    // Auto-hide success message after 5 seconds
-    setTimeout(() => {
-        const successMsg = document.querySelector('[style*="position: fixed"]');
-        if (successMsg) {
-            successMsg.style.opacity = '0';
-            successMsg.style.transition = 'opacity 0.5s';
-            setTimeout(() => successMsg.remove(), 500);
-        }
-    }, 5000);
-
-    // Show register panel if there are registration errors
     @if($errors->any() && old('name'))
-        container.classList.add("right-panel-active");
+        setMode(true);
     @endif
-</script>
 
+    const toast = document.getElementById('toast');
+    if (toast) {
+        setTimeout(() => {
+            toast.style.transition = 'opacity .4s';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 400);
+        }, 4500);
+    }
+</script>
 </body>
 </html>

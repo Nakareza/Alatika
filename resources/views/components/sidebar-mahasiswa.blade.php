@@ -1,5 +1,6 @@
 <!-- Sidebar Mahasiswa dengan Toggle Animation -->
-<aside x-data="sidebarHandler()" 
+<aside x-data="{ ...sidebarHandler(), showLogoutModal: false }"
+       @toggle-sidebar.window="toggle()"
        class="fixed inset-y-0 left-0 z-40 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out shadow-sm"
        :class="collapsed ? 'w-20' : 'w-64'"
        x-init="updateMainContent()">
@@ -25,14 +26,15 @@
         </div>
     </div>
 
-    <!-- Toggle Button -->
+    {{-- <!-- TOGGLE -->
     <button @click="toggle()"
-            class="absolute -right-3 top-20 w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 z-50">
-        <i class="fas text-xs transition-transform duration-300"
+            class="absolute -right-3 top-[72px] w-6 h-6 rounded-full flex items-center justify-center text-white z-50 bg-[#185FA5]">
+        <i class="fas text-[10px]"
            :class="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
-    </button>
+    </button> --}}
 
-    <!-- User Profile Card -->
+
+    {{-- <!-- User Profile Card -->
     <div class="p-4 border-b border-gray-100"
          x-bind:class="collapsed ? 'px-2' : 'px-4'">
         <div class="flex items-center gap-3"
@@ -55,7 +57,7 @@
                 <p class="text-gray-500 text-xs truncate">Mahasiswa</p>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Navigation Menu -->
     <nav class="p-3 space-y-1.5 overflow-y-auto h-[calc(100vh-180px)]">
@@ -138,4 +140,44 @@
                   class="font-medium text-sm whitespace-nowrap">Profil</span>
         </a>
     </nav>
+
+    <!-- Logout Button — pinned di bawah -->
+    <div class="absolute bottom-0 left-0 right-0 p-3 border-t border-slate-100" style="background:#fff;">
+        <button @click="showLogoutModal = true"
+                type="button"
+                class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium text-slate-400 hover:bg-red-50 hover:text-red-500"
+                x-bind:class="collapsed ? 'justify-center' : ''">
+            <i class="fas fa-sign-out-alt w-4 text-center flex-shrink-0"></i>
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="whitespace-nowrap">Keluar</span>
+        </button>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div x-show="showLogoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showLogoutModal = false">
+        <div x-show="showLogoutModal" x-transition class="fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm" @click="showLogoutModal = false"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div x-show="showLogoutModal" x-transition class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-sign-out-alt text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Konfirmasi Logout</h3>
+                    <p class="text-sm text-gray-600">Apakah Anda yakin ingin keluar dari akun?</p>
+                </div>
+                <div class="flex gap-3">
+                    <button @click="showLogoutModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors">Batal</button>
+                    <form action="{{ route('logout') }}" method="POST" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-xl transition-all">Ya, Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </aside>
