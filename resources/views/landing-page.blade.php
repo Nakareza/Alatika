@@ -364,7 +364,7 @@
 
                 <div class="flex flex-wrap gap-3 mb-10">
                     @if(auth()->check())
-                        <a href="{{ route('mahasiswa.keranjang') }}" class="relative inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all">
+                        {{-- <a href="{{ route('mahasiswa.keranjang') }}" class="relative inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all">
                             <i class="fas fa-shopping-cart"></i>
                             Keranjang
                             @if($cartCount > 0)
@@ -374,7 +374,7 @@
                         <a href="{{ route('mahasiswa.peminjaman.ajukan') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all">
                             <i class="fas fa-plus"></i>
                             Pinjam Langsung
-                        </a>
+                        </a> --}}
                     @else
                         <a href="#prosedur" class="btn-primary">
                             Cara Meminjam <i class="fas fa-arrow-right text-xs"></i>
