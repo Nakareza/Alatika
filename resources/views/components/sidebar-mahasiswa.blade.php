@@ -1,18 +1,21 @@
 <!-- Sidebar Mahasiswa dengan Toggle Animation -->
-<aside x-data="{ ...sidebarHandler(), showLogoutModal: false }"
+<aside x-data="sidebarHandler()"
        @toggle-sidebar.window="toggle()"
-       class="fixed inset-y-0 left-0 z-40 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out shadow-sm"
+       class="fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out"
        :class="collapsed ? 'w-20' : 'w-64'"
+       style="background:white;border-right:1px solid #EBF3FD;box-shadow:0 2px 16px rgba(30,43,74,0.06);"
        x-init="updateMainContent()">
-    
+
     <!-- Header Section -->
-    <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-sky-50">
+    <div class="h-16 flex items-center justify-between px-4"
+         style="border-bottom:1px solid #1E2B4A;background:#1E2B4A;">
         <div class="flex items-center gap-3 overflow-hidden"
              x-bind:class="collapsed ? 'justify-center w-full' : ''">
-            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-blue-100 flex-shrink-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);">
                 <img src="{{ asset('images/logo-polines.png') }}" alt="Logo" class="w-7 h-7 object-contain">
             </div>
-            <div x-show="!collapsed" 
+            <div x-show="!collapsed"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
@@ -20,134 +23,146 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  class="overflow-hidden">
-                <h2 class="text-gray-800 font-bold text-base leading-tight">Alatika</h2>
-                <p class="text-gray-500 text-xs">Portal Mahasiswa</p>
+                <h2 class="font-bold text-base leading-tight text-white"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+                    Alat<span style="color:#B5D4F4;">ika</span>
+                </h2>
+                <p class="text-xs" style="color:rgba(255,255,255,0.6);">Portal Mahasiswa</p>
             </div>
         </div>
     </div>
 
-    {{-- <!-- TOGGLE -->
-    <button @click="toggle()"
-            class="absolute -right-3 top-[72px] w-6 h-6 rounded-full flex items-center justify-center text-white z-50 bg-[#185FA5]">
-        <i class="fas text-[10px]"
-           :class="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
-    </button> --}}
-
-
-    {{-- <!-- User Profile Card -->
-    <div class="p-4 border-b border-gray-100"
-         x-bind:class="collapsed ? 'px-2' : 'px-4'">
-        <div class="flex items-center gap-3"
-             x-bind:class="collapsed ? 'justify-center' : ''">
-            <div class="relative flex-shrink-0">
-                <div class="w-11 h-11 bg-gradient-to-br from-blue-500 to-sky-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </div>
-                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full"></div>
-            </div>
-            <div x-show="!collapsed"
-                 x-transition:enter="transition ease-out duration-200 delay-75"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-100"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="flex-1 min-w-0 overflow-hidden">
-                <h3 class="text-gray-800 font-semibold text-sm truncate">{{ Auth::user()->name }}</h3>
-                <p class="text-gray-500 text-xs truncate">Mahasiswa</p>
-            </div>
-        </div>
-    </div> --}}
-
     <!-- Navigation Menu -->
-    <nav class="p-3 space-y-1.5 overflow-y-auto h-[calc(100vh-180px)]">
-        
+    <nav class="p-3 space-y-1 overflow-y-auto h-[calc(100vh-128px)]">
+
         <!-- Dashboard -->
-        <a href="{{ route('mahasiswa.dashboard') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.dashboard') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.dashboard') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.dashboard') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.dashboard'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-home w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Dashboard</span>
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Dashboard</span>
         </a>
 
         <!-- Ajukan Peminjaman -->
-        <a href="{{ route('mahasiswa.peminjaman.ajukan') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.peminjaman.ajukan') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.peminjaman.ajukan') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.peminjaman.ajukan') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.peminjaman.ajukan'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-plus-circle w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Ajukan Peminjaman</span>
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Ajukan Peminjaman</span>
         </a>
 
         <!-- Riwayat Peminjaman -->
-        <a href="{{ route('mahasiswa.peminjaman.riwayat') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.peminjaman.riwayat') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.peminjaman.riwayat') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.peminjaman.riwayat') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.peminjaman.riwayat'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-history w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Riwayat Peminjaman</span>
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Riwayat Peminjaman</span>
         </a>
 
         <!-- Daftar Alat -->
-        <a href="{{ route('mahasiswa.alat') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.alat') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.alat') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.alat') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.alat'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-box-open w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Daftar Alat</span>
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Daftar Alat</span>
         </a>
 
         <!-- Keranjang -->
         @php $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count(); @endphp
-        <a href="{{ route('mahasiswa.keranjang') }}" 
-           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.keranjang') ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-200' : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.keranjang') }}"
+           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.keranjang') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.keranjang'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-shopping-cart w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap flex-1">Keranjang</span>
+                  class="text-sm whitespace-nowrap flex-1"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Keranjang</span>
             @if($cartCount > 0)
-            <span x-show="!collapsed" class="bg-red-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{{ $cartCount }}</span>
+            <span x-show="!collapsed"
+                  class="text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
+                  style="background:#ef4444;">{{ $cartCount }}</span>
             @endif
         </a>
 
-        <div x-show="!collapsed" class="border-t border-gray-200 my-2"></div>
+        <!-- Divider -->
+        <div x-show="!collapsed" class="my-2" style="border-top:1px solid #EBF3FD;"></div>
 
         <!-- Profil -->
-        <a href="{{ route('mahasiswa.profil') }}" 
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('mahasiswa.profil') ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''">
+        <a href="{{ route('mahasiswa.profil') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.profil') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.profil'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
             <i class="fas fa-user w-5 text-center"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200 delay-75"
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
-                  class="font-medium text-sm whitespace-nowrap">Profil</span>
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Profil</span>
         </a>
     </nav>
 
     <!-- Logout Button — pinned di bawah -->
-    <div class="absolute bottom-0 left-0 right-0 p-3 border-t border-slate-100" style="background:#fff;">
-        <button @click="showLogoutModal = true"
+    <div class="absolute bottom-0 left-0 right-0 p-3" style="border-top:1px solid #EBF3FD;background:white;">
+        <button @click="$dispatch('open-modal-logout')"
                 type="button"
-                class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium text-slate-400 hover:bg-red-50 hover:text-red-500"
-                x-bind:class="collapsed ? 'justify-center' : ''">
-            <i class="fas fa-sign-out-alt w-4 text-center flex-shrink-0"></i>
+                class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm"
+                style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;"
+                x-bind:class="collapsed ? 'justify-center' : ''"
+                onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444';"
+                onmouseout="this.style.background='';this.style.color='#94a3b8';">
+            <i class="fas fa-sign-out-alt w-4 text-center shrink-0"></i>
             <span x-show="!collapsed"
                   x-transition:enter="transition ease-out duration-200"
                   x-transition:enter-start="opacity-0"
@@ -156,28 +171,4 @@
         </button>
     </div>
 
-    <!-- Logout Confirmation Modal -->
-    <div x-show="showLogoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showLogoutModal = false">
-        <div x-show="showLogoutModal" x-transition class="fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm" @click="showLogoutModal = false"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div x-show="showLogoutModal" x-transition class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-                <div class="flex justify-center mb-4">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-sign-out-alt text-red-600 text-2xl"></i>
-                    </div>
-                </div>
-                <div class="text-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Konfirmasi Logout</h3>
-                    <p class="text-sm text-gray-600">Apakah Anda yakin ingin keluar dari akun?</p>
-                </div>
-                <div class="flex gap-3">
-                    <button @click="showLogoutModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors">Batal</button>
-                    <form action="{{ route('logout') }}" method="POST" class="flex-1">
-                        @csrf
-                        <button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-xl transition-all">Ya, Logout</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </aside>
