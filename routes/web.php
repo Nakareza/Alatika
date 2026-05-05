@@ -10,14 +10,17 @@ use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardCont
 use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
 use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
+use Illuminate\Support\Facades\Auth;
 
 // Landing Page (Public)
 Route::get('/', function () {
     $cartCount = 0;
-    if (auth()->check()) {
-        $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count();
+    if (Auth::check()) {
+        $cartCount = \App\Models\Keranjang::where('user_id', Auth::id())->count();
     }
+
     return view('landing-page', compact('cartCount'));
+
 })->name('home');
 
 // Login & Register Page

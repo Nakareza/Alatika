@@ -15,6 +15,9 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
+        $title = 'Dashboard';
+        $breadcrumbs = [];
+        
         $stats = [
             'total' => $user->peminjaman()->count(),
             'dipinjam' => $user->peminjaman()->where('status', 'dipinjam')->count(),
@@ -33,6 +36,6 @@ class DashboardController extends Controller
             'selesai' => $user->peminjaman()->where('status', 'selesai')->count(),
         ];
 
-        return view('mahasiswa.dashboard', compact('stats', 'recent', 'statusSummary'));
+        return view('mahasiswa.dashboard', compact('title', 'breadcrumbs', 'stats', 'recent', 'statusSummary'));
     }
 }
