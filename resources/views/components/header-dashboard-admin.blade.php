@@ -257,24 +257,67 @@
 
                         <div class="p-2 border-t border-slate-100">
 
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
+    <button
+        @click="open = false; $dispatch('open-modal-logout')"
+        class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors"
+        style="color:#EF4444;font-family:'Inter',sans-serif;"
+        onmouseover="this.style.background='#FEF2F2'"
+        onmouseout="this.style.background=''">
 
-                                <button type="submit"
-                                        class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors">
+        <i class="fas fa-sign-out-alt"></i>
 
-                                    <i class="fas fa-sign-out-alt"></i>
+        Logout
+    </button>
 
-                                    Logout
-                                </button>
-                            </form>
-
-                        </div>
+</div>
 
                     </div>
+                    
                 </div>
 
             </div>
         </div>
     </div>
 </header>
+
+
+{{-- Modal Logout --}}
+<x-modal name="logout" title="Konfirmasi Logout" type="danger">
+
+    <p class="text-sm text-center mb-1"
+       style="color:#94a3b8;font-family:'Inter',sans-serif;">
+        Kamu yakin mau keluar dari akun ini?
+    </p>
+
+    <x-slot name="footer">
+
+        <button
+            @click="$dispatch('close-modal-logout')"
+            class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            style="background:#F5F8FF;
+                   color:#475569;
+                   border:1px solid #EBF3FD;
+                   font-family:'Plus Jakarta Sans',sans-serif;"
+            onmouseover="this.style.background='#EBF3FD'"
+            onmouseout="this.style.background='#F5F8FF'">
+
+            Batal
+        </button>
+
+        <form action="{{ route('logout') }}" method="POST" class="flex-1">
+            @csrf
+
+            <button type="submit"
+                    class="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                    style="background:#1E2B4A;
+                           font-family:'Plus Jakarta Sans',sans-serif;"
+                    onmouseover="this.style.background='#185FA5'"
+                    onmouseout="this.style.background='#1E2B4A'">
+
+                Ya, Logout
+            </button>
+        </form>
+
+    </x-slot>
+
+</x-modal>
