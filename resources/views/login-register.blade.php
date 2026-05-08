@@ -502,12 +502,12 @@
 
         <form action="{{ route('login.post') }}" method="POST">
             @csrf
-            <label class="inp-label">NIM</label>
-            <div class="inp-group">
-                <input type="text" name="nim" class="inp" placeholder="Nomor induk mahasiswa"
-                       value="{{ old('nim') }}" required pattern="[0-9]+" title="Hanya angka">
-                <i class="fas fa-id-card inp-icon"></i>
-            </div>
+            <label class="inp-label">NIM / NIP / Email</label>
+<div class="inp-group">
+    <input type="text" name="nim" class="inp" placeholder="Masukkan NIM, NIP, atau Email"
+           value="{{ old('nim') }}" required>
+    <i class="fas fa-id-card inp-icon"></i>
+</div>
 
             <label class="inp-label">Password</label>
             <div class="inp-group">

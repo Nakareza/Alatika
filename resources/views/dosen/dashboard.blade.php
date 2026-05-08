@@ -228,7 +228,7 @@
                                             <i class="fas fa-user-circle w-4 text-gray-400"></i>
                                             <span>Profil Saya</span>
                                         </a>
-                                        <a href="{{ route('dosen.peminjaman.riwayat') }}" 
+                                        <a href="{{ route('dosen.riwayat') }}" 
                                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                             <i class="fas fa-history w-4 text-gray-400"></i>
                                             <span>Riwayat Peminjaman</span>
@@ -332,7 +332,7 @@
                         <div class="card p-6">
                             <div class="flex items-center justify-between mb-5">
                                 <h2 class="text-lg font-semibold text-gray-900">Aktivitas Terbaru</h2>
-                                <a href="{{ route('dosen.peminjaman.riwayat') }}" 
+                                <a href="{{ route('dosen.riwayat') }}" 
                                    class="text-sm font-medium text-blue-600 hover:text-blue-700">
                                     Lihat Semua →
                                 </a>
@@ -373,7 +373,7 @@
                         <div class="card p-6">
                             <h3 class="text-base font-semibold text-gray-900 mb-4">Menu Cepat</h3>
                             <div class="space-y-2">
-                                <a href="{{ route('dosen.peminjaman.riwayat') }}" 
+                                <a href="{{ route('dosen.riwayat') }}" 
                                    class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-all">
                                     <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-all">
                                         <i class="fas fa-history text-blue-600 text-sm"></i>

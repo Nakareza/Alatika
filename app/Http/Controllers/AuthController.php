@@ -70,12 +70,15 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // Find user by NIM
-        $user = User::where('nim', $request->nim)->orWhere('nip', $request->nim)->first();
+        // Find user by NIM, NIP, or Email
+        $user = User::where('nim', $request->nim)
+            ->orWhere('nip', $request->nim)
+            ->orWhere('email', $request->nim)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return redirect()->back()
-                ->withErrors(['nim' => 'NIM atau password salah.'])
+                ->withErrors(['nim' => 'NIM/NIP/Email atau password salah.'])
                 ->withInput();
         }
 
