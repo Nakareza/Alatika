@@ -5,16 +5,17 @@ namespace App\Http\Controllers\Kalab;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         $stats = [
             'total_alat' => \App\Models\Alat::count(),
-            'tersedia' => \App\Models\Alat::sum('stok'),
+            'tersedia' => \App\Models\Alat::sum('stok_tersedia'),
             'dipinjam' => Peminjaman::where('status', 'dipinjam')->count(),
             'pending_dosen' => Peminjaman::whereHas('user', function($q) {
                 $q->where('role', 'dosen');

@@ -1,125 +1,291 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Kepala Lab - Alatika</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #f8fafc; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        [x-cloak] { display: none !important; }
-        .modal-backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-    </style>
-</head>
-<body class="bg-gray-50 antialiased" x-data="{ showLogoutModal: false }">
+@extends('layouts.kalab')
 
-    <x-sidebar-kalab />
+@section('title', 'Profil Saya')
 
-    <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
+@section('content')
 
-        {{-- Header --}}
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-            <div class="px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900">Profil Saya</h1>
-                        <p class="text-sm text-gray-500 mt-0.5">Kelola informasi akun dan integrasi</p>
-                    </div>
-                </div>
+<div x-data="{ showLogoutModal: false }"
+     class="max-w-5xl mx-auto space-y-6">
+
+    {{-- Profile Header --}}
+    <div class="card overflow-hidden">
+
+        {{-- Banner --}}
+        <div class="h-36 bg-gradient-to-r from-[#1E2B4A] via-[#185FA5] to-[#378ADD] relative">
+
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-6 right-10 w-32 h-32 bg-white rounded-full"></div>
+                <div class="absolute bottom-0 left-20 w-24 h-24 bg-white rounded-full"></div>
             </div>
-        </header>
 
-        <main class="p-4 sm:p-6 lg:p-8 min-h-screen">
+            {{-- Avatar --}}
+            <div class="absolute -bottom-12 left-8">
 
-            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="w-24 h-24 rounded-3xl bg-white border-4 border-white shadow-xl flex items-center justify-center">
 
-                {{-- Profile Card --}}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="h-28 bg-gradient-to-r from-blue-500 to-blue-600 relative">
-                        <div class="absolute -bottom-10 left-6">
-                            <div class="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
-                                <span class="text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pt-14 px-6 pb-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-800">{{ Auth::user()->name }}</h2>
-                                <p class="text-sm text-slate-500 mt-0.5">{{ Auth::user()->email }}</p>
-                                <span class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                                    <i class="fas fa-shield-alt"></i> Kepala Laboratorium
-                                </span>
-                            </div>
-                        </div>
+                    <span class="text-4xl font-extrabold bg-gradient-to-br from-[#185FA5] to-[#378ADD] bg-clip-text text-transparent"
+                          style="font-family:'Plus Jakarta Sans',sans-serif;">
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
-                            <div class="bg-slate-50 rounded-xl p-4">
-                                <p class="text-xs text-slate-500 font-medium">NIP/NIDN</p>
-                                <p class="text-sm font-semibold text-slate-800 mt-1">{{ Auth::user()->nip ?? '-' }}</p>
-                            </div>
-                            <div class="bg-slate-50 rounded-xl p-4">
-                                <p class="text-xs text-slate-500 font-medium">Role</p>
-                                <p class="text-sm font-semibold text-slate-800 mt-1">{{ ucfirst(Auth::user()->role) }}</p>
-                            </div>
-                            <div class="bg-slate-50 rounded-xl p-4">
-                                <p class="text-xs text-slate-500 font-medium">Terdaftar Sejak</p>
-                                <p class="text-sm font-semibold text-slate-800 mt-1">{{ Auth::user()->created_at->format('d M Y') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
 
-                {{-- Telegram Integration --}}
-                @include('components.telegram-connect')
+                    </span>
 
-                {{-- Account Actions --}}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <i class="fas fa-cog text-slate-400"></i> Akun
-                    </h3>
-                    <div class="space-y-3">
-                        <button @click="showLogoutModal = true" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left group">
-                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-sign-out-alt text-red-600"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-slate-800 group-hover:text-red-700">Logout</p>
-                                <p class="text-xs text-slate-500">Keluar dari akun Anda</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
-                        </button>
-                    </div>
                 </div>
 
             </div>
-        </main>
+
+        </div>
+
+        {{-- Profile Content --}}
+        <div class="pt-16 px-8 pb-8">
+
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+
+                <div>
+
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EBF3FD] text-[#185FA5] text-sm font-semibold mb-4">
+                        <i class="fas fa-user-shield"></i>
+                        Kepala Laboratorium
+                    </div>
+
+                    <h1 class="text-3xl font-extrabold text-[#1E2B4A] mb-2"
+                        style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                        {{ Auth::user()->name }}
+
+                    </h1>
+
+                    <p class="text-slate-500 text-sm">
+                        {{ Auth::user()->email }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {{-- Info Grid --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+
+                {{-- NIP --}}
+                <div class="list-item">
+
+                    <div class="flex items-center gap-3 mb-3">
+
+                        <div class="w-11 h-11 rounded-xl bg-[#EBF3FD] flex items-center justify-center">
+                            <i class="fas fa-id-card text-[#185FA5]"></i>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">
+                                NIP / NIDN
+                            </p>
+
+                            <p class="text-sm font-bold text-[#1E2B4A] mt-1">
+                                {{ Auth::user()->nip ?? '-' }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {{-- Role --}}
+                <div class="list-item">
+
+                    <div class="flex items-center gap-3 mb-3">
+
+                        <div class="w-11 h-11 rounded-xl bg-[#EBF3FD] flex items-center justify-center">
+                            <i class="fas fa-user-tag text-[#185FA5]"></i>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">
+                                Role
+                            </p>
+
+                            <p class="text-sm font-bold text-[#1E2B4A] mt-1 capitalize">
+                                {{ Auth::user()->role }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {{-- Created --}}
+                <div class="list-item">
+
+                    <div class="flex items-center gap-3 mb-3">
+
+                        <div class="w-11 h-11 rounded-xl bg-[#EBF3FD] flex items-center justify-center">
+                            <i class="fas fa-calendar-check text-[#185FA5]"></i>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">
+                                Terdaftar Sejak
+                            </p>
+
+                            <p class="text-sm font-bold text-[#1E2B4A] mt-1">
+                                {{ Auth::user()->created_at->format('d M Y') }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {{-- Telegram Integration --}}
+    <div class="card p-6 lg:p-8">
+
+        <div class="flex items-center gap-3 mb-6">
+
+            <div class="w-12 h-12 rounded-2xl bg-[#EBF3FD] flex items-center justify-center">
+                <i class="fab fa-telegram-plane text-2xl text-[#185FA5]"></i>
+            </div>
+
+            <div>
+
+                <h2 class="text-xl font-bold text-[#1E2B4A]"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                    Integrasi Telegram
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Hubungkan akun Telegram untuk menerima notifikasi.
+                </p>
+
+            </div>
+
+        </div>
+
+        @include('components.telegram-connect')
+
+    </div>
+
+    {{-- Account Settings --}}
+    <div class="card p-6 lg:p-8">
+
+        <div class="flex items-center gap-3 mb-6">
+
+            <div class="w-12 h-12 rounded-2xl bg-[#EBF3FD] flex items-center justify-center">
+                <i class="fas fa-cog text-xl text-[#185FA5]"></i>
+            </div>
+
+            <div>
+
+                <h2 class="text-xl font-bold text-[#1E2B4A]"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                    Pengaturan Akun
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Kelola akses dan keamanan akun Anda.
+                </p>
+
+            </div>
+
+        </div>
+
+        {{-- Logout --}}
+        <button @click="showLogoutModal = true"
+                class="w-full flex items-center gap-4 p-5 rounded-2xl border border-red-100 bg-red-50 hover:bg-red-100 transition-all duration-200">
+
+            <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                <i class="fas fa-sign-out-alt text-red-600"></i>
+            </div>
+
+            <div class="text-left flex-1">
+
+                <p class="font-bold text-red-700">
+                    Logout
+                </p>
+
+                <p class="text-sm text-red-500">
+                    Keluar dari akun Kepala Laboratorium
+                </p>
+
+            </div>
+
+            <i class="fas fa-chevron-right text-red-400"></i>
+
+        </button>
+
     </div>
 
     {{-- Logout Modal --}}
-    <div x-show="showLogoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showLogoutModal = false">
-        <div x-show="showLogoutModal" x-transition class="fixed inset-0 modal-backdrop" @click="showLogoutModal = false"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div x-show="showLogoutModal" x-transition class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-                <div class="flex justify-center mb-4"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center"><i class="fas fa-sign-out-alt text-red-600 text-2xl"></i></div></div>
-                <div class="text-center mb-6"><h3 class="text-xl font-bold text-gray-900 mb-2">Konfirmasi Logout</h3><p class="text-sm text-gray-600">Apakah Anda yakin ingin keluar?</p></div>
-                <div class="flex gap-3">
-                    <button @click="showLogoutModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors">Batal</button>
-                    <form action="{{ route('logout') }}" method="POST" class="flex-1">@csrf<button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-xl transition-all">Ya, Logout</button></form>
+    <div x-show="showLogoutModal"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+        {{-- Backdrop --}}
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+             @click="showLogoutModal = false"></div>
+
+        {{-- Modal --}}
+        <div x-show="showLogoutModal"
+             x-transition
+             class="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
+
+            <div class="flex flex-col items-center text-center">
+
+                <div class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-5">
+
+                    <i class="fas fa-sign-out-alt text-3xl text-red-600"></i>
+
                 </div>
+
+                <h3 class="text-2xl font-bold text-[#1E2B4A] mb-2"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                    Konfirmasi Logout
+
+                </h3>
+
+                <p class="text-sm text-slate-500 mb-8">
+                    Apakah Anda yakin ingin keluar dari akun ini?
+                </p>
+
+                <div class="flex items-center gap-3 w-full">
+
+                    <button @click="showLogoutModal = false"
+                            class="btn btn-secondary flex-1 justify-center">
+
+                        Batal
+
+                    </button>
+
+                    <form action="{{ route('logout') }}"
+                          method="POST"
+                          class="flex-1">
+
+                        @csrf
+
+                        <button type="submit"
+                                class="btn flex justify-center w-full bg-red-600 text-white hover:bg-red-700">
+
+                            Logout
+
+                        </button>
+
+                    </form>
+
+                </div>
+
             </div>
+
         </div>
+
     </div>
 
-</body>
-</html>
+</div>
 
+@endsection

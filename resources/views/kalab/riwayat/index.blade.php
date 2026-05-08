@@ -1,61 +1,227 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riwayat - Alatika</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>body { font-family: 'Inter', sans-serif; background: #f8fafc; }</style>
-</head>
-<body class="bg-gray-50 antialiased">
-    <x-sidebar-kalab />
-    <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
-        
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-            <div class="px-8 py-4">
-                <h1 class="text-xl font-bold text-gray-900">Riwayat Peminjaman (Global)</h1>
-                <p class="text-sm text-gray-500">Daftar semua riwayat peminjaman.</p>
-            </div>
-        </header>
+@extends('layouts.kalab')
 
-        <main class="p-8 min-h-screen">
-            <div class="bg-white border border-gray-200 rounded-16px shadow-sm overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="py-4 px-6 text-sm">Peminjam</th>
-                            <th class="py-4 px-6 text-sm">Alat / Jumlah</th>
-                            <th class="py-4 px-6 text-sm">Status</th>
-                            <th class="py-4 px-6 text-sm">Update Terakhir</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse($peminjaman as $p)
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-4 px-6 text-sm">
-                                <strong>{{ $p->user->name }}</strong><br>
-                                <span class="text-xs text-gray-500 capitalize">{{ $p->user->role }}</span>
-                            </td>
-                            <td class="py-4 px-6 text-sm">{{ $p->alat->nama }} ({{ $p->jumlah }} unit)</td>
-                            <td class="py-4 px-6 text-sm">
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ str_replace('bg-', 'bg-opacity-20 bg-', $p->status_config['color']) }} border {{ str_replace('bg-', 'border-', str_replace('text-', 'text-', $p->status_config['color'])) }}">
-                                    {{ $p->status_label }}
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-sm">{{ $p->updated_at->format('d M Y H:i') }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="py-8 text-center text-gray-500">Tidak ada riwayat.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+@section('title', 'Riwayat Peminjaman')
+
+@section('content')
+
+    {{-- Header Card --}}
+    <div class="card p-6 lg:p-8 mb-6">
+
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+            <div>
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EBF3FD] text-[#185FA5] text-sm font-semibold mb-4">
+                    <i class="fas fa-history"></i>
+                    Riwayat Global
+                </div>
+
+                <h1 class="text-2xl lg:text-3xl font-extrabold mb-2"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                    Riwayat Peminjaman Laboratorium
+                </h1>
+
+                <p class="text-sm text-slate-500">
+                    Daftar seluruh aktivitas peminjaman alat laboratorium.
+                </p>
             </div>
-        </main>
+
+            <div class="hidden lg:flex items-center justify-center w-20 h-20 rounded-2xl bg-[#F5F8FF] border border-[#D4E6F8]">
+                <i class="fas fa-clock-rotate-left text-3xl text-[#378ADD]"></i>
+            </div>
+
+        </div>
+
     </div>
-</body>
-</html>
+
+    {{-- Table Card --}}
+    <div class="card overflow-hidden">
+
+        {{-- Table Header --}}
+        <div class="flex items-center justify-between px-6 py-5 border-b"
+             style="border-color:#EBF3FD;">
+
+            <div>
+
+                <h2 class="text-lg font-bold"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                    Data Riwayat
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Semua data peminjaman yang pernah dilakukan.
+                </p>
+
+            </div>
+
+            <div class="badge badge-info">
+                <i class="fas fa-database mr-2"></i>
+                {{ $peminjaman->count() }} Data
+            </div>
+
+        </div>
+
+        {{-- Table --}}
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead class="bg-[#F8FBFF] border-b"
+                       style="border-color:#EBF3FD;">
+
+                    <tr>
+
+                        <th class="py-4 px-6 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Peminjam
+                        </th>
+
+                        <th class="py-4 px-6 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Alat / Jumlah
+                        </th>
+
+                        <th class="py-4 px-6 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Status
+                        </th>
+
+                        <th class="py-4 px-6 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Update Terakhir
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody class="divide-y"
+                       style="divide-color:#EBF3FD;">
+
+                    @forelse($peminjaman as $p)
+
+                        <tr class="hover:bg-[#F8FBFF] transition-all duration-200">
+
+                            {{-- User --}}
+                            <td class="py-5 px-6">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="w-10 h-10 rounded-full bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+
+                                        {{ strtoupper(substr($p->user->name, 0, 2)) }}
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-sm font-semibold text-[#1E2B4A]">
+                                            {{ $p->user->name }}
+                                        </p>
+
+                                        <p class="text-xs text-slate-500 capitalize">
+                                            {{ $p->user->role }}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            {{-- Alat --}}
+                            <td class="py-5 px-6">
+
+                                <div>
+
+                                    <p class="text-sm font-semibold text-[#1E2B4A]">
+                                        {{ $p->alat->nama }}
+                                    </p>
+
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        {{ $p->jumlah }} unit
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                            {{-- Status --}}
+                            <td class="py-5 px-6">
+
+                                @php
+                                    $statusClass = match($p->status) {
+                                        'disetujui', 'selesai' => 'badge-success',
+                                        'pending' => 'badge-warning',
+                                        'ditolak' => 'badge-danger',
+                                        default => 'badge-info'
+                                    };
+                                @endphp
+
+                                <span class="badge {{ $statusClass }}">
+
+                                    <i class="fas 
+                                        {{ $p->status == 'disetujui' || $p->status == 'selesai' ? 'fa-check-circle' : 
+                                           ($p->status == 'ditolak' ? 'fa-times-circle' : 'fa-clock') }} mr-2">
+                                    </i>
+
+                                    {{ $p->status_label }}
+
+                                </span>
+
+                            </td>
+
+                            {{-- Updated --}}
+                            <td class="py-5 px-6">
+
+                                <div class="flex items-center gap-2 text-sm text-slate-600">
+
+                                    <i class="fas fa-calendar-alt text-[#378ADD]"></i>
+
+                                    {{ $p->updated_at->format('d M Y H:i') }}
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+
+                            <td colspan="4"
+                                class="py-14 text-center">
+
+                                <div class="flex flex-col items-center">
+
+                                    <div class="w-20 h-20 rounded-full bg-[#F5F8FF] flex items-center justify-center mb-4 border border-[#D4E6F8]">
+
+                                        <i class="fas fa-inbox text-3xl text-[#A0BBCC]"></i>
+
+                                    </div>
+
+                                    <h3 class="text-lg font-bold text-[#1E2B4A] mb-1"
+                                        style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                                        Belum Ada Riwayat
+                                    </h3>
+
+                                    <p class="text-sm text-slate-500">
+                                        Data peminjaman akan muncul di sini.
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+@endsection
