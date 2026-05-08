@@ -1,100 +1,255 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riwayat Peminjaman - Alatika</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; }
-    </style>
-</head>
-<body class="bg-gray-50 antialiased">
-    <x-sidebar-dosen />
-    <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
-        
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-            <div class="px-8 py-4 flex justify-between">
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900">Riwayat Peminjaman</h1>
-                    <p class="text-sm text-gray-500">Daftar semua permintaan peminjaman alat Anda</p>
-                </div>
-            </div>
-        </header>
+@extends('layouts.dosen')
 
-        <main class="p-8 min-h-screen">
-            @if(session('success'))
-            <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-            @endif
+@section('title', 'Riwayat Peminjaman')
 
-            <div class="card overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200">
-                                <th class="py-4 px-6 font-semibold text-gray-700 text-sm whitespace-nowrap">Kode/Tanggal</th>
-                                <th class="py-4 px-6 font-semibold text-gray-700 text-sm">Alat</th>
-                                <th class="py-4 px-6 font-semibold text-gray-700 text-sm whitespace-nowrap">Deadline / Kembali</th>
-                                <th class="py-4 px-6 font-semibold text-gray-700 text-sm text-center">Status</th>
-                                <th class="py-4 px-6 font-semibold text-gray-700 text-sm text-center">Aksi / Info</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse($riwayat as $p)
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="py-4 px-6 text-sm">
-                                    <div class="font-bold text-gray-900">{{ $p->kode_peminjaman }}</div>
-                                    <div class="text-gray-500">{{ $p->updated_at->format('d M Y H:i') }}</div>
-                                </td>
-                                <td class="py-4 px-6">
-                                    <div class="font-medium text-gray-900">{{ $p->alat->nama }}</div>
-                                    <div class="text-sm text-gray-500">{{ $p->jumlah }} unit</div>
-                                </td>
-                                <td class="py-4 px-6 text-sm">
-                                    <div class="font-medium text-gray-900">{{ $p->tanggal_kembali->format('d M Y') }}</div>
-                                    @if($p->tanggal_dikembalikan && $p->status === 'selesai')
-                                        <div class="text-green-600 text-xs mt-1">Kembali: {{ $p->tanggal_dikembalikan->format('d M Y') }}</div>
-                                    @endif
-                                </td>
-                                <td class="py-4 px-6 text-center">
-                                    <span class="px-3 py-1 text-xs font-semibold rounded-full {{ str_replace('bg-', 'bg-opacity-20 bg-', $p->status_config['color']) }} border {{ str_replace('bg-', 'border-', str_replace('text-', 'text-', $p->status_config['color'])) }}">
-                                        {{ $p->status_label }}
-                                    </span>
-                                </td>
-                                <td class="py-4 px-6 text-sm text-center">
-                                    @if($p->status === 'menunggu_verifikasi' && $p->foto_bukti_kembali)
-                                        <a href="{{ $p->foto_bukti_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline text-xs">
-                                            <i class="fas fa-image mr-1"></i> Lihat Foto Bukti
-                                        </a>
-                                    @elseif($p->status === 'dipinjam')
-                                        <span class="text-xs text-gray-500">
-                                            Gunakan <br><code class="bg-gray-200 px-1 rounded text-red-600">/kembali {{ $p->kode_peminjaman }}</code><br> di Telegram
-                                        </span>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="py-12 px-6 text-center text-gray-500">
-                                    Belum ada riwayat peminjaman.<br>
-                                    <a href="{{ route('dosen.peminjaman.ajukan') }}" class="text-blue-600 hover:underline mt-2 inline-block">Ajukan peminjaman sekarang</a>
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+@section('content')
+
+@if(session('success'))
+<div class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+    {{ session('success') }}
+</div>
+@endif
+
+<div class="space-y-6">
+
+    {{-- Header --}}
+    <div class="card p-6">
+        <div class="flex items-start justify-between gap-4">
+
+            <div>
+                <h2 class="text-xl font-bold mb-1"
+                    style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">
+                    Riwayat Peminjaman
+                </h2>
+
+                <p class="text-sm"
+                   style="color:#94a3b8;">
+                    Daftar semua pengajuan peminjaman alat laboratorium
+                </p>
             </div>
-        </main>
+
+            <div class="hidden md:flex w-14 h-14 rounded-2xl items-center justify-center"
+                 style="background:#EBF3FD;">
+                <i class="fas fa-clock-rotate-left text-xl"
+                   style="color:#185FA5;"></i>
+            </div>
+
+        </div>
     </div>
-</body>
-</html>
 
+    {{-- Table Card --}}
+    <div class="card overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                {{-- Table Head --}}
+                <thead style="background:#F8FBFF;">
+
+                    <tr class="border-b"
+                        style="border-color:#EBF3FD;">
+
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide whitespace-nowrap"
+                            style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;">
+                            Kode / Tanggal
+                        </th>
+
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide"
+                            style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;">
+                            Alat
+                        </th>
+
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide whitespace-nowrap"
+                            style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;">
+                            Deadline
+                        </th>
+
+                        <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wide"
+                            style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;">
+                            Status
+                        </th>
+
+                        <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wide"
+                            style="color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;">
+                            Aksi / Info
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                {{-- Table Body --}}
+                <tbody>
+
+                    @forelse($riwayat as $p)
+
+                    <tr class="transition-colors hover:bg-[#F8FBFF]"
+                        style="border-bottom:1px solid #F1F5F9;">
+
+                        {{-- Kode --}}
+                        <td class="px-6 py-5">
+
+                            <p class="text-sm font-bold"
+                               style="color:#1E2B4A;">
+                                {{ $p->kode_peminjaman }}
+                            </p>
+
+                            <p class="text-xs mt-1"
+                               style="color:#94a3b8;">
+                                {{ $p->updated_at->format('d M Y • H:i') }}
+                            </p>
+
+                        </td>
+
+                        {{-- Alat --}}
+                        <td class="px-6 py-5">
+
+                            <p class="text-sm font-semibold"
+                               style="color:#1E2B4A;">
+                                {{ $p->alat->nama }}
+                            </p>
+
+                            <p class="text-xs mt-1"
+                               style="color:#94a3b8;">
+                                {{ $p->jumlah }} unit
+                            </p>
+
+                        </td>
+
+                        {{-- Deadline --}}
+                        <td class="px-6 py-5">
+
+                            <p class="text-sm font-semibold"
+                               style="color:#1E2B4A;">
+                                {{ $p->tanggal_kembali->format('d M Y') }}
+                            </p>
+
+                            @if($p->tanggal_dikembalikan && $p->status === 'selesai')
+
+                                <p class="text-xs mt-1 text-green-600">
+                                    Dikembalikan:
+                                    {{ $p->tanggal_dikembalikan->format('d M Y') }}
+                                </p>
+
+                            @endif
+
+                        </td>
+
+                        {{-- Status --}}
+                        <td class="px-6 py-5 text-center">
+
+                            <span class="badge
+                                @if($p->status === 'dipinjam') badge-info
+                                @elseif($p->status === 'selesai') badge-success
+                                @elseif($p->status === 'ditolak') badge-danger
+                                @else badge-warning
+                                @endif">
+
+                                {{ $p->status_label }}
+
+                            </span>
+
+                        </td>
+
+                        {{-- Action --}}
+                        <td class="px-6 py-5 text-center">
+
+                            @if($p->status === 'menunggu_verifikasi' && $p->foto_bukti_kembali)
+
+                                <a href="{{ $p->foto_bukti_url }}"
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 text-xs font-semibold transition-colors"
+                                   style="color:#185FA5;"
+                                   onmouseover="this.style.color='#1E2B4A'"
+                                   onmouseout="this.style.color='#185FA5'">
+
+                                    <i class="fas fa-image"></i>
+                                    Lihat Bukti
+
+                                </a>
+
+                            @elseif($p->status === 'dipinjam')
+
+                                <div class="inline-block rounded-xl px-3 py-2 text-xs"
+                                     style="background:#F8FBFF;border:1px solid #EBF3FD;">
+
+                                    <p style="color:#64748B;">
+                                        Gunakan perintah:
+                                    </p>
+
+                                    <code class="font-bold"
+                                          style="color:#EF4444;">
+                                        /kembali {{ $p->kode_peminjaman }}
+                                    </code>
+
+                                </div>
+
+                            @else
+
+                                <span class="text-xs"
+                                      style="color:#CBD5E1;">
+                                    —
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                    </tr>
+
+                    @empty
+
+                    <tr>
+
+                        <td colspan="5" class="px-6 py-16 text-center">
+
+                            <div class="flex flex-col items-center">
+
+                                <div class="w-20 h-20 rounded-3xl flex items-center justify-center mb-4"
+                                     style="background:#F8FBFF;border:1px solid #EBF3FD;">
+
+                                    <i class="fas fa-box-open text-3xl"
+                                       style="color:#B5D4F4;"></i>
+
+                                </div>
+
+                                <h3 class="text-base font-bold mb-1"
+                                    style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
+
+                                    Belum Ada Riwayat
+                                </h3>
+
+                                <p class="text-sm mb-5"
+                                   style="color:#94a3b8;">
+
+                                    Kamu belum pernah mengajukan peminjaman alat
+                                </p>
+
+                                <a href="{{ route('dosen.peminjaman.ajukan') }}"
+                                   class="btn btn-primary">
+
+                                    <i class="fas fa-plus"></i>
+                                    Ajukan Peminjaman
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endsection
