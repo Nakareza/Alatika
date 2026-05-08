@@ -1,232 +1,291 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Pengembalian - Alatika</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #f8fafc; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        [x-cloak] { display: none !important; }
-        .modal-backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-    </style>
-</head>
-<body class="bg-gray-50 antialiased" x-data="{ showLogoutModal: false, showVerifyModal: false, verifyData: {} }">
+@extends('layouts.admin')
 
-    <x-sidebar-admin />
+@section('title', 'Kelola Pengembalian')
 
-    <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
+@section('content')
 
-        {{-- Header --}}
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-            <div class="px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900">Kelola Pengembalian</h1>
-                        <p class="text-sm text-gray-500 mt-0.5">Verifikasi dan monitoring pengembalian alat laboratorium</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
-                            <i class="fas fa-bell text-lg"></i>
-                        </button>
-                        <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+<div class="space-y-6">
 
-        <main class="p-4 sm:p-6 lg:p-8 min-h-screen space-y-6">
+    {{-- Statistics Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-            {{-- Statistics Cards --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-hourglass-half text-amber-600 text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Menunggu</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['dipinjam'] }}</h3>
-                    <p class="text-sm text-slate-500 mt-1">Menunggu Dikembalikan</p>
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                     style="background:#FEF3C7;">
+                    <i class="fas fa-hourglass-half text-lg" style="color:#D97706;"></i>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-red-100 to-red-50 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">Terlambat</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['verifikasi'] }}</h3>
-                    <p class="text-sm text-slate-500 mt-1">Butuh Verifikasi</p>
-                </div>
-
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Hari Ini</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['selesai'] }}</h3>
-                    <p class="text-sm text-slate-500 mt-1">Selesai Dikembalikan</p>
-                </div>
-
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-undo-alt text-blue-600 text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Total</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-800">{{ $stats['total'] }}</h3>
-                    <p class="text-sm text-slate-500 mt-1">Total Peminjaman Aktif</p>
-                </div>
+                <span class="badge badge-warning">
+                    Menunggu
+                </span>
             </div>
 
-            {{-- Filter --}}
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1 relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" placeholder="Cari nama mahasiswa atau kode alat..."
-                               class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <select class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Status</option>
-                        <option value="menunggu">Menunggu Kembali</option>
-                        <option value="terlambat">Terlambat</option>
-                        <option value="dikembalikan">Sudah Dikembalikan</option>
-                    </select>
-                    <button class="px-5 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-900 transition-colors">
-                        <i class="fas fa-filter mr-1"></i> Filter
-                    </button>
+            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
+                {{ $stats['dipinjam'] }}
+            </h3>
+
+            <p class="text-sm" style="color:#64748b;">
+                Menunggu Dikembalikan
+            </p>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                     style="background:#FEE2E2;">
+                    <i class="fas fa-exclamation-triangle text-lg" style="color:#DC2626;"></i>
                 </div>
+
+                <span class="badge badge-danger">
+                    Verifikasi
+                </span>
             </div>
 
-            {{-- Data Table --}}
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">#</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Mahasiswa</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Alat Dipinjam</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Tgl Pinjam</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Deadline</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Kondisi</th>
-                                <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Status</th>
-                                <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @forelse($pengembalian as $index => $p)
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 text-sm text-slate-500">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                            {{ strtoupper(substr($p->user->name, 0, 1)) }}
-                                        </div>
-                                        <div>
-                                            <span class="text-sm font-medium text-slate-800 block">{{ $p->user->name }}</span>
-                                            <span class="text-xs text-slate-400">{{ $p->user->nim ?? '-' }}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="text-sm font-medium text-slate-800 block">{{ $p->alat->nama }}</span>
-                                    <span class="text-xs text-slate-400 font-mono">{{ $p->kode_peminjaman }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-slate-600">{{ $p->tanggal_pinjam->format('d M Y') }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="text-sm {{ $p->isOverdue() ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
-                                        {{ $p->tanggal_kembali->format('d M Y') }}
-                                    </span>
-                                    @if($p->isOverdue())
-                                        <span class="text-xs text-red-500 block">⚠ Terlambat</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if($p->kondisi_kembali)
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700">
-                                            <i class="fas fa-check-circle text-[10px]"></i> {{ ucfirst($p->kondisi_kembali) }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-slate-400">Belum dicek</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full {{ $p->status_config['color'] }}">
-                                        <i class="fas {{ $p->status_config['icon'] }} text-[10px]"></i> {{ $p->status_label }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-2">
-                                        @if($p->status !== 'selesai')
-                                        <form action="{{ route('admin.pengembalian.verify', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Verifikasi pengembalian alat ini dengan kondisi BAIK?');">
-                                            @csrf
-                                            <input type="hidden" name="kondisi_kembali" value="baik">
-                                            <button type="submit" class="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-sm" title="Verifikasi">
-                                                <i class="fas fa-check mr-1"></i> Verifikasi
-                                            </button>
-                                        </form>
-                                        @else
-                                        <span class="text-xs text-emerald-600 font-medium"><i class="fas fa-check-double mr-1"></i> Selesai</span>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="8" class="text-center py-8 text-slate-500">Belum ada data pengembalian alat.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
+                {{ $stats['verifikasi'] }}
+            </h3>
+
+            <p class="text-sm" style="color:#64748b;">
+                Butuh Verifikasi
+            </p>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                     style="background:#D1FAE5;">
+                    <i class="fas fa-check-circle text-lg" style="color:#059669;"></i>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-                    <p class="text-sm text-slate-500">Menampilkan <span class="font-medium">1-8</span> dari <span class="font-medium">20</span> data</p>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">Prev</button>
-                        <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg">1</button>
-                        <button class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">2</button>
-                        <button class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">Next</button>
-                    </div>
-                </div>
+                <span class="badge badge-success">
+                    Selesai
+                </span>
             </div>
 
-        </main>
+            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
+                {{ $stats['selesai'] }}
+            </h3>
+
+            <p class="text-sm" style="color:#64748b;">
+                Sudah Dikembalikan
+            </p>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                     style="background:#EBF3FD;">
+                    <i class="fas fa-undo-alt text-lg" style="color:#185FA5;"></i>
+                </div>
+
+                <span class="badge badge-info">
+                    Total
+                </span>
+            </div>
+
+            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
+                {{ $stats['total'] }}
+            </h3>
+
+            <p class="text-sm" style="color:#64748b;">
+                Total Peminjaman Aktif
+            </p>
+        </div>
+
     </div>
 
-    {{-- Logout Modal --}}
-    <div x-show="showLogoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showLogoutModal = false">
-        <div x-show="showLogoutModal" x-transition class="fixed inset-0 modal-backdrop" @click="showLogoutModal = false"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div x-show="showLogoutModal" x-transition class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-                <div class="flex justify-center mb-4">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center"><i class="fas fa-sign-out-alt text-red-600 text-2xl"></i></div>
-                </div>
-                <div class="text-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Konfirmasi Logout</h3>
-                    <p class="text-sm text-gray-600">Apakah Anda yakin ingin keluar?</p>
-                </div>
-                <div class="flex gap-3">
-                    <button @click="showLogoutModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors">Batal</button>
-                    <form action="{{ route('logout') }}" method="POST" class="flex-1">@csrf<button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-xl transition-all">Ya, Logout</button></form>
-                </div>
+    {{-- Filter --}}
+    <div class="card p-6">
+        <div class="flex flex-col lg:flex-row gap-4">
+
+            <div class="flex-1 relative">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2"
+                   style="color:#94a3b8;"></i>
+
+                <input type="text"
+                       placeholder="Cari nama mahasiswa atau kode alat..."
+                       class="inp pl-11">
             </div>
+
+            <select class="inp lg:w-64">
+                <option value="">Semua Status</option>
+                <option value="menunggu">Menunggu Kembali</option>
+                <option value="terlambat">Terlambat</option>
+                <option value="dikembalikan">Sudah Dikembalikan</option>
+            </select>
+
+            <button class="btn btn-primary">
+                <i class="fas fa-filter"></i>
+                Filter
+            </button>
+
         </div>
     </div>
 
-</body>
-</html>
+    {{-- Table --}}
+    <div class="card overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead style="background:#F5F8FF;">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">#</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Mahasiswa</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Alat</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Tgl Pinjam</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Deadline</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Kondisi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Status</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold uppercase">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @forelse($pengembalian as $index => $p)
+
+                    <tr class="border-t hover:bg-[#F8FBFF] transition">
+
+                        <td class="px-6 py-4 text-sm">
+                            {{ $index + 1 }}
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                                     style="background:#1E2B4A;">
+                                    {{ strtoupper(substr($p->user->name, 0, 1)) }}
+                                </div>
+
+                                <div>
+                                    <p class="font-semibold text-sm">
+                                        {{ $p->user->name }}
+                                    </p>
+
+                                    <p class="text-xs text-slate-400">
+                                        {{ $p->user->nim ?? '-' }}
+                                    </p>
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <p class="font-semibold text-sm">
+                                {{ $p->alat->nama }}
+                            </p>
+
+                            <p class="text-xs text-slate-400">
+                                {{ $p->kode_peminjaman }}
+                            </p>
+                        </td>
+
+                        <td class="px-6 py-4 text-sm">
+                            {{ $p->tanggal_pinjam->format('d M Y') }}
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            <span class="text-sm {{ $p->isOverdue() ? 'text-red-600 font-bold' : '' }}">
+                                {{ $p->tanggal_kembali->format('d M Y') }}
+                            </span>
+
+                            @if($p->isOverdue())
+                                <p class="text-xs text-red-500 mt-1">
+                                    Terlambat
+                                </p>
+                            @endif
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            @if($p->kondisi_kembali)
+
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    {{ ucfirst($p->kondisi_kembali) }}
+                                </span>
+
+                            @else
+
+                                <span class="text-xs text-slate-400">
+                                    Belum dicek
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            <span class="badge {{ $p->status_config['color'] }}">
+                                <i class="fas {{ $p->status_config['icon'] }} mr-1"></i>
+                                {{ $p->status_label }}
+                            </span>
+
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+
+                            @if($p->status !== 'selesai')
+
+                                <form action="{{ route('admin.pengembalian.verify', $p->id) }}"
+                                      method="POST"
+                                      class="inline"
+                                      onsubmit="return confirm('Verifikasi pengembalian alat ini?');">
+
+                                    @csrf
+
+                                    <input type="hidden"
+                                           name="kondisi_kembali"
+                                           value="baik">
+
+                                    <button type="submit"
+                                            class="btn btn-primary text-xs px-4 py-2">
+                                        <i class="fas fa-check"></i>
+                                        Verifikasi
+                                    </button>
+
+                                </form>
+
+                            @else
+
+                                <span class="text-sm font-semibold text-emerald-600">
+                                    <i class="fas fa-check-double mr-1"></i>
+                                    Selesai
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                    </tr>
+
+                    @empty
+
+                    <tr>
+                        <td colspan="8" class="py-10 text-center text-slate-500">
+                            Belum ada data pengembalian alat.
+                        </td>
+                    </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endsection

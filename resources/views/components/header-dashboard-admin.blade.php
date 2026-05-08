@@ -1,134 +1,279 @@
 {{-- Header Dashboard Admin --}}
-@props(['title' => 'Dashboard', 'breadcrumbs' => []])
+@props([
+    'title' => 'Dashboard',
+    'subtitle' => null,
+    'breadcrumbs' => [],
+    'hideSearch' => false
+])
 
-<header class="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="px-6 py-4">
-        <div class="flex items-center justify-between">
-            {{-- Left Section: Hamburger + Breadcrumb --}}
-            <div class="flex items-center gap-4">
-                {{-- Hamburger Menu (Mobile) --}}
-                <button @click="sidebarOpen = !sidebarOpen" 
-                        class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
-                    <i class="fas fa-bars text-xl"></i>
+<header class="sticky top-0 z-30 h-16"
+        style="background:#1E2B4A;border-bottom:1px solid rgba(255,255,255,0.08);">
+
+    <div class="px-4 sm:px-6 lg:px-8 h-full">
+        <div class="flex items-center justify-between h-full">
+
+            {{-- LEFT --}}
+            <div class="flex items-center gap-3">
+
+                {{-- Hamburger --}}
+                <button @click="$dispatch('toggle-sidebar')"
+                        class="p-1.5 rounded-lg transition-colors"
+                        style="color:rgba(255,255,255,0.6);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#fff'"
+                        onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.6)'">
+
+                    <i class="fas fa-bars text-lg"></i>
                 </button>
 
-                {{-- Breadcrumb --}}
-                <nav class="flex items-center gap-2 text-sm">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors duration-200">
-                        <img src="{{ asset('images/logo-polines.png') }}" alt="Logo" class="w-4 h-4 object-contain">
-                        <span class="hidden sm:inline">Home</span>
-                    </a>
-                    @foreach($breadcrumbs as $crumb)
-                        <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                        @if($loop->last)
-                            <span class="font-semibold text-slate-800">{{ $crumb['name'] }}</span>
-                        @else
-                            <a href="{{ $crumb['url'] }}" class="text-slate-500 hover:text-indigo-600 transition-colors duration-200">
-                                {{ $crumb['name'] }}
+                {{-- Title --}}
+                <div>
+                    <div class="flex items-center gap-3">
+
+                        <h1 class="text-xl font-bold"
+                            style="color:#fff;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;">
+                            {{ $title }}
+                        </h1>
+
+                    </div>
+
+                    {{-- Subtitle --}}
+                    @if($subtitle)
+                        <p class="text-xs mt-0.5"
+                           style="color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;">
+                            {{ $subtitle }}
+                        </p>
+                    @endif
+
+                    {{-- Breadcrumb --}}
+                    @if(count($breadcrumbs) > 0)
+                        <nav class="flex items-center gap-1.5 text-xs mt-0.5">
+
+                            <a href="{{ route('admin.dashboard') }}"
+                               class="flex items-center gap-1.5 transition-colors"
+                               style="color:rgba(255,255,255,0.5);"
+                               onmouseover="this.style.color='#B5D4F4'"
+                               onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+
+                                <img src="{{ asset('images/logo-polines.png') }}"
+                                     alt="Logo"
+                                     class="w-3.5 h-3.5 object-contain opacity-70">
+
+                                Dashboard
                             </a>
-                        @endif
-                    @endforeach
-                </nav>
+
+                            @foreach($breadcrumbs as $crumb)
+
+                                <i class="fas fa-chevron-right text-[10px]"
+                                   style="color:rgba(255,255,255,0.2);"></i>
+
+                                @if($loop->last)
+                                    <span style="color:rgba(255,255,255,0.85);font-weight:600;">
+                                        {{ $crumb['name'] }}
+                                    </span>
+                                @else
+                                    <a href="{{ $crumb['url'] }}"
+                                       class="transition-colors"
+                                       style="color:rgba(255,255,255,0.5);"
+                                       onmouseover="this.style.color='#B5D4F4'"
+                                       onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+
+                                        {{ $crumb['name'] }}
+                                    </a>
+                                @endif
+
+                            @endforeach
+                        </nav>
+                    @endif
+                </div>
             </div>
 
-            {{-- Right Section: Notifications + Profile --}}
-            <div class="flex items-center gap-3">
+            {{-- RIGHT --}}
+            <div class="flex items-center gap-2">
+
+                {{-- Search --}}
+                @if(!$hideSearch)
+                <div class="hidden md:flex items-center mr-2">
+                    <div class="relative w-72">
+
+                        <input type="text"
+                               placeholder="Cari alat, mahasiswa..."
+                               class="w-full pl-9 pr-4 py-2 text-sm rounded-xl outline-none transition-all"
+                               style="background:rgba(255,255,255,0.1);
+                                      border:1.5px solid rgba(255,255,255,0.15);
+                                      color:#fff;
+                                      font-family:'Inter',sans-serif;"
+
+                               onfocus="this.style.borderColor='#378ADD';
+                                        this.style.background='rgba(255,255,255,0.15)';
+                                        this.style.boxShadow='0 0 0 3px rgba(55,138,221,0.20)'"
+
+                               onblur="this.style.borderColor='rgba(255,255,255,0.15)';
+                                       this.style.background='rgba(255,255,255,0.1)';
+                                       this.style.boxShadow=''">
+
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+                           style="color:rgba(255,255,255,0.35);"></i>
+                    </div>
+                </div>
+                @endif
+
                 {{-- Notifications --}}
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" 
-                            class="relative p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+
+                    <button @click="open = !open"
+                            class="relative p-1.5 rounded-lg transition-colors"
+                            style="color:rgba(255,255,255,0.6);"
+                            onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#fff'"
+                            onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.6)'">
+
+                        <i class="fas fa-bell text-lg"></i>
+
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                     </button>
 
                     {{-- Dropdown --}}
-                    <div x-show="open" 
+                    <div x-show="open"
                          @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-slate-200">
-                            <h4 class="font-semibold text-slate-800">Notifikasi</h4>
+                         x-transition
+                         class="absolute right-0 mt-2 w-80 bg-white rounded-2xl overflow-hidden z-50"
+                         style="border:1px solid #EBF3FD;
+                                box-shadow:0 8px 32px rgba(30,43,74,0.20);
+                                display:none;">
+
+                        <div class="px-4 py-3 border-b border-slate-100">
+                            <h4 class="font-bold text-sm text-slate-800">
+                                Notifikasi
+                            </h4>
                         </div>
+
                         <div class="max-h-96 overflow-y-auto">
-                            <div class="p-4 hover:bg-slate-50 cursor-pointer transition-colors duration-150 border-b border-slate-100">
+
+                            <div class="p-4 hover:bg-slate-50 transition-colors border-b border-slate-100 cursor-pointer">
                                 <div class="flex gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                                        <i class="fas fa-clipboard-list"></i>
+
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                                        <i class="fas fa-clipboard-list text-sm"></i>
                                     </div>
+
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800">Peminjaman Baru</p>
-                                        <p class="text-xs text-slate-500 mt-1">Ahmad Rizki mengajukan peminjaman Arduino Uno</p>
-                                        <p class="text-xs text-slate-400 mt-1">5 menit yang lalu</p>
+                                        <p class="text-sm font-semibold text-slate-800">
+                                            Peminjaman Baru
+                                        </p>
+
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            Ahmad Rizki mengajukan peminjaman Arduino Uno
+                                        </p>
+
+                                        <p class="text-xs text-slate-400 mt-1">
+                                            5 menit lalu
+                                        </p>
                                     </div>
+
                                 </div>
                             </div>
-                            <div class="p-4 hover:bg-slate-50 cursor-pointer transition-colors duration-150 border-b border-slate-100">
-                                <div class="flex gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                                        <i class="fas fa-undo-alt"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800">Pengembalian Alat</p>
-                                        <p class="text-xs text-slate-500 mt-1">Siti Nurhaliza mengembalikan Oscilloscope</p>
-                                        <p class="text-xs text-slate-400 mt-1">1 jam yang lalu</p>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
-                        <div class="px-4 py-3 bg-slate-50 text-center">
-                            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">Lihat Semua Notifikasi</a>
+
+                        <div class="px-4 py-3 border-t border-slate-100">
+                            <a href="#"
+                               class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                                Lihat Semua →
+                            </a>
                         </div>
+
                     </div>
                 </div>
 
-                {{-- User Profile --}}
+                {{-- Profile --}}
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" 
-                            class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+
+                    <button @click="open = !open"
+                            class="flex items-center gap-2 p-1.5 rounded-xl transition-colors"
+                            onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+                            onmouseout="this.style.background=''">
+
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                             style="background:rgba(255,255,255,0.15);
+                                    border:1px solid rgba(255,255,255,0.2);">
+
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
-                        <span class="hidden md:block text-sm font-medium text-slate-700">{{ Auth::user()->name }}</span>
-                        <i class="fas fa-chevron-down text-xs text-slate-500"></i>
+
+                        <div class="hidden md:block text-left">
+                            <p class="text-xs font-bold leading-tight text-white"
+                               style="font-family:'Plus Jakarta Sans',sans-serif;">
+                                {{ Auth::user()->name }}
+                            </p>
+
+                            <p class="text-xs"
+                               style="color:rgba(255,255,255,0.5);">
+                                Administrator
+                            </p>
+                        </div>
+
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                           style="color:rgba(255,255,255,0.4);"
+                           :class="open ? 'rotate-180' : ''"></i>
                     </button>
 
                     {{-- Dropdown --}}
-                    <div x-show="open" 
+                    <div x-show="open"
                          @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-slate-200">
-                            <p class="text-sm font-semibold text-slate-800">{{ Auth::user()->name }}</p>
-                            <p class="text-xs text-slate-500">{{ Auth::user()->email }}</p>
+                         x-transition
+                         class="absolute right-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-50"
+                         style="border:1px solid #EBF3FD;
+                                box-shadow:0 8px 32px rgba(30,43,74,0.20);
+                                display:none;">
+
+                        <div class="px-4 py-3 border-b border-slate-100">
+                            <p class="text-sm font-semibold text-slate-800">
+                                {{ Auth::user()->name }}
+                            </p>
+
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                {{ Auth::user()->email }}
+                            </p>
                         </div>
+
                         <div class="p-2">
-                            <a href="{{ route('admin.profil') }}" 
-                               class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors duration-150">
-                                <i class="fas fa-user-circle text-slate-500"></i>
-                                <span class="text-sm">Profil Saya</span>
+
+                            <a href="{{ route('admin.profil') }}"
+                               class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+
+                                <i class="fas fa-user-circle text-slate-400"></i>
+
+                                Profil Saya
                             </a>
-                            <a href="#" 
-                               class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors duration-150">
-                                <i class="fas fa-cog text-slate-500"></i>
-                                <span class="text-sm">Pengaturan</span>
+
+                            <a href="#"
+                               class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+
+                                <i class="fas fa-cog text-slate-400"></i>
+
+                                Pengaturan
                             </a>
+
                         </div>
-                        <div class="p-2 border-t border-slate-200">
+
+                        <div class="p-2 border-t border-slate-100">
+
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" 
-                                        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors duration-150">
+
+                                <button type="submit"
+                                        class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors">
+
                                     <i class="fas fa-sign-out-alt"></i>
-                                    <span class="text-sm font-medium">Logout</span>
+
+                                    Logout
                                 </button>
                             </form>
+
                         </div>
+
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

@@ -4,7 +4,7 @@
        @toggle-sidebar.window="toggle()"
        class="fixed top-0 left-0 h-full z-30 transition-all duration-300 ease-in-out"
        :class="collapsed ? 'w-20' : 'w-64'"
-       style="background:white;border-right:1px solid #EBF3FD;box-shadow:0 2px 16px rgba(30,43,74,0.06);"
+       style="background:white; solid #EBF3FD; 2px 16px rgba(30,43,74,0.06);"
        >
 
     <!-- Header Section -->
