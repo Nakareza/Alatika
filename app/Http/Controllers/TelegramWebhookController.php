@@ -212,7 +212,7 @@ class TelegramWebhookController extends Controller
 
         if (in_array($user->role, ['mahasiswa', 'dosen'])) {
             $peminjaman = \App\Models\Peminjaman::where('user_id', $user->id)
-                ->whereIn('status', ['pending', 'disetujui', 'dipinjam', 'menunggu_verifikasi'])
+                ->whereIn('status', ['pending', 'disetujui', 'dipinjam', 'menunggu_verifikasi', 'disetujui'])
                 ->get();
                 
             if ($peminjaman->isEmpty()) {
@@ -295,10 +295,15 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))
-            ->where('user_id', $user->id)
-            ->where('status', 'dipinjam')
-            ->first();
+        $peminjaman = \App\Models\Peminjaman::where(
+            'kode_peminjaman',
+            strtoupper($kode)
+        )
+        ->where('user_id', $user->id)
+        ->whereIn('status', ['dipinjam', 'disetujui'])
+        ->first();
+
+        
 
         if (!$peminjaman) {
             $this->telegram->sendMessage($chatId,
@@ -414,7 +419,7 @@ class TelegramWebhookController extends Controller
         }
 
         $peminjaman->update([
-            'status' => 'disetujui',
+            'status' => 'dipinjam',
             'approved_by' => $user->id,
             'approved_at' => now(),
         ]);
@@ -624,67 +629,210 @@ class TelegramWebhookController extends Controller
     }
 
     // ===================================================
-    // CALLBACK QUERY HANDLERS (Inline Keyboard Buttons)
-    // ===================================================
+// CALLBACK QUERY HANDLERS (Inline Keyboard Buttons)
+// ===================================================
 
-    protected function handleCallbackQuery(array $callbackQuery): void
-    {
-        $chatId = (string) $callbackQuery['message']['chat']['id'];
-        $data = $callbackQuery['data'];
-        $callbackId = $callbackQuery['id'];
+protected function handleCallbackQuery(array $callbackQuery): void
+{
+    $chatId = (string) $callbackQuery['message']['chat']['id'];
+    $data = $callbackQuery['data'];
+    $callbackId = $callbackQuery['id'];
 
-        $user = User::where('telegram_chat_id', $chatId)->first();
+    $user = User::where('telegram_chat_id', $chatId)->first();
 
-        if (!$user) {
-            $this->telegram->answerCallbackQuery($callbackId, 'Akun tidak terhubung!', true);
-            return;
-        }
+    if (!$user) {
 
-        if (str_starts_with($data, 'approve_')) {
-            $kode = str_replace('approve_', '', $data);
-            $this->commandApprove($chatId, $kode);
-            $this->telegram->answerCallbackQuery($callbackId, "✅ {$kode} disetujui!");
-        } elseif (str_starts_with($data, 'reject_')) {
-            $kode = str_replace('reject_', '', $data);
-            $this->telegram->answerCallbackQuery($callbackId, "Kirim: /reject {$kode} [alasan]", true);
-        } else {
-            $this->telegram->answerCallbackQuery($callbackId, 'Aksi tidak dikenali.');
-        }
+        $this->telegram->answerCallbackQuery(
+            $callbackId,
+            'Akun tidak terhubung!',
+            true
+        );
+
+        return;
     }
 
-    // ===================================================
-    // HELPER METHODS
-    // ===================================================
+    // =========================================
+    // APPROVE RETURN
+    // =========================================
 
-    /**
-     * Get user linked to this Telegram chat, or send error
-     */
-    protected function getLinkedUser(string $chatId): ?User
-    {
-        $user = User::where('telegram_chat_id', $chatId)->first();
+    if (str_starts_with($data, 'return_approve_')) {
 
-        if (!$user) {
-            $this->telegram->sendMessage($chatId,
-                "⚠️ Akun Telegram Anda belum terhubung.\n\n"
-                . "Gunakan /link KODE untuk menghubungkan akun."
-            );
-            return null;
-        }
+        $kode = str_replace('return_approve_', '', $data);
 
-        return $user;
+        $this->commandApproveReturn($chatId, $kode);
+
+        $this->telegram->answerCallbackQuery(
+            $callbackId,
+            "✅ Pengembalian diterima!"
+        );
+
+        return;
     }
 
-    /**
-     * Get human-readable role label
-     */
-    protected function getRoleLabel(string $role): string
-    {
-        return match ($role) {
-            'admin'     => 'Admin/Teknisi',
-            'kalab'     => 'Kepala Lab',
-            'dosen'     => 'Dosen',
-            'mahasiswa' => 'Mahasiswa',
-            default     => ucfirst($role),
-        };
+    // =========================================
+    // REJECT RETURN
+    // =========================================
+
+    if (str_starts_with($data, 'return_reject_')) {
+
+        $kode = str_replace('return_reject_', '', $data);
+
+        $this->telegram->answerCallbackQuery(
+            $callbackId,
+            "❌ Fitur penolakan belum dibuat",
+            true
+        );
+
+        return;
     }
+
+    // =========================================
+    // APPROVE PEMINJAMAN
+    // =========================================
+
+    if (str_starts_with($data, 'approve_')) {
+
+        $kode = str_replace('approve_', '', $data);
+
+        $this->commandApprove($chatId, $kode);
+
+        $this->telegram->answerCallbackQuery(
+            $callbackId,
+            "✅ {$kode} disetujui!"
+        );
+
+        return;
+    }
+
+    // =========================================
+    // REJECT PEMINJAMAN
+    // =========================================
+
+    if (str_starts_with($data, 'reject_')) {
+
+        $kode = str_replace('reject_', '', $data);
+
+        $this->telegram->answerCallbackQuery(
+            $callbackId,
+            "Kirim: /reject {$kode} [alasan]",
+            true
+        );
+
+        return;
+    }
+}
+
+/**
+ * Approve return from Telegram inline button
+ */
+protected function commandApproveReturn(string $chatId, ?string $kode): void
+{
+    $user = $this->getLinkedUser($chatId);
+
+    if (!$user) {
+        return;
+    }
+
+    // hanya admin / kalab
+    if (!in_array($user->role, ['admin', 'kalab'])) {
+
+        $this->telegram->sendMessage(
+            $chatId,
+            "⚠️ Anda tidak punya akses."
+        );
+
+        return;
+    }
+
+    // cari peminjaman
+    $peminjaman = \App\Models\Peminjaman::where(
+        'kode_peminjaman',
+        strtoupper($kode)
+    )
+    ->where('status', 'menunggu_verifikasi')
+    ->first();
+
+    if (!$peminjaman) {
+
+        $this->telegram->sendMessage(
+            $chatId,
+            "❌ Data pengembalian tidak ditemukan."
+        );
+
+        return;
+    }
+
+    // update status
+    $peminjaman->update([
+        'status' => 'selesai',
+        'approved_by' => $user->id,
+        'approved_at' => now(),
+    ]);
+
+    // kembalikan stok alat
+    if ($peminjaman->alat) {
+
+        $peminjaman->alat->increment(
+            'stok_tersedia',
+            $peminjaman->jumlah
+        );
+    }
+
+    // notif user
+    if ($peminjaman->user?->telegram_chat_id) {
+
+        $this->telegram->sendMessage(
+            $peminjaman->user->telegram_chat_id,
+            "✅ <b>Pengembalian Diverifikasi</b>\n\n"
+            . "📋 Kode: <code>{$kode}</code>\n"
+            . "🔧 Alat: {$peminjaman->alat->nama}\n\n"
+            . "Terima kasih telah mengembalikan alat 🙏"
+        );
+    }
+
+    // notif admin
+    $this->telegram->sendMessage(
+        $chatId,
+        "✅ Pengembalian <code>{$kode}</code> berhasil diverifikasi."
+    );
+}
+
+// ===================================================
+// HELPER METHODS
+// ===================================================
+
+/**
+ * Get user linked to this Telegram chat
+ */
+protected function getLinkedUser(string $chatId): ?User
+{
+    $user = User::where('telegram_chat_id', $chatId)->first();
+
+    if (!$user) {
+
+        $this->telegram->sendMessage(
+            $chatId,
+            "⚠️ Akun Telegram belum terhubung.\n\n"
+            . "Gunakan /link KODE"
+        );
+
+        return null;
+    }
+
+    return $user;
+}
+
+/**
+ * Human readable role
+ */
+protected function getRoleLabel(string $role): string
+{
+    return match ($role) {
+        'admin'     => 'Admin/Teknisi',
+        'kalab'     => 'Kepala Lab',
+        'dosen'     => 'Dosen',
+        'mahasiswa' => 'Mahasiswa',
+        default     => ucfirst($role),
+    };
+}
 }

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use App\Services\TelegramService;
@@ -31,8 +31,8 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::findOrFail($id);
         
         $peminjaman->update([
-            'status' => 'disetujui',
-            'approved_by' => auth()->id(),
+            'status' => 'dipinjam',
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -42,7 +42,7 @@ class PeminjamanController extends Controller
             'alat' => $peminjaman->alat->nama,
             'jumlah' => $peminjaman->jumlah,
             'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
-            'approver_role' => auth()->user()->role === 'kalab' ? 'Kepala Lab' : 'Admin',
+            'approver_role' => Auth::user()->role === 'kalab' ? 'Kepala Lab' : 'Admin',
         ]);
 
         return redirect()->back()->with('success', 'Peminjaman disetujui');
@@ -57,7 +57,7 @@ class PeminjamanController extends Controller
         $peminjaman->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->alasan,
-            'approved_by' => auth()->id(),
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -77,7 +77,7 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
-        if ($peminjaman->status !== 'disetujui') {
+        if ($peminjaman->status !== 'dipinjam') {
             return redirect()->back()->with('error', 'Peminjaman harus disetujui dahulu.');
         }
 

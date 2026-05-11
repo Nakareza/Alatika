@@ -20,17 +20,24 @@ class TelegramService
     /**
      * Send a text message to a Telegram chat
      */
-    public function sendMessage(string $chatId, string $message, array $options = []): array
-    {
-        $params = array_merge([
-            'chat_id' => $chatId,
-            'text' => $message,
-            'parse_mode' => 'HTML',
-            'disable_web_page_preview' => true,
-        ], $options);
+    public function sendMessage($chatId, $text, $replyMarkup = null)
+{
+    $payload = [
+        'chat_id' => $chatId,
+        'text' => $text,
+        'parse_mode' => 'HTML',
+    ];
 
-        return $this->request('sendMessage', $params);
+    // tambahan tombol
+    if ($replyMarkup) {
+        $payload['reply_markup'] = json_encode($replyMarkup);
     }
+
+    return Http::post(
+        $this->apiUrl . '/sendMessage',
+        $payload
+    )->json();
+}
 
     /**
      * Send message with inline keyboard buttons
@@ -38,9 +45,7 @@ class TelegramService
     public function sendMessageWithButtons(string $chatId, string $message, array $buttons): array
     {
         return $this->sendMessage($chatId, $message, [
-            'reply_markup' => json_encode([
-                'inline_keyboard' => $buttons,
-            ]),
+        'inline_keyboard' => $buttons,
         ]);
     }
 
@@ -221,23 +226,52 @@ class TelegramService
      * Notify admin about return confirmation from user
      */
     public function notifyReturnConfirmation(User $admin, array $data): bool
-    {
-        if (!$admin->hasTelegram()) return false;
+{
+    if (!$admin->hasTelegram()) return false;
 
-        $message = "📦 <b>Konfirmasi Pengembalian</b>\n\n"
-            . "👤 Peminjam: <b>{$data['peminjam_nama']}</b>\n"
-            . "🔧 Alat: <b>{$data['alat']}</b>\n"
-            . "📋 Kode: <code>{$data['kode']}</code>\n\n"
-            . "📸 <i>Menerima bukti foto (lihat foto di atas atau cek web)</i>\n\n"
-            . "⚠️ Silakan cek kondisi fisik alat dan verifikasi di web.";
+    $message = "📦 <b>Konfirmasi Pengembalian</b>\n\n"
+        . "👤 Peminjam: <b>{$data['peminjam_nama']}</b>\n"
+        . "🔧 Alat: <b>{$data['alat']}</b>\n"
+        . "📋 Kode: <code>{$data['kode']}</code>\n\n"
+        . "📸 Silakan cek kondisi alat pada foto.\n"
+        . "⚠️ Pastikan alat lengkap dan tidak rusak.";
 
-        if (!empty($data['telegram_photo_file_id'])) {
-            $result = $this->sendPhoto($admin->telegram_chat_id, $data['telegram_photo_file_id'], $message);
-        } else {
-            $result = $this->sendMessage($admin->telegram_chat_id, $message);
-        }
-        return $result['ok'] ?? false;
+    // INLINE KEYBOARD
+    $replyMarkup = [
+        'inline_keyboard' => [
+            [
+                [
+                    'text' => '✅ Terima',
+                    'callback_data' => 'return_approve_' . $data['kode']
+                ],
+                [
+                    'text' => '❌ Tolak',
+                    'callback_data' => 'return_reject_' . $data['kode']
+                ]
+            ]
+        ]
+    ];
+
+    if (!empty($data['telegram_photo_file_id'])) {
+
+        $result = $this->sendPhoto(
+            $admin->telegram_chat_id,
+            $data['telegram_photo_file_id'],
+            $message,
+            $replyMarkup
+        );
+
+    } else {
+
+        $result = $this->sendMessage(
+            $admin->telegram_chat_id,
+            $message,
+            $replyMarkup
+        );
     }
+
+    return $result['ok'] ?? false;
+}
 
     /**
      * Notify user that return has been verified
@@ -258,17 +292,25 @@ class TelegramService
     /**
      * Send a photo to a Telegram chat
      */
-    public function sendPhoto(string $chatId, string $photoUrlOrId, string $caption = '', array $options = []): array
-    {
-        $params = array_merge([
-            'chat_id' => $chatId,
-            'photo' => $photoUrlOrId,
-            'caption' => $caption,
-            'parse_mode' => 'HTML',
-        ], $options);
+    public function sendPhoto($chatId, $photo, $caption = null, $replyMarkup = null)
+{
+    $payload = [
+        'chat_id' => $chatId,
+        'photo' => $photo,
+        'caption' => $caption,
+        'parse_mode' => 'HTML',
+    ];
 
-        return $this->request('sendPhoto', $params);
+    // tambahan tombol
+    if ($replyMarkup) {
+        $payload['reply_markup'] = json_encode($replyMarkup);
     }
+
+    return Http::post(
+        $this->apiUrl . '/sendPhoto',
+        $payload
+    )->json();
+}
 
     /**
      * Notify user that the item in their waitlist is available

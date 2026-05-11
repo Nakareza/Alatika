@@ -212,7 +212,7 @@
                                 @if($p->status === 'pending')
 
                                 <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
-                                      method="POST">
+                                    method="POST">
                                     @csrf
 
                                     <button type="submit"
@@ -222,16 +222,30 @@
                                 </form>
 
                                 <form action="{{ route('admin.peminjaman.reject', $p->id) }}"
-                                      method="POST">
+                                    method="POST">
                                     @csrf
 
                                     <input type="hidden"
-                                           name="alasan"
-                                           value="Ditolak admin">
+                                        name="alasan"
+                                        value="Ditolak admin">
 
                                     <button type="submit"
                                             class="w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 transition">
                                         <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+
+                                @endif
+
+                                @if($p->status === 'disetujui')
+
+                                <form action="{{ route('admin.peminjaman.dipinjam', $p->id) }}"
+                                    method="POST">
+                                    @csrf
+
+                                    <button type="submit"
+                                            class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700 transition">
+                                        Tandai Dipinjam
                                     </button>
                                 </form>
 
