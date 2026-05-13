@@ -11,6 +11,9 @@ use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
 use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\PeminjamanController;
+
+
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -70,6 +73,16 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::get('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'index'])->name('pengembalian');
     Route::post('/pengembalian/{id}/verify', [\App\Http\Controllers\Admin\PengembalianController::class, 'verify'])->name('pengembalian.verify');
     
+    Route::post(
+    '/peminjaman/{id}/approve-return',
+    [PeminjamanController::class, 'approveReturn']
+    )->name('peminjaman.approveReturn');
+
+    Route::post(
+    '/peminjaman/{id}/reject-return',
+    [PeminjamanController::class, 'rejectReturn']
+    )->name('peminjaman.rejectReturn');
+
     // Data Alat Routes
     Route::get('/alat', function () {
         return view('admin.alat.index');

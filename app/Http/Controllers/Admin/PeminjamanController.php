@@ -97,4 +97,52 @@ class PeminjamanController extends Controller
 
         return redirect()->back()->with('success', 'Status diubah menjadi DIPINJAM. Stok alat dikurangi.');
     }
+
+    public function approveReturn($id)
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+
+    if ($peminjaman->status !== 'menunggu_verifikasi') {
+
+        return back()->with(
+            'error',
+            'Status tidak valid'
+        );
+    }
+
+    // update status
+    $peminjaman->update([
+        'status' => 'selesai',
+        'approved_by' => Auth::id(),
+        'approved_at' => now(),
+    ]);
+
+    // kembalikan stok
+    if ($peminjaman->alat) {
+
+        $peminjaman->alat->increment(
+            'stok_tersedia',
+            $peminjaman->jumlah
+        );
+    }
+
+    return back()->with(
+        'success',
+        'Pengembalian berhasil diverifikasi'
+    );
+}
+
+public function rejectReturn($id)
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+
+    $peminjaman->update([
+        'status' => 'dipinjam',
+    ]);
+
+    return redirect()
+        ->back()
+        ->with('success', 'Pengembalian ditolak.');
+}
+
 }

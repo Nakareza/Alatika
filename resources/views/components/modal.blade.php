@@ -9,7 +9,7 @@
 $sizes = [
     'sm' => 'max-w-sm',
     'md' => 'max-w-md',
-    'lg' => 'max-w-lg',
+    'lg' => 'max-w-2xl',
 ];
 
 $icons = [
@@ -46,13 +46,14 @@ $sizeClass = $sizes[$size] ?? $sizes['sm'];
         {{-- Modal card --}}
         <div
             x-show="open"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-            class="relative bg-white rounded-2xl w-full {{ $sizeClass }} p-6"
+             x-show="open"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+            class="relative overflow-hidden bg-white rounded-2xl w-full {{ $sizeClass }} p-6"
             style="box-shadow:0 20px 60px rgba(30,43,74,0.18);border:1px solid #EBF3FD;"
             @click.stop>
 

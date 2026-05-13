@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Peminjaman;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -69,11 +71,10 @@ class User extends Authenticatable
     /**
      * Get all peminjaman for this user
      */
-    public function peminjaman()
+    public function peminjaman(): HasMany
     {
         return $this->hasMany(Peminjaman::class);
     }
-
     /**
      * Get peminjaman that this user approved
      */
