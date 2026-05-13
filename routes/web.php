@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
 use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
@@ -84,9 +85,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     )->name('peminjaman.rejectReturn');
 
     // Data Alat Routes
-    Route::get('/alat', function () {
-        return view('admin.alat.index');
-    })->name('alat');
+    Route::get('/alat', [AdminInventarisController::class, 'index'])->name('alat');
     
     // Data Mahasiswa Routes
     Route::get('/mahasiswa', function () {
