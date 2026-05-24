@@ -29,21 +29,34 @@
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Pilih jenis -->
+                        <div>
+                            <label class="form-label">Pilih Jenis</label>
+                            <select x-model="selectedKategori" class="inp" @change="onKategoriChange"
+                                    style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
+                                <option value="">-- Pilih Jenis --</option>
+                                @foreach($alatByKategori as $kategori => $items)
+                                    <option value="{{ $kategori }}">{{ $kategori }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Pilih alat -->
                         <div class="sm:col-span-2">
                             <label class="form-label">Pilih Alat</label>
                             <select x-model="pilihan.alat_id" class="inp" @change="onAlatChange"
+                                    :disabled="!selectedKategori"
                                     style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
                                 <option value="">-- Pilih Alat --</option>
-                                @foreach($alat as $item)
-                                <option value="{{ $item->id }}"
-                                        data-nama="{{ $item->nama }}"
-                                        data-stok="{{ $item->stok_tersedia }}"
-                                        data-kode="{{ $item->kode }}"
-                                        {{ $item->stok_tersedia < 1 ? 'disabled' : '' }}>
-                                    {{ $item->nama }} — Stok: {{ $item->stok_tersedia }}
-                                </option>
-                                @endforeach
+                                <template x-for="item in alatOptions" :key="item.id">
+                                    <option :value="item.id"
+                                            :data-nama="item.nama"
+                                            :data-stok="item.stok_tersedia"
+                                            :data-kode="item.kode"
+                                            :disabled="item.stok_tersedia < 1"
+                                            x-text="`${item.nama} — Stok: ${item.stok_tersedia}`">
+                                    </option>
+                                </template>
                             </select>
                         </div>
 
@@ -250,6 +263,9 @@
 <script>
     function peminjamanForm() {
         return {
+            alatByKategori: @json($alatByKategori),
+            selectedKategori: '',
+            alatOptions: [],
             pilihan: { alat_id: '', nama: '', kode: '', jumlah: 1, stok_max: 99 },
             barangList: [],
             tanggalPinjam: '{{ date('Y-m-d') }}',
@@ -259,6 +275,11 @@
 
             get totalUnit() {
                 return this.barangList.reduce((sum, i) => sum + i.jumlah, 0);
+            },
+
+            onKategoriChange() {
+                this.alatOptions = this.alatByKategori[this.selectedKategori] || [];
+                this.pilihan = { alat_id: '', nama: '', kode: '', jumlah: 1, stok_max: 99 };
             },
 
             onAlatChange(e) {

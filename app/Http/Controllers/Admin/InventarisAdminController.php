@@ -16,8 +16,8 @@ class InventarisAdminController extends Controller
             $query->where('kategori', $request->kategori);
         }
 
-        if ($request->filled('is_borrowable')) {
-            $query->where('is_borrowable', filter_var($request->is_borrowable, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        if ($request->has('is_borrowable') && $request->is_borrowable !== null && $request->is_borrowable !== '') {
+            $query->where('is_borrowable', filter_var($request->is_borrowable, FILTER_VALIDATE_BOOLEAN));
         }
 
         if ($request->filled('search')) {
@@ -38,6 +38,10 @@ class InventarisAdminController extends Controller
             ->paginate(20)
             ->appends($request->query());
 
+        $inventarisGrouped = $inventaris->getCollection()->groupBy(function ($item) {
+            return $item->kategori ?: 'Umum';
+        });
+
         $stats = [
             'total_item' => Inventaris::count(),
             'total_borrowable' => Inventaris::where('is_borrowable', true)->count(),
@@ -51,6 +55,6 @@ class InventarisAdminController extends Controller
             ->orderBy('kategori')
             ->pluck('kategori');
 
-        return view('admin.inventaris.index', compact('inventaris', 'stats', 'kategoriOptions'));
+        return view('admin.inventaris.index', compact('inventaris', 'inventarisGrouped', 'stats', 'kategoriOptions'));
     }
 }

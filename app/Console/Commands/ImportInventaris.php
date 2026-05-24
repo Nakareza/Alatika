@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Inventaris;
+use App\Models\Alat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -11,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Reader\Csv as CsvReader;
 
 class ImportInventaris extends Command
 {
+    private array $seenCodes = [];
+
     protected $signature = 'inventaris:import {source? : File CSV/XLSX atau folder berisi file inventaris}';
 
     protected $description = 'Normalisasi file CSV/XLSX inventaris menjadi master_inventaris.csv dan simpan ke tabel inventaris';
@@ -33,9 +36,30 @@ class ImportInventaris extends Command
             return self::FAILURE;
         }
 
-        $files = File::isDirectory($sourcePath)
-            ? collect(File::files($sourcePath))->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['csv', 'xlsx', 'xls']))
-            : collect([new \SplFileInfo($sourcePath)]);
+        $this->seenCodes = [];
+        Inventaris::truncate();
+
+        if (File::isDirectory($sourcePath)) {
+            $allFiles = File::files($sourcePath);
+            $selectedFiles = [];
+            $seenBases = [];
+            
+            // Prefer csv, then xlsx, then xls
+            foreach (['csv', 'xlsx', 'xls'] as $ext) {
+                foreach ($allFiles as $file) {
+                    if (strtolower($file->getExtension()) === $ext) {
+                        $base = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                        if (!in_array($base, $seenBases, true)) {
+                            $selectedFiles[] = $file;
+                            $seenBases[] = $base;
+                        }
+                    }
+                }
+            }
+            $files = collect($selectedFiles);
+        } else {
+            $files = collect([new \SplFileInfo($sourcePath)]);
+        }
 
         if ($files->isEmpty()) {
             $this->warn('Tidak ada file CSV/XLSX yang ditemukan.');
@@ -112,6 +136,8 @@ class ImportInventaris extends Command
         }
 
         $this->info("Import selesai. Total baris diproses: {$imported}");
+
+        $this->syncBorrowableToAlat($normalizedRows);
 
         return self::SUCCESS;
     }
@@ -202,17 +228,36 @@ class ImportInventaris extends Command
     {
         $name = $this->firstValue($row, ['nama_alat', 'nama barang', 'nama_barang', 'nama', 'barang', 'item', 'alat', 'uraian', 'deskripsi', 'brand', 'merk', 'keterangan']) ?: 'UNKNOWN';
         $kategori = $this->firstValue($row, ['kategori', 'jenis', 'kelompok', 'group', 'category']) ?: 'Umum';
-        $kode = $this->firstValue($row, ['kode_barang', 'kode barang', 'kode', 'kode_alat', 'serial number', 'serial', 'sn', 'mac', 'barcode']);
+        $kode = $this->firstValue($row, ['kode_barang', 'kode barang', 'kode / id barang', 'kode id barang', 'kode', 'kode_alat', 'serial number', 'serial', 'sn', 'mac', 'barcode']);
+        if ($kode !== '') {
+            $kode = trim($kode);
+            if (isset($this->seenCodes[$kode])) {
+                $this->seenCodes[$kode]++;
+                $kode = $kode . '-' . $this->seenCodes[$kode];
+            } else {
+                $this->seenCodes[$kode] = 1;
+            }
+        }
         $jumlah = $this->parseInt($this->firstValue($row, ['jumlah', 'qty', 'quantity', 'stok', 'stock', 'jumlah stok']), 1);
         $lokasi = $this->firstValue($row, ['lokasi', 'lokasi_simpan', 'rak', 'lemari', 'ruang', 'tempat']);
         $tahun = $this->parseYear($this->firstValue($row, ['tahun', 'tahun_perolehan', 'year', 'thn']));
         $kondisi = $this->normalizeCondition($this->firstValue($row, ['kondisi', 'status', 'keadaan']) ?: 'Baik');
         $detail = $this->parseDetail($this->firstValue($row, ['perlengkapan', 'kelengkapan', 'aksesoris', 'accessories', 'detail', 'detail_kelengkapan']));
+        $brand = $this->firstValue($row, ['brand', 'merk']);
+        $model = $this->firstValue($row, ['model', 'model / spesifikasi', 'model spesifikasi', 'spesifikasi']);
+        if (!$detail) {
+            $detailParts = array_values(array_filter([$brand, $model]));
+            $detail = $detailParts ?: null;
+        }
 
         $isBorrowableRaw = $this->firstValue($row, ['is_borrowable', 'borrowable', 'bisa_pinjam', 'bisa dipinjam', 'status_pinjaman']);
         $isBorrowable = $this->parseBool($isBorrowableRaw);
         if ($isBorrowable === null) {
             $isBorrowable = !$this->looksStaticAsset($name . ' ' . $kategori . ' ' . $kode);
+        }
+
+        if ($this->shouldSkipRow($row, $name, $kode, $kategori)) {
+            return null;
         }
 
         return [
@@ -239,6 +284,23 @@ class ImportInventaris extends Command
         $value = Str::of($value)->lower()->replace(['_', '-', '.', ':'], ' ')->squish()->toString();
         $value = preg_replace('/[^\pL\pN\s\/]+/u', '', $value) ?: $value;
         return trim($value);
+    }
+
+    private function shouldSkipRow(array $row, string $name, ?string $kode, string $kategori): bool
+    {
+        $nonEmpty = array_keys(array_filter($row, fn ($value) => trim((string) $value) !== ''));
+
+        if (count($nonEmpty) === 1 && in_array($nonEmpty[0], ['no', 'kategori'], true)) {
+            return true;
+        }
+
+        if ($name === 'UNKNOWN' && ($kode === null || $kode === '') && $kategori === 'Umum') {
+            if (count($nonEmpty) <= 2 && in_array('no', $nonEmpty, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function firstValue(array $row, array $keys): string
@@ -324,6 +386,85 @@ class ImportInventaris extends Command
         }
 
         return Str::of($value)->headline()->toString();
+    }
+
+    private function syncBorrowableToAlat(array $normalizedRows): void
+    {
+        $created = 0;
+        $updated = 0;
+
+        foreach ($normalizedRows as $row) {
+            if (($row['is_borrowable'] ?? '0') !== '1') {
+                continue;
+            }
+
+            if (($row['nama_alat'] ?? 'UNKNOWN') === 'UNKNOWN') {
+                continue;
+            }
+
+            $kode = $row['kode_barang'] ?: $this->buildFallbackKode($row);
+            $stokTotal = max(0, (int) ($row['jumlah_stok'] ?? 0));
+            $status = $this->conditionToStatus($row['kondisi'] ?? '');
+
+            $deskripsi = null;
+            if (!empty($row['perlengkapan_detail'])) {
+                $decoded = json_decode($row['perlengkapan_detail'], true);
+                if (is_array($decoded)) {
+                    $deskripsi = implode(', ', $decoded);
+                }
+            }
+
+            $alat = Alat::where('kode', $kode)->first();
+
+            if ($alat) {
+                $stokDipinjam = max(0, $alat->stok_total - $alat->stok_tersedia);
+                $stokTersedia = max(0, $stokTotal - $stokDipinjam);
+
+                $alat->update([
+                    'nama' => $row['nama_alat'],
+                    'kategori' => $row['kategori'] ?: 'Umum',
+                    'stok_total' => $stokTotal,
+                    'stok_tersedia' => $stokTersedia,
+                    'lokasi' => $row['lokasi_simpan'] ?: null,
+                    'deskripsi' => $deskripsi,
+                    'status' => $status,
+                ]);
+
+                $updated++;
+            } else {
+                Alat::create([
+                    'nama' => $row['nama_alat'],
+                    'kode' => $kode,
+                    'kategori' => $row['kategori'] ?: 'Umum',
+                    'stok_total' => $stokTotal,
+                    'stok_tersedia' => $stokTotal,
+                    'lokasi' => $row['lokasi_simpan'] ?: null,
+                    'deskripsi' => $deskripsi,
+                    'status' => $status,
+                ]);
+
+                $created++;
+            }
+        }
+
+        $this->info("Sync Alat selesai. Baru: {$created}, Update: {$updated}");
+    }
+
+    private function buildFallbackKode(array $row): string
+    {
+        $seed = ($row['source_file'] ?? '') . '#' . ($row['source_row'] ?? '') . '#' . ($row['nama_alat'] ?? '') . '#' . ($row['kategori'] ?? '');
+        $hash = strtoupper(substr(sha1($seed), 0, 8));
+        return 'INV-' . $hash;
+    }
+
+    private function conditionToStatus(string $kondisi): string
+    {
+        $value = Str::of($kondisi)->lower()->toString();
+        if (str_contains($value, 'rusak') || str_contains($value, 'perbaikan')) {
+            return 'maintenance';
+        }
+
+        return 'tersedia';
     }
 
     private function detectDelimiter(string $path): string

@@ -3,22 +3,22 @@
 
 @php
 $colorClasses = [
-    'blue' => 'from-blue-500 to-indigo-600',
-    'green' => 'from-emerald-500 to-teal-600',
-    'red' => 'from-rose-500 to-red-600',
-    'purple' => 'from-purple-500 to-indigo-600',
-    'yellow' => 'from-amber-500 to-orange-600',
-    'indigo' => 'from-indigo-500 to-purple-600',
-    'orange' => 'from-orange-500 to-amber-600',
+    'blue' => 'bg-blue-50 text-blue-600 border border-blue-100',
+    'green' => 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+    'red' => 'bg-rose-50 text-rose-600 border border-rose-100',
+    'purple' => 'bg-purple-50 text-purple-600 border border-purple-100',
+    'yellow' => 'bg-amber-50 text-amber-600 border border-amber-100',
+    'indigo' => 'bg-indigo-50 text-indigo-600 border border-indigo-100',
+    'orange' => 'bg-orange-50 text-orange-600 border border-orange-100',
 ];
-$gradientClass = $colorClasses[$color] ?? $colorClasses['blue'];
+$styleClass = $colorClasses[$color] ?? $colorClasses['blue'];
 @endphp
 
-<div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-slate-100">
+<div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-slate-200 transition-all duration-300">
     <div class="flex items-start justify-between">
         <div class="flex-1">
-            <p class="text-sm font-medium text-slate-600 mb-1">{{ $title }}</p>
-            <h3 class="text-3xl font-bold text-slate-800 mb-2">{{ $value }}</h3>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{{ $title }}</p>
+            <h3 class="text-3xl font-extrabold text-[#1E2B4A] mb-1">{{ $value }}</h3>
             
             @if($trend)
             <div class="flex items-center gap-1 text-xs">
@@ -29,13 +29,13 @@ $gradientClass = $colorClasses[$color] ?? $colorClasses['blue'];
                     <i class="fas fa-arrow-down text-rose-500"></i>
                     <span class="text-rose-500 font-semibold">{{ $trend }}%</span>
                 @endif
-                <span class="text-slate-500 ml-1">dari bulan lalu</span>
+                <span class="text-slate-400 ml-1">dari bulan lalu</span>
             </div>
             @endif
         </div>
         
-        <div class="w-14 h-14 rounded-xl bg-gradient-to-br {{ $gradientClass }} flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-110 hover:rotate-6">
-            <i class="{{ $icon }} text-2xl text-white"></i>
+        <div class="w-12 h-12 rounded-xl {{ $styleClass }} flex items-center justify-center transition-transform duration-300 hover:scale-105">
+            <i class="{{ $icon }} text-lg"></i>
         </div>
     </div>
 </div>

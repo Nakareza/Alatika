@@ -47,32 +47,29 @@
 @section('content')
 
 {{-- Welcome Section --}}
-<div class="glassmorphism rounded-2xl p-8 md:p-10 luxury-shadow animate-slide-down overflow-hidden relative mb-6">
+<div class="bg-white rounded-2xl p-8 md:p-10 border border-slate-100 luxury-shadow animate-slide-down overflow-hidden relative mb-6">
     <div class="flex items-center gap-6 md:gap-8">
         
-        <div class="hidden md:flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-50 border border-blue-100">
+        <div class="hidden md:flex items-center justify-center w-20 h-20 rounded-2xl bg-[#F5F8FF] border border-[#D4E6F8]">
             <img src="{{ asset('images/logo-polines.png') }}" 
                  alt="Logo Polines" 
-                 class="w-16 h-16 object-contain">
+                 class="w-12 h-12 object-contain">
         </div>
 
         <div class="flex-1">
             <div class="mb-2">
-                <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-sm font-semibold">
-                    <i class="fas fa-crown mr-2 text-amber-500"></i>
+                <span class="inline-block px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                    <i class="fas fa-shield-alt mr-1.5 text-slate-500"></i>
                     Administrator Panel
                 </span>
             </div>
 
-            <h1 class="text-3xl md:text-4xl font-black mb-2 leading-tight">
-                Selamat Datang,
-                <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    {{ Auth::user()->name }}! 👋
-                </span>
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2 leading-tight text-[#1E2B4A]">
+                Selamat Datang, {{ Auth::user()->name }}
             </h1>
 
-            <p class="text-slate-600 text-base font-medium">
-                Panel manajemen sistem peminjaman alat elektronik Politeknik Negeri Semarang
+            <p class="text-slate-500 text-sm font-medium">
+                Sistem Peminjaman Alat Laboratorium Elektronik Politeknik Negeri Semarang
             </p>
         </div>
     </div>
@@ -114,77 +111,77 @@
 </div>
 
 {{-- Quick Actions --}}
-<div class="glassmorphism rounded-2xl p-6 shadow-sm border border-slate-100 mb-6">
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-6">
 
-    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-bolt text-blue-500"></i>
+    <h2 class="text-lg font-bold text-[#1E2B4A] mb-4 flex items-center gap-2">
+        <i class="fas fa-bolt text-[#185FA5]"></i>
         Quick Actions
     </h2>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 
         <a href="{{ route('admin.alat') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:shadow-lg transition-all hover-lift group">
+           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
 
-            <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="fas fa-laptop text-xl text-white"></i>
+            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
+                <i class="fas fa-laptop text-base"></i>
             </div>
 
             <div>
-                <h3 class="font-semibold text-slate-800 text-sm">Kelola Alat</h3>
-                <p class="text-xs text-slate-500">Manajemen alat</p>
+                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Alat</h3>
+                <p class="text-xs text-slate-400">Manajemen alat</p>
             </div>
         </a>
 
         <a href="{{ route('admin.mahasiswa') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-sky-50 border border-sky-100 hover:shadow-lg transition-all hover-lift group">
+           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
 
-            <div class="w-12 h-12 rounded-xl bg-sky-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="fas fa-user-graduate text-xl text-white"></i>
+            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
+                <i class="fas fa-user-graduate text-base"></i>
             </div>
 
             <div>
-                <h3 class="font-semibold text-slate-800 text-sm">Kelola Mahasiswa</h3>
-                <p class="text-xs text-slate-500">Data mahasiswa</p>
+                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Mahasiswa</h3>
+                <p class="text-xs text-slate-400">Data mahasiswa</p>
             </div>
         </a>
 
         <a href="{{ route('admin.peminjaman') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100 hover:shadow-lg transition-all hover-lift group">
+           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
 
-            <div class="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="fas fa-clipboard-list text-xl text-white"></i>
+            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
+                <i class="fas fa-clipboard-list text-base"></i>
             </div>
 
             <div>
-                <h3 class="font-semibold text-slate-800 text-sm">Kelola Peminjaman</h3>
-                <p class="text-xs text-slate-500">Persetujuan</p>
+                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Peminjaman</h3>
+                <p class="text-xs text-slate-400">Persetujuan</p>
             </div>
         </a>
 
         <a href="{{ route('admin.pengembalian') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 hover:shadow-lg transition-all hover-lift group">
+           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
 
-            <div class="w-12 h-12 rounded-xl bg-amber-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="fas fa-undo-alt text-xl text-white"></i>
+            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
+                <i class="fas fa-undo-alt text-base"></i>
             </div>
 
             <div>
-                <h3 class="font-semibold text-slate-800 text-sm">Kelola Pengembalian</h3>
-                <p class="text-xs text-slate-500">Verifikasi</p>
+                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Pengembalian</h3>
+                <p class="text-xs text-slate-400">Verifikasi</p>
             </div>
         </a>
 
         <a href="{{ route('admin.laporan') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 hover:shadow-lg transition-all hover-lift group">
+           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
 
-            <div class="w-12 h-12 rounded-xl bg-rose-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="fas fa-chart-bar text-xl text-white"></i>
+            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
+                <i class="fas fa-chart-bar text-base"></i>
             </div>
 
             <div>
-                <h3 class="font-semibold text-slate-800 text-sm">Lihat Laporan</h3>
-                <p class="text-xs text-slate-500">Statistik sistem</p>
+                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Lihat Laporan</h3>
+                <p class="text-xs text-slate-400">Statistik sistem</p>
             </div>
         </a>
 
@@ -192,18 +189,18 @@
 </div>
 
 {{-- Recent Borrowing --}}
-<div class="glassmorphism rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
 
     <div class="p-6 border-b border-slate-100 flex items-center justify-between">
 
-        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <i class="fas fa-list-alt text-blue-500"></i>
+        <h2 class="text-lg font-bold text-[#1E2B4A] flex items-center gap-2">
+            <i class="fas fa-list-alt text-[#185FA5]"></i>
             Peminjaman Terbaru
         </h2>
 
         <a href="{{ route('admin.peminjaman') }}"
-           class="text-sm text-blue-600 hover:text-blue-800 font-semibold">
-            Lihat semua →
+           class="text-xs font-semibold text-[#185FA5] hover:text-[#1E2B4A] transition-colors">
+            Lihat semua &rarr;
         </a>
     </div>
 

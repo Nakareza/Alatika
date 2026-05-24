@@ -133,31 +133,49 @@
     {{-- Filter --}}
     <div class="card p-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form method="GET" action="{{ route('admin.alat') }}" class="grid grid-cols-1 md:grid-cols-12 gap-4">
 
-            <div class="md:col-span-2 relative">
+            <div class="md:col-span-5 relative">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
                 <input type="text"
-                       placeholder="Cari nama alat atau kode..."
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari nama alat, kode, lokasi, atau kondisi..."
                        class="inp pl-11">
             </div>
 
-            <select class="inp">
-                <option>Semua Kategori</option>
-                <option>Microcontroller</option>
-                <option>Sensor & Aktuator</option>
-                <option>Lab Equipment</option>
-            </select>
+            <div class="md:col-span-3">
+                <select name="kategori" class="inp w-full">
+                    <option value="">Semua Kategori</option>
+                    @foreach(($kategoriOptions ?? []) as $kategori)
+                        <option value="{{ $kategori }}" {{ request('kategori') === $kategori ? 'selected' : '' }}>
+                            {{ $kategori }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-            <select class="inp">
-                <option>Semua Status</option>
-                <option>Tersedia</option>
-                <option>Dipinjam</option>
-                <option>Maintenance</option>
-            </select>
+            <div class="md:col-span-2">
+                <select name="is_borrowable" class="inp w-full">
+                    <option value="">Semua Status</option>
+                    <option value="1" {{ request('is_borrowable') === '1' ? 'selected' : '' }}>Bisa Dipinjam</option>
+                    <option value="0" {{ request('is_borrowable') === '0' ? 'selected' : '' }}>Aset Statis</option>
+                </select>
+            </div>
 
-        </div>
+            <div class="md:col-span-2 flex gap-3">
+                <button type="submit" class="btn btn-primary flex-1">
+                    <i class="fas fa-filter"></i>
+                    Filter
+                </button>
+
+                <a href="{{ route('admin.alat') }}" class="btn btn-secondary">
+                    Reset
+                </a>
+            </div>
+
+        </form>
 
     </div>
 

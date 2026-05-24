@@ -26,9 +26,15 @@ class PeminjamanController extends Controller
     {
         $alat = Alat::where('status', 'tersedia')
             ->where('stok_tersedia', '>', 0)
+            ->orderBy('kategori')
+            ->orderBy('nama')
             ->get();
 
-        return view('mahasiswa.peminjaman.ajukan', compact('alat'));
+        $alatByKategori = $alat->groupBy(function ($item) {
+            return $item->kategori ?: 'Umum';
+        });
+
+        return view('mahasiswa.peminjaman.ajukan', compact('alatByKategori'));
     }
 
     public function store(Request $request, TelegramService $telegram)

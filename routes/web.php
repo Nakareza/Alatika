@@ -6,6 +6,8 @@ use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisController;
+use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
+use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
 use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
@@ -88,14 +90,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::get('/alat', [AdminInventarisController::class, 'index'])->name('alat');
     
     // Data Mahasiswa Routes
-    Route::get('/mahasiswa', function () {
-        return view('admin.mahasiswa.index');
-    })->name('mahasiswa');
+    Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index'])->name('mahasiswa');
     
     // Data Dosen Routes
-    Route::get('/dosen', function () {
-        return view('admin.dosen.index');
-    })->name('dosen');
+    Route::get('/dosen', [AdminDosenController::class, 'index'])->name('dosen');
     
     // Laporan Routes
     Route::get('/laporan', function () {
