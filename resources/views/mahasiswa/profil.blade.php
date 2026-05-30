@@ -4,7 +4,9 @@
 
 @section('content')
 
-    <div class="max-w-4xl mx-auto space-y-6" x-data="{ showLogoutModal: false }">
+   <div class="max-w-4xl mx-auto space-y-6"
+     x-data="{ showLogoutModal: false }"
+     @open-modal-logout.window="showLogoutModal = true">
 
         {{-- Profile Card --}}
         <div class="card overflow-hidden">
@@ -55,7 +57,7 @@
                 <i class="fas fa-cog" style="color:#94a3b8;"></i> Akun
             </h3>
             <div class="space-y-2">
-                <button @click="showLogoutModal = true"
+                <button @click="$dispatch('open-modal-logout')"
                         class="w-full flex items-center gap-3 p-3 rounded-xl border border-transparent transition-all text-left"
                         style="background:#F5F8FF;"
                         onmouseover="this.style.background='#fee2e2';this.style.borderColor='#fca5a5';"
@@ -100,19 +102,22 @@
                     <button @click="showLogoutModal = false" class="btn btn-secondary flex-1 justify-center">
                         Batal
                     </button>
-                    <form action="{{ route('logout') }}" method="POST" class="flex-1">
-                        @csrf
-                        <button type="submit"
-                                class="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all"
-                                style="background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 14px rgba(239,68,68,0.3);"
-                                onmouseover="this.style.filter='brightness(1.1)'"
-                                onmouseout="this.style.filter=''">
-                            Ya, Logout
-                        </button>
-                    </form>
+                    <button type="button" 
+                            @click="document.getElementById('logoutFormModal').submit()"
+                            class="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all flex-1"
+                            style="background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 14px rgba(239,68,68,0.3);"
+                            onmouseover="this.style.filter='brightness(1.1)'"
+                            onmouseout="this.style.filter=''">
+                        Ya, Logout
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Hidden Logout Form --}}
+    <form action="{{ route('logout') }}" method="POST" id="logoutFormModal" style="display: none;">
+        @csrf
+    </form>
 
 @endsection

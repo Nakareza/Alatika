@@ -180,25 +180,23 @@
             Batal
         </button>
 
-        <form action="{{ route('logout') }}"
-              method="POST"
-              class="flex-1">
+        <button type="button"
+                @click="document.getElementById('logoutFormDosen').submit()"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                style="background:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
+                onmouseover="this.style.background='#185FA5'"
+                onmouseout="this.style.background='#1E2B4A'">
 
-            @csrf
-
-            <button type="submit"
-                    class="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
-                    style="background:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
-                    onmouseover="this.style.background='#185FA5'"
-                    onmouseout="this.style.background='#1E2B4A'">
-
-                Ya, Logout
-            </button>
-
-        </form>
+            Ya, Logout
+        </button>
 
     </x-slot>
 
 </x-modal>
+
+{{-- Hidden Logout Form --}}
+<form action="{{ route('logout') }}" method="POST" id="logoutFormDosen" style="display: none;">
+    @csrf
+</form>
 
 @endsection

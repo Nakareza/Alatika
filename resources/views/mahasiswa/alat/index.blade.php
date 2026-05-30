@@ -52,16 +52,12 @@
 
             <!-- Kanan: Action buttons -->
             <div class="flex items-center gap-2">
-                <a href="{{ route('mahasiswa.keranjang') }}" class="btn btn-primary relative">
+                <a href="{{ route('mahasiswa.peminjaman.ajukan') }}" class="btn btn-primary relative">
                     <i class="fas fa-shopping-cart"></i>
-                    Keranjang
+                    Pengajuan Peminjaman
                     @if($cartCount > 0)
                     <span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-xs font-black rounded-full flex items-center justify-center">{{ $cartCount }}</span>
                     @endif
-                </a>
-                <a href="{{ route('mahasiswa.peminjaman.ajukan') }}" class="btn btn-secondary">
-                    <i class="fas fa-plus"></i>
-                    Pinjam Langsung
                 </a>
             </div>
         </div>
@@ -110,7 +106,7 @@
                     @if($item->stok_tersedia > 0)
                         <button @click="openModal({{ $item->id }}, '{{ addslashes($item->nama) }}', {{ $item->stok_tersedia }})"
                             class="btn btn-primary w-full justify-center">
-                            <i class="fas fa-cart-plus"></i> Tambah ke Keranjang
+                            <i class="fas fa-cart-plus"></i> Tambah ke Pengajuan
                         </button>
                     @else
                         <form action="{{ route('mahasiswa.alat.waitlist', $item->id) }}" method="POST">
@@ -152,7 +148,7 @@
         </div>
 
         <!-- Modal Keranjang -->
-        <x-modal name="keranjang" title="Tambah ke Keranjang" type="default" size="md">
+        <x-modal name="keranjang" title="Tambah ke Pengajuan" type="default" size="md">
             <p class="text-sm text-center mb-1" style="color:#64748b;">
                 Stok tersedia: <span class="font-semibold" style="color:#10b981;" x-text="selectedItem.stok + ' unit'"></span>
             </p>

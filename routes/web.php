@@ -15,7 +15,7 @@ use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
 use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
-
+use App\Services\TelegramService;
 
 
 // Landing Page (Public)
@@ -41,7 +41,7 @@ Route::get('/login', function () {
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Telegram Webhook (no CSRF, public endpoint for Telegram API)
 Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])
@@ -54,6 +54,14 @@ Route::middleware('auth')->prefix('telegram')->name('telegram.')->group(function
     Route::post('/disconnect', [TelegramController::class, 'disconnect'])->name('disconnect');
     Route::get('/status', [TelegramController::class, 'status'])->name('status');
     Route::post('/test', [TelegramController::class, 'testNotification'])->name('test');
+});
+
+Route::get('/telegram/setup-menu', function (TelegramService $telegram) {
+
+    $telegram->setCommands();
+    $telegram->setMenuButton();
+
+    return 'Menu Telegram berhasil dibuat';
 });
 
 // API routes for Real-Time Sync (Dashboard Polling)
@@ -121,7 +129,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
     Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'store'])->name('peminjaman.store');
     Route::get('/peminjaman/riwayat', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'riwayat'])->name('peminjaman.riwayat');
-    
+    Route::post('/pengajuan/tambah/{id}',[\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'tambahPengajuan'])->name('pengajuan.tambah');
     // Alat Routes
     Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
     Route::post('/alat/{id}/waitlist', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'waitlist'])->name('alat.waitlist');

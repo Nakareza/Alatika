@@ -51,6 +51,28 @@ class TelegramWebhookController extends Controller
     {
         $chatId = (string) $message['chat']['id'];
         $text = trim($message['text'] ?? $message['caption'] ?? '');
+        if ($text === '📊 Status') {
+            $this->commandStatus($chatId);
+            return;
+        }
+
+        if ($text === '📋 Pending') {
+            $this->commandPending($chatId);
+            return;
+        }
+
+        if ($text === 'ℹ️ Bantuan') {
+            $this->commandHelp($chatId);
+            return;
+        }
+
+        if ($text === '🔗 Hubungkan Akun') {
+            $this->telegram->sendMessage(
+                $chatId,
+                'Gunakan perintah /link KODE'
+            );
+            return;
+        }
         $firstName = $message['from']['first_name'] ?? 'User';
 
         // Get highest resolution photo if exists
@@ -103,7 +125,8 @@ class TelegramWebhookController extends Controller
             $this->telegram->sendMessage($chatId,
                 "Selamat datang kembali, <b>{$user->name}</b>! 👋\n\n"
                 . "Akun Anda sudah terhubung sebagai <b>{$roleLabel}</b>.\n\n"
-                . "Ketik /help untuk melihat perintah yang tersedia."
+                . "Ketik /help untuk melihat perintah yang tersedia.",
+                $this->telegram->getMainKeyboard()
             );
             return;
         }

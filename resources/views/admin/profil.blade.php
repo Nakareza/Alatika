@@ -7,7 +7,7 @@
 
     {{-- Profile Card --}}
     <div class="card overflow-hidden">
-        <div class="h-32 bg-gradient-to-r from-[#378ADD] to-[#185FA5] relative">
+        <div class="h-32 bg-line-to-r from-[#378ADD] to-[#185FA5] relative">
             <div class="absolute -bottom-10 left-6">
                 <div class="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
                     <span class="text-4xl font-bold text-[#185FA5]" style="font-family:'Plus Jakarta Sans',sans-serif;">
@@ -159,19 +159,22 @@
                     Batal
                 </button>
 
-                <form action="{{ route('logout') }}" method="POST" class="flex-1">
-                    @csrf
-
-                    <button
-                        type="submit"
-                        class="w-full btn justify-center bg-red-600 hover:bg-red-700 text-white"
-                    >
-                        Ya, Logout
-                    </button>
-                </form>
+                <button
+                    type="button"
+                    @click="document.getElementById('logoutFormAdmin').submit()"
+                    class="flex-1 btn justify-center bg-red-600 hover:bg-red-700 text-white"
+                >
+                    Ya, Logout
+                </button>
             </div>
 
         </div>
     </div>
 </div>
+
+{{-- Hidden Logout Form --}}
+<form action="{{ route('logout') }}" method="POST" id="logoutFormAdmin" style="display: none;">
+    @csrf
+</form>
+
 @endsection

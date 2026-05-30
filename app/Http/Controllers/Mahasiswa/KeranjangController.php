@@ -9,6 +9,7 @@ use App\Models\Peminjaman;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class KeranjangController extends Controller
 {
@@ -17,7 +18,7 @@ class KeranjangController extends Controller
      */
     public function index()
     {
-        $keranjang = Keranjang::with('alat')->where('user_id', auth()->id())->get();
+        $keranjang = Keranjang::with('alat')->where('user_id', Auth::id())->get();
         return view('mahasiswa.keranjang.index', compact('keranjang'));
     }
 
@@ -32,7 +33,7 @@ class KeranjangController extends Controller
             'jumlah' => 'required|integer|min:1|max:' . $alat->stok_tersedia
         ]);
 
-        $keranjang = Keranjang::where('user_id', auth()->id())
+        $keranjang = Keranjang::where('user_id', Auth::id())
                              ->where('alat_id', $alat_id)
                              ->first();
 
@@ -44,13 +45,13 @@ class KeranjangController extends Controller
             $keranjang->update(['jumlah' => $newJumlah]);
         } else {
             Keranjang::create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'alat_id' => $alat_id,
                 'jumlah' => $request->jumlah
             ]);
         }
 
-        return redirect()->route('mahasiswa.alat')->with('success', 'Alat berhasil ditambahkan ke keranjang.');
+        return redirect()->route('mahasiswa.peminjaman.ajukan')->with('success', 'Alat berhasil ditambahkan ke keranjang.');
     }
 
     /**
@@ -58,7 +59,7 @@ class KeranjangController extends Controller
      */
     public function remove($id)
     {
-        $keranjang = Keranjang::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        $keranjang = Keranjang::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         $keranjang->delete();
 
         return redirect()->back()->with('success', 'Alat dihapus dari keranjang.');
@@ -74,7 +75,7 @@ class KeranjangController extends Controller
             'tanggal_kembali' => 'required|date|after_or_equal:today',
         ]);
 
-        $keranjangItems = Keranjang::with('alat')->where('user_id', auth()->id())->get();
+        $keranjangItems = Keranjang::with('alat')->where('user_id', Auth::id())->get();
 
         if ($keranjangItems->isEmpty()) {
             return redirect()->route('mahasiswa.alat')->with('error', 'Keranjang Anda kosong.');
@@ -93,7 +94,7 @@ class KeranjangController extends Controller
 
                 Peminjaman::create([
                     'kode_peminjaman' => $kode,
-                    'user_id' => auth()->id(),
+                    'user_id' => Auth::id(),
                     'alat_id' => $item->alat_id,
                     'jumlah' => $item->jumlah,
                     'keperluan' => $request->keperluan,
@@ -109,7 +110,7 @@ class KeranjangController extends Controller
             }
 
             // Clear cart
-            Keranjang::where('user_id', auth()->id())->delete();
+            Keranjang::where('user_id', Auth::id())->delete();
 
             DB::commit();
 
@@ -118,8 +119,8 @@ class KeranjangController extends Controller
             $adminOrKalab = \App\Models\User::whereIn('role', ['admin', 'kalab'])->first();
             if ($adminOrKalab) {
                 $telegram->notifyNewRequest($adminOrKalab, [
-                    'peminjam_nama' => auth()->user()->name,
-                    'peminjam_role' => auth()->user()->role,
+                    'peminjam_nama' => Auth::user()->name,
+                    'peminjam_role' => Auth::user()->role,
                     'alat' => implode(", ", $alatNames),
                     'jumlah' => 1, // multiple tools abstracted
                     'kode' => $kode,

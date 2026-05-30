@@ -54,6 +54,24 @@
                   style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Dashboard</span>
         </a>
 
+        <!-- Daftar Alat -->
+        <a href="{{ route('mahasiswa.alat') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('mahasiswa.alat') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('mahasiswa.alat'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
+            <i class="fas fa-box-open w-5 text-center"></i>
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Daftar Alat</span>
+        </a>
+
         <!-- Ajukan Peminjaman -->
         <a href="{{ route('mahasiswa.peminjaman.ajukan') }}"
            class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
@@ -69,7 +87,7 @@
                   x-transition:enter-start="opacity-0"
                   x-transition:enter-end="opacity-100"
                   class="text-sm whitespace-nowrap"
-                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Ajukan Peminjaman</span>
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Pengajuan Peminjaman</span>
         </a>
 
         <!-- Riwayat Peminjaman -->
@@ -90,48 +108,7 @@
                   style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Riwayat Peminjaman</span>
         </a>
 
-        <!-- Daftar Alat -->
-        <a href="{{ route('mahasiswa.alat') }}"
-           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
-           style="{{ request()->routeIs('mahasiswa.alat') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''"
-           @if(!request()->routeIs('mahasiswa.alat'))
-           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
-           onmouseout="this.style.background='';this.style.color='#64748b';"
-           @endif>
-            <i class="fas fa-box-open w-5 text-center"></i>
-            <span x-show="!collapsed"
-                  x-transition:enter="transition ease-out duration-200 delay-75"
-                  x-transition:enter-start="opacity-0"
-                  x-transition:enter-end="opacity-100"
-                  class="text-sm whitespace-nowrap"
-                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Daftar Alat</span>
-        </a>
-
-        <!-- Keranjang -->
-        @php $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count(); @endphp
-        <a href="{{ route('mahasiswa.keranjang') }}"
-           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
-           style="{{ request()->routeIs('mahasiswa.keranjang') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''"
-           @if(!request()->routeIs('mahasiswa.keranjang'))
-           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
-           onmouseout="this.style.background='';this.style.color='#64748b';"
-           @endif>
-            <i class="fas fa-shopping-cart w-5 text-center"></i>
-            <span x-show="!collapsed"
-                  x-transition:enter="transition ease-out duration-200 delay-75"
-                  x-transition:enter-start="opacity-0"
-                  x-transition:enter-end="opacity-100"
-                  class="text-sm whitespace-nowrap flex-1"
-                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">Keranjang</span>
-            @if($cartCount > 0)
-            <span x-show="!collapsed"
-                  class="text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
-                  style="background:#ef4444;">{{ $cartCount }}</span>
-            @endif
-        </a>
-
+        
         <!-- Divider -->
         <div x-show="!collapsed" class="my-2" style="border-top:1px solid #EBF3FD;"></div>
 

@@ -39,6 +39,7 @@ class TelegramService
     )->json();
 }
 
+    
     /**
      * Send message with inline keyboard buttons
      */
@@ -99,6 +100,68 @@ class TelegramService
         ]);
     }
 
+    /**
+ * Set bot commands menu
+ */
+public function setCommands(): array
+{
+    return $this->request('setMyCommands', [
+        'commands' => json_encode([
+            [
+                'command' => 'start',
+                'description' => 'Mulai bot'
+            ],
+            [
+                'command' => 'help',
+                'description' => 'Bantuan'
+            ],
+            [
+                'command' => 'status',
+                'description' => 'Cek status peminjaman'
+            ],
+            [
+                'command' => 'pending',
+                'description' => 'Lihat pengajuan pending'
+            ],
+            [
+                'command' => 'approve',
+                'description' => 'Setujui peminjaman'
+            ],
+            [
+                'command' => 'reject',
+                'description' => 'Tolak peminjaman'
+            ],
+            [
+                'command' => 'kembali',
+                'description' => 'Ajukan pengembalian'
+            ],
+            [
+                'command' => 'link',
+                'description' => 'Hubungkan akun'
+            ],
+            [
+                'command' => 'unlink',
+                'description' => 'Putuskan akun'
+            ],
+            [
+                'command' => 'myid',
+                'description' => 'Lihat Chat ID'
+            ]
+        ])
+    ]);
+}
+
+/**
+ * Tampilkan tombol Menu di Telegram
+ */
+public function setMenuButton(): array
+{
+    return $this->request('setChatMenuButton', [
+        'menu_button' => json_encode([
+            'type' => 'commands'
+        ])
+    ]);
+}
     // ===================================================
     // NOTIFICATION METHODS (Web → Telegram)
     // ===================================================
@@ -352,6 +415,25 @@ class TelegramService
             Log::error("Telegram download error", ['message' => $e->getMessage()]);
             return null;
         }
+    }
+
+
+    public function getMainKeyboard(): array
+    {
+        return [
+            'keyboard' => [
+                [
+                    ['text' => '📊 Status'],
+                    ['text' => '📋 Pending']
+                ],
+                [
+                    ['text' => 'ℹ️ Bantuan'],
+                    ['text' => '🔗 Hubungkan Akun']
+                ]
+            ],
+            'resize_keyboard' => true,
+            'persistent' => true,
+        ];
     }
 
     // ===================================================
