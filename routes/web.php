@@ -94,8 +94,24 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     [PeminjamanController::class, 'rejectReturn']
     )->name('peminjaman.rejectReturn');
 
-    // Data Alat Routes
-    Route::get('/alat', [AdminInventarisController::class, 'index'])->name('alat');
+    // Data Inventaris
+    Route::get('/alat', [AdminInventarisController::class, 'index'])
+        ->name('alat');
+
+    Route::get('/alat/create', [AdminInventarisController::class, 'create'])
+        ->name('alat.create');
+
+    Route::post('/alat', [AdminInventarisController::class, 'store'])
+        ->name('alat.store');
+
+    Route::get('/alat/{alat}/edit', [AdminInventarisController::class, 'edit'])
+        ->name('alat.edit');
+
+    Route::put('/alat/{alat}', [AdminInventarisController::class, 'update'])
+        ->name('alat.update');
+
+    Route::delete('/alat/{alat}', [AdminInventarisController::class, 'destroy'])
+        ->name('alat.destroy');
     
     // Data Mahasiswa Routes
     Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index'])->name('mahasiswa');

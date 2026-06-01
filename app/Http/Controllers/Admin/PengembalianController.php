@@ -9,22 +9,64 @@ use Illuminate\Http\Request;
 
 class PengembalianController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengembalian = Peminjaman::with(['user', 'alat'])
-            ->whereIn('status', ['dipinjam', 'menunggu_verifikasi', 'selesai'])
-            ->orderByRaw("FIELD(status, 'menunggu_verifikasi', 'dipinjam', 'selesai')")
+        $query = Peminjaman::with(['user', 'alat'])
+            ->whereIn('status', [
+                'dipinjam',
+                'menunggu_verifikasi',
+                'selesai'
+            ]);
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search mahasiswa / alat / kode
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->whereHas('user', function ($user) use ($search) {
+                    $user->where('name', 'like', "%{$search}%")
+                        ->orWhere('nim', 'like', "%{$search}%");
+                })
+
+                ->orWhereHas('alat', function ($alat) use ($search) {
+                    $alat->where('nama', 'like', "%{$search}%");
+                })
+
+                ->orWhere('kode_peminjaman', 'like', "%{$search}%");
+
+            });
+        }
+
+        $pengembalian = $query
+            ->orderByRaw("
+                FIELD(
+                    status,
+                    'menunggu_verifikasi',
+                    'dipinjam',
+                    'selesai'
+                )
+            ")
             ->orderBy('updated_at', 'desc')
             ->get();
-            
+
         $stats = [
-            'total' => $pengembalian->count(),
-            'verifikasi' => $pengembalian->where('status', 'menunggu_verifikasi')->count(),
-            'dipinjam' => $pengembalian->where('status', 'dipinjam')->count(),
-            'selesai' => $pengembalian->where('status', 'selesai')->count(),
+            'total'      => Peminjaman::count(),
+            'selesai'    => Peminjaman::where('status', 'selesai')->count(),
+            'dipinjam'   => Peminjaman::where('status', 'dipinjam')->count(),
+            'verifikasi' => Peminjaman::where('status', 'menunggu_verifikasi')->count(),
         ];
-            
-        return view('admin.pengembalian.index', compact('pengembalian', 'stats'));
+
+        return view(
+            'admin.pengembalian.index',
+            compact('pengembalian', 'stats')
+        );
     }
 
     public function verify(Request $request, $id, TelegramService $telegram)

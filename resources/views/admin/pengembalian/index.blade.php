@@ -38,49 +38,69 @@
 
     {{-- Filter --}}
     <div class="card p-6">
-        <div class="flex flex-col lg:flex-row gap-4">
+        <form method="GET" action="{{ route('admin.pengembalian') }}">
+            <div class="flex flex-col md:flex-row gap-4">
 
-            <div class="flex-1 relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2"
-                   style="color:#94a3b8;"></i>
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
-                <input type="text"
-                       placeholder="Cari nama mahasiswa atau kode alat..."
-                       class="inp pl-11">
-            </div>
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari nama mahasiswa atau nama alat..."
+                        class="inp pl-10 w-full">
+                </div>
 
-            <select class="inp lg:w-64">
+            <select
+                name="status"
+                onchange="this.form.submit()"
+                class="inp md:w-52">
+
                 <option value="">Semua Status</option>
-                <option value="menunggu">Menunggu Kembali</option>
-                <option value="terlambat">Terlambat</option>
-                <option value="dikembalikan">Sudah Dikembalikan</option>
+
+                <option value="dipinjam"
+                    {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
+                    Menunggu Dikembalikan
+                </option>
+
+                <option value="menunggu_verifikasi"
+                    {{ request('status') == 'menunggu_verifikasi' ? 'selected' : '' }}>
+                    Butuh Verifikasi
+                </option>
+
+                <option value="selesai"
+                    {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                    Sudah Dikembalikan
+                </option>
+
             </select>
 
-            <button class="btn btn-primary">
-                <i class="fas fa-filter"></i>
-                Filter
-            </button>
+            <a href="{{ route('admin.pengembalian') }}"
+                class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+                    <i class="fas fa-rotate-left"></i>
+                </a>
 
         </div>
+        </form>
     </div>
 
     {{-- Table --}}
-    <div class="card overflow-hidden">
+    <div  class="card overflow-hidden">
 
         <div class="overflow-x-auto">
 
             <table class="w-full">
 
-                <thead style="background:#F5F8FF;">
+                <thead class="bg-[#F5F8FF]">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">#</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Mahasiswa</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Alat</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Tgl Pinjam</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Deadline</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Kondisi</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase">Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold uppercase">Aksi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">No</th>
+                        <th class="px-2 py-4 text-left text-xs font-bold uppercase text-slate-500">Mahasiswa</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Alat</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Deadline</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Status</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">Bukti</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">Aksi</th>
                     </tr>
                 </thead>
 
@@ -88,126 +108,142 @@
 
                     @forelse($pengembalian as $index => $p)
 
-                    <tr class="border-t hover:bg-[#F8FBFF] transition">
+                    <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
 
-                        <td class="px-6 py-4 text-sm">
+                        <td class="px-6 py-4 text-sm text-slate-500">
                             {{ $index + 1 }}
                         </td>
+                    {{-- Mahasiswa --}}
+                    <td class="px-2 py-4">
+                        <div class="flex items-center gap-3">
 
-                        <td class="px-6 py-4">
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                                     style="background:#1E2B4A;">
-                                    {{ strtoupper(substr($p->user->name, 0, 1)) }}
-                                </div>
-
-                                <div>
-                                    <p class="font-semibold text-sm">
-                                        {{ $p->user->name }}
-                                    </p>
-
-                                    <p class="text-xs text-slate-400">
-                                        {{ $p->user->nim ?? '-' }}
-                                    </p>
-                                </div>
-
+                            <div
+                                class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+                                style="background:#1E2B4A;">
+                                {{ strtoupper(substr($p->user->name,0,1)) }}
                             </div>
 
-                        </td>
-
-                        <td class="px-6 py-4">
-                            <p class="font-semibold text-sm">
-                                {{ $p->alat->nama }}
-                            </p>
-
-                            <p class="text-xs text-slate-400">
-                                {{ $p->kode_peminjaman }}
-                            </p>
-                        </td>
-
-                        <td class="px-6 py-4 text-sm">
-                            {{ $p->tanggal_pinjam->format('d M Y') }}
-                        </td>
-
-                        <td class="px-6 py-4">
-
-                            <span class="text-sm {{ $p->isOverdue() ? 'text-red-600 font-bold' : '' }}">
-                                {{ $p->tanggal_kembali->format('d M Y') }}
-                            </span>
-
-                            @if($p->isOverdue())
-                                <p class="text-xs text-red-500 mt-1">
-                                    Terlambat
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">
+                                    {{ $p->user->name }}
                                 </p>
+
+                                <p class="text-xs text-slate-400">
+                                    {{ $p->user->nim ?? '-' }}
+                                </p>
+                            </div>
+
+                        </div>
+                    </td>
+
+                    {{-- Alat --}}
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-semibold text-slate-800">
+                            {{ $p->alat->nama }}
+                        </p>
+
+                        <p class="text-xs text-slate-400">
+                            {{ $p->kode_peminjaman }}
+                        </p>
+                    </td>
+
+                    {{-- Deadline --}}
+                    <td class="px-6 py-4">
+
+                        <div class="text-sm">
+
+                            <p class="{{ $p->isOverdue() ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
+                                {{ $p->tanggal_kembali->format('d M Y') }}
+                            </p>
+
+                            @if($p->isOverdue() && $p->status !== 'selesai')
+                                <span class="text-xs text-red-500">
+                                    Terlambat
+                                </span>
                             @endif
 
-                        </td>
+                        </div>
 
-                        <td class="px-6 py-4">
+                    </td>
 
-                            @if($p->kondisi_kembali)
+                    {{-- Status --}}
+                    <td class="px-6 py-4">
 
-                                <span class="badge badge-success">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    {{ ucfirst($p->kondisi_kembali) }}
-                                </span>
+                        <span class="badge {{ $p->status_config['color'] }}">
+                            {{ $p->status_label }}
+                        </span>
 
-                            @else
+                    </td>
 
-                                <span class="text-xs text-slate-400">
-                                    Belum dicek
-                                </span>
+                    {{-- Bukti --}}
+                    <td class="px-6 py-4 text-center">
 
-                            @endif
+                        @if($p->foto_bukti_kembali)
 
-                        </td>
+                            <button
+                                type="button"
+                                onclick="window.dispatchEvent(new CustomEvent('open-modal-bukti-{{ $p->id }}'))"
+                                class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
 
-                        <td class="px-6 py-4">
+                                <i class="fas fa-image"></i>
 
-                            <span class="badge {{ $p->status_config['color'] }}">
-                                <i class="fas {{ $p->status_config['icon'] }} mr-1"></i>
-                                {{ $p->status_label }}
+                            </button>
+
+                        @else
+
+                            <span class="text-slate-300">
+                                <i class="fas fa-image"></i>
                             </span>
 
-                        </td>
+                        @endif
 
-                        <td class="px-6 py-4 text-center">
+                    </td>
 
-                            @if($p->status !== 'selesai')
+                    {{-- Aksi --}}
+                    <td class="px-6 py-4 text-center">
 
-                                <form action="{{ route('admin.pengembalian.verify', $p->id) }}"
-                                      method="POST"
-                                      class="inline"
-                                      onsubmit="return confirm('Verifikasi pengembalian alat ini?');">
+                        @if($p->status === 'menunggu_verifikasi')
 
-                                    @csrf
+                            <form
+                                action="{{ route('admin.pengembalian.verify', $p->id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Verifikasi pengembalian alat ini?');">
 
-                                    <input type="hidden"
-                                           name="kondisi_kembali"
-                                           value="baik">
+                                @csrf
 
-                                    <button type="submit"
-                                            class="btn btn-primary text-xs px-4 py-2">
-                                        <i class="fas fa-check"></i>
-                                        Verifikasi
-                                    </button>
+                                <input
+                                    type="hidden"
+                                    name="kondisi_kembali"
+                                    value="baik">
 
-                                </form>
+                                <button
+                                    type="submit"
+                                    class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700 transition">
 
-                            @else
+                                    <i class="fas fa-check mr-1"></i>
+                                    Verifikasi
 
-                                <span class="text-sm font-semibold text-emerald-600">
-                                    <i class="fas fa-check-double mr-1"></i>
-                                    Selesai
-                                </span>
+                                </button>
 
-                            @endif
+                            </form>
 
-                        </td>
+                        @elseif($p->status === 'selesai')
 
-                    </tr>
+                            <span class="text-emerald-600 font-semibold text-sm">
+                                Selesai
+                            </span>
+
+                        @else
+
+                            <span class="text-slate-400 text-sm">
+                                Menunggu
+                            </span>
+
+                        @endif
+
+                    </td>
+
+                </tr>
 
                     @empty
 
@@ -228,5 +264,157 @@
     </div>
 
 </div>
+@foreach($pengembalian as $p)
 
+    @if($p->foto_bukti_kembali)
+
+        <x-modal
+    name="bukti-{{ $p->id }}"
+    title="Bukti Pengembalian"
+    size="lg"
+    type="default">
+
+    <div class="space-y-5">
+
+        <div x-data="{ preview:false }">
+
+        {{-- Gambar utama --}}
+        <img
+            src="{{ $p->foto_bukti_url }}"
+            alt="Bukti Pengembalian"
+            @click="preview = true"
+            class="w-full h-[420px] object-cover rounded-2xl border cursor-zoom-in hover:opacity-90 transition"
+        >
+
+        {{-- Preview fullscreen --}}
+        <div
+            x-show="preview"
+            x-transition
+            class="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-6"
+            style="position:fixed;"
+            @click="preview = false"
+        >
+
+            <img
+                src="{{ $p->foto_bukti_url }}"
+                class="max-w-6xl max-h-[92vh] rounded-2xl shadow-2xl object-contain"
+            >
+
+            <button
+                @click="preview = false"
+                class="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-slate-800 shadow-lg transition">
+
+                <i class="fas fa-times"></i>
+            </button>
+
+        </div>
+
+    </div>
+
+            {{-- Info --}}
+            <div class="bg-slate-50 rounded-2xl p-4 space-y-2">
+
+                <div class="flex justify-between text-sm">
+                    <span class="font-semibold text-slate-500">
+                        Peminjam
+                    </span>
+
+                    <span class="text-slate-700">
+                        {{ $p->user->name }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between text-sm">
+                    <span class="font-semibold text-slate-500">
+                        Alat
+                    </span>
+
+                    <span class="text-slate-700">
+                        {{ $p->alat->nama }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between text-sm">
+                    <span class="font-semibold text-slate-500">
+                        Kode
+                    </span>
+
+                    <span class="text-slate-700 font-medium">
+                        {{ $p->kode_peminjaman }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between text-sm">
+                    <span class="font-semibold text-slate-500">
+                        Status
+                    </span>
+
+                    <span class="badge {{ $p->status_config['color'] }}">
+                        {{ $p->status_label }}
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+    <x-slot name="footer">
+
+        {{-- Kalau masih menunggu verifikasi --}}
+        @if($p->status === 'menunggu_verifikasi')
+
+            {{-- Tombol Tolak --}}
+            <form
+                action="{{ route('admin.peminjaman.rejectReturn', $p->id) }}"
+                method="POST"
+                class="flex-1">
+
+                @csrf
+
+                <button
+                    type="submit"
+                    class="w-full py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition font-medium">
+
+                    <i class="fas fa-times mr-1"></i>
+                    Tolak
+                </button>
+            </form>
+
+            {{-- Tombol Terima --}}
+            <form
+                action="{{ route('admin.peminjaman.approveReturn', $p->id) }}"
+                method="POST"
+                class="flex-1">
+
+                @csrf
+
+                <button
+                    type="submit"
+                    class="w-full py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition font-medium">
+
+                    <i class="fas fa-check mr-1"></i>
+                    Terima Pengembalian
+                </button>
+            </form>
+
+        @else
+
+            {{-- Kalau sudah selesai --}}
+            <button
+                type="button"
+                @click="open = false"
+                class="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 transition font-medium">
+
+                Tutup
+            </button>
+
+        @endif
+
+    </x-slot>
+
+</x-modal>
+
+    @endif
+
+@endforeach
 @endsection
