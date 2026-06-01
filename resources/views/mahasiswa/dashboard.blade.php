@@ -28,69 +28,29 @@
     {{-- Stats --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-        <div class="card p-5 hover:shadow-md transition-all duration-200">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-1 h-3.5 rounded-full bg-blue-600 inline-block"></span>
-                    <p class="text-sm font-semibold">Total Peminjaman</p>
-                </div>
-                <i class="fas fa-clipboard-list text-slate-400 text-xs"></i>
-            </div>
-            <div class="mt-2">
-                <p class="text-3xl font-bold" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">{{ $stats['total'] }}</p>
-                <p class="text-sm font-semibold mt-1 flex items-center gap-1">
-                    <i class="fas fa-arrow-up text-[9px]"></i> 14% <span class="text-slate-400 font-normal">vs bulan lalu</span>
-                </p>
-            </div>
-        </div>
+        <x-card-stats
+            title="Total Peminjaman"
+            :value="$stats['total']"
+            icon="fas fa-clipboard-list"
+            color="blue" />
 
-        <div class="card p-5 hover:shadow-md transition-all duration-200">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-1 h-3.5 rounded-full bg-emerald-500 inline-block"></span>
-                    <p class="text-sm font-semibold">Sedang Dipinjam</p>
-                </div>
-                <i class="fas fa-hand-holding text-slate-400 text-xs"></i>
-            </div>
-            <div class="mt-2">
-                <p class="text-3xl font-bold text-slate-800 tracking-tight">{{ $stats['dipinjam'] }}</p>
-                <p class="text-sm text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                    <i class="fas fa-arrow-up text-[9px]"></i> 2.5% <span class="text-slate-400 font-normal">vs bulan lalu</span>
-                </p>
-            </div>
-        </div>
+        <x-card-stats
+            title="Sedang Dipinjam"
+            :value="$stats['dipinjam']"
+            icon="fas fa-hand-holding"
+            color="green" />
 
-        <div class="card p-5 hover:shadow-md transition-all duration-200">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-1 h-3.5 rounded-full bg-amber-500 inline-block"></span>
-                    <p class="text-sm font-semibold">Selesai</p>
-                </div>
-                <i class="fas fa-check-circle text-slate-400 text-xs"></i>
-            </div>
-            <div class="mt-2">
-                <p class="text-3xl font-bold text-slate-800 tracking-tight">{{ $stats['selesai'] }}</p>
-                <p class="text-sm text-rose-600 font-semibold mt-1 flex items-center gap-1">
-                    <i class="fas fa-arrow-down text-[9px]"></i> 2% <span class="text-slate-400 font-normal">vs bulan lalu</span>
-                </p>
-            </div>
-        </div>
+        <x-card-stats
+            title="Selesai"
+            :value="$stats['selesai']"
+            icon="fas fa-check-circle"
+            color="yellow" />
 
-        <div class="card p-5 hover:shadow-md transition-all duration-200">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-1 h-3.5 rounded-full bg-rose-500 inline-block"></span>
-                    <p class="text-sm font-semibold">Ditolak</p>
-                </div>
-                <i class="fas fa-times-circle text-slate-400 text-xs"></i>
-            </div>
-            <div class="mt-2">
-                <p class="text-3xl font-bold text-slate-800 tracking-tight">{{ $stats['ditolak'] }}</p>
-                <p class="text-sm text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                    <i class="fas fa-arrow-up text-[9px]"></i> 0.7% <span class="text-slate-400 font-normal">vs bulan lalu</span>
-                </p>
-            </div>
-        </div>
+        <x-card-stats
+            title="Ditolak"
+            :value="$stats['ditolak']"
+            icon="fas fa-times-circle"
+            color="red" />
 
     </div>
 
@@ -160,14 +120,14 @@
                     Menu Cepat
                 </h3>
                 <div class="space-y-2">
-                    <a href="{{ route('mahasiswa.keranjang') }}"
+                    <a href="{{ route('mahasiswa.peminjaman.store') }}"
                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-all">
                         <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-all">
-                            <i class="fas fa-shopping-cart text-sm"></i>
+                            <i class="fas fa-plus-circle text-sm"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-slate-800">Keranjang</p>
-                            <p class="text-sm text-slate-400 font-medium">Cek alat pilihanmu</p>
+                            <p class="text-sm font-semibold text-slate-800">Pengajuan Peminjaman</p>
+                            <p class="text-sm text-slate-400 font-medium">Ajukan peminjaman alat</p>
                         </div>
                     </a>
                     <a href="{{ route('mahasiswa.peminjaman.riwayat') }}"

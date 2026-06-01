@@ -8,92 +8,33 @@
 
     {{-- Statistics Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        
+        <x-card-stats
+        title="Menunggu Dikembalikan" 
+        :value="$stats['dipinjam']" 
+        icon="fas fa-hourglass-half" 
+        color="indigo" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                     style="background:#FEF3C7;">
-                    <i class="fas fa-hourglass-half text-lg" style="color:#D97706;"></i>
-                </div>
+        <x-card-stats
+        title="Butuh Verifikasi" 
+        :value="$stats['verifikasi']" 
+        icon="fas fa-clipboard-list" 
+        color="yellow" />
 
-                <span class="badge badge-warning">
-                    Menunggu
-                </span>
-            </div>
+        <x-card-stats
+        title="Sudah Dikembalikan" 
+        :value="$stats['selesai']" 
+        icon="fas fa-check-circle" 
+        color="green" />
 
-            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
-                {{ $stats['dipinjam'] }}
-            </h3>
-
-            <p class="text-sm" style="color:#64748b;">
-                Menunggu Dikembalikan
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                     style="background:#FEE2E2;">
-                    <i class="fas fa-exclamation-triangle text-lg" style="color:#DC2626;"></i>
-                </div>
-
-                <span class="badge badge-danger">
-                    Verifikasi
-                </span>
-            </div>
-
-            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
-                {{ $stats['verifikasi'] }}
-            </h3>
-
-            <p class="text-sm" style="color:#64748b;">
-                Butuh Verifikasi
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                     style="background:#D1FAE5;">
-                    <i class="fas fa-check-circle text-lg" style="color:#059669;"></i>
-                </div>
-
-                <span class="badge badge-success">
-                    Selesai
-                </span>
-            </div>
-
-            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
-                {{ $stats['selesai'] }}
-            </h3>
-
-            <p class="text-sm" style="color:#64748b;">
-                Sudah Dikembalikan
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                     style="background:#EBF3FD;">
-                    <i class="fas fa-undo-alt text-lg" style="color:#185FA5;"></i>
-                </div>
-
-                <span class="badge badge-info">
-                    Total
-                </span>
-            </div>
-
-            <h3 class="text-3xl font-extrabold mb-1" style="color:#1E2B4A;">
-                {{ $stats['total'] }}
-            </h3>
-
-            <p class="text-sm" style="color:#64748b;">
-                Total Peminjaman Aktif
-            </p>
-        </div>
+        <x-card-stats
+        title="Total Peminjaman" 
+        :value="$stats['total']" 
+        icon="fas fa-clipboard-list" 
+        color="blue" />
 
     </div>
+
 
     {{-- Filter --}}
     <div class="card p-6">

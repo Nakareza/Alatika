@@ -9,21 +9,49 @@ use Illuminate\Http\Request;
 
 class PeminjamanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Load real data from db
-        $peminjaman = Peminjaman::with(['user', 'alat'])
+        $query = Peminjaman::with(['user', 'alat']);
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->whereHas('user', function ($user) use ($search) {
+                    $user->where('name', 'like', "%{$search}%");
+                })
+
+                ->orWhereHas('alat', function ($alat) use ($search) {
+                    $alat->where('nama', 'like', "%{$search}%");
+                })
+
+                ->orWhere('kode_peminjaman', 'like', "%{$search}%");
+            });
+        }
+
+        $peminjaman = $query
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         $stats = [
             'total' => Peminjaman::count(),
             'pending' => Peminjaman::where('status', 'pending')->count(),
             'aktif' => Peminjaman::where('status', 'dipinjam')->count(),
             'ditolak' => Peminjaman::where('status', 'ditolak')->count(),
         ];
-            
-        return view('admin.peminjaman.index', compact('peminjaman', 'stats'));
+
+        return view(
+            'admin.peminjaman.index',
+            compact('peminjaman', 'stats')
+        );
     }
 
     public function approve($id, TelegramService $telegram)

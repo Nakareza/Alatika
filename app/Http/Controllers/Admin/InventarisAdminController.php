@@ -3,58 +3,67 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inventaris;
+use App\Models\Alat;
 use Illuminate\Http\Request;
 
 class InventarisAdminController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Inventaris::query();
+        $query = Alat::query();
 
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
         }
 
-        if ($request->has('is_borrowable') && $request->is_borrowable !== null && $request->is_borrowable !== '') {
-            $query->where('is_borrowable', filter_var($request->is_borrowable, FILTER_VALIDATE_BOOLEAN));
-        }
-
         if ($request->filled('search')) {
+
             $search = $request->search;
 
-            $query->where(function ($builder) use ($search) {
-                $builder->where('nama_alat', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('kode', 'like', "%{$search}%")
                     ->orWhere('kategori', 'like', "%{$search}%")
-                    ->orWhere('kode_barang', 'like', "%{$search}%")
-                    ->orWhere('lokasi_simpan', 'like', "%{$search}%")
-                    ->orWhere('kondisi', 'like', "%{$search}%");
+                    ->orWhere('lokasi', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
-        $inventaris = $query
-            ->orderBy('kategori')
-            ->orderBy('nama_alat')
-            ->paginate(20)
+        $alat = $query
+            ->orderBy('nama')
+            ->paginate(12)
             ->appends($request->query());
 
-        $inventarisGrouped = $inventaris->getCollection()->groupBy(function ($item) {
-            return $item->kategori ?: 'Umum';
-        });
-
         $stats = [
-            'total_item' => Inventaris::count(),
-            'total_borrowable' => Inventaris::where('is_borrowable', true)->count(),
-            'total_non_borrowable' => Inventaris::where('is_borrowable', false)->count(),
-            'total_stok' => (int) Inventaris::sum('jumlah_stok'),
+            'total_alat' => Alat::count(),
+
+            'total_tersedia' => Alat::where('status', 'tersedia')
+                ->count(),
+
+            'total_dipinjam' => Alat::whereColumn(
+                'stok_tersedia',
+                '<',
+                'stok_total'
+            )->count(),
+
+            'total_maintenance' => Alat::where(
+                'status',
+                'maintenance'
+            )->count(),
         ];
 
-        $kategoriOptions = Inventaris::query()
-            ->select('kategori')
+        $kategoriOptions = Alat::select('kategori')
             ->distinct()
             ->orderBy('kategori')
             ->pluck('kategori');
 
-        return view('admin.inventaris.index', compact('inventaris', 'inventarisGrouped', 'stats', 'kategoriOptions'));
+        return view(
+            'admin.inventaris.index',
+            compact(
+                'alat',
+                'stats',
+                'kategoriOptions'
+            )
+        );
     }
 }

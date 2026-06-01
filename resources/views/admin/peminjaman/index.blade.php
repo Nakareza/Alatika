@@ -9,123 +9,90 @@
     {{-- Statistics Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                     style="background:#EBF3FD;">
-                    <i class="fas fa-clipboard-list text-lg"
-                       style="color:#185FA5;"></i>
-                </div>
+        <x-card-stats
+        title="Total Pengajuan" 
+        :value="$stats['total']" 
+        icon="fas fa-clipboard-list" 
+        color="blue" />
 
-                <span class="badge badge-info">
-                    Total
-                </span>
-            </div>
+        <x-card-stats
+        title="Menunggu Persetujuan" 
+        :value="$stats['pending']" 
+        icon="fas fa-clock" 
+        color="yellow" />
 
-            <h3 class="text-2xl font-bold">
-                {{ $stats['total'] }}
-            </h3>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Total Pengajuan
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                     style="background:#fef3c7;">
-                    <i class="fas fa-clock text-lg text-yellow-700"></i>
-                </div>
-
-                <span class="badge badge-warning">
-                    Pending
-                </span>
-            </div>
-
-            <h3 class="text-2xl font-bold">
-                {{ $stats['pending'] }}
-            </h3>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Menunggu Persetujuan
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                     style="background:#d1fae5;">
-                    <i class="fas fa-hand-holding text-lg text-green-700"></i>
-                </div>
-
-                <span class="badge badge-success">
-                    Aktif
-                </span>
-            </div>
-
-            <h3 class="text-2xl font-bold">
-                {{ $stats['aktif'] }}
-            </h3>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Sedang Dipinjam
-            </p>
-        </div>
-
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                     style="background:#fee2e2;">
-                    <i class="fas fa-times-circle text-lg text-red-700"></i>
-                </div>
-
-                <span class="badge badge-danger">
-                    Ditolak
-                </span>
-            </div>
-
-            <h3 class="text-2xl font-bold">
-                {{ $stats['ditolak'] }}
-            </h3>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Ditolak
-            </p>
-        </div>
+        <x-card-stats
+        title="Sedang Dipinjam" 
+        :value="$stats['aktif']" 
+        icon="fas fa-hand-holding" 
+        color="indigo" />
+        
+        <x-card-stats
+        title="Ditolak" 
+        :value="$stats['ditolak']" 
+        icon="fas fa-times-circle" 
+        color="red" />
 
     </div>
 
     {{-- Filter --}}
     <div class="card p-6">
 
-        <div class="flex flex-col md:flex-row gap-4">
+        <form method="GET" action="{{ route('admin.peminjaman') }}">
+            <div class="flex flex-col md:flex-row gap-4">
 
-            <div class="flex-1 relative">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
-                <input type="text"
-                       placeholder="Cari nama mahasiswa atau nama alat..."
-                       class="inp pl-10">
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari nama mahasiswa atau nama alat..."
+                        class="inp pl-10 w-full">
+                </div>
+
+                <select
+                    name="status"
+                    onchange="this.form.submit()"
+                    class="inp md:w-52">
+
+                    <option value="">Semua Status</option>
+
+                    <option value="pending"
+                        {{ request('status') == 'pending' ? 'selected' : '' }}>
+                        Pending
+                    </option>
+
+                    <option value="dipinjam"
+                        {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
+                        Dipinjam
+                    </option>
+
+                    <option value="menunggu_verifikasi"
+                        {{ request('status') == 'menunggu_verifikasi' ? 'selected' : '' }}>
+                        Menunggu Verifikasi
+                    </option>
+
+                    <option value="selesai"
+                        {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                        Selesai
+                    </option>
+
+                    <option value="ditolak"
+                        {{ request('status') == 'ditolak' ? 'selected' : '' }}>
+                        Ditolak
+                    </option>
+
+                </select>
+
+                <a href="{{ route('admin.peminjaman') }}"
+                class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+                    <i class="fas fa-rotate-left"></i>
+                </a>
+
             </div>
-
-            <select class="inp md:w-52">
-                <option value="">Semua Status</option>
-                <option value="pending">Pending</option>
-                <option value="disetujui">Disetujui</option>
-                <option value="dipinjam">Sedang Dipinjam</option>
-                <option value="ditolak">Ditolak</option>
-            </select>
-
-            <button class="btn btn-primary">
-                <i class="fas fa-filter"></i>
-                Filter
-            </button>
-
-        </div>
+        </form>
 
     </div>
 

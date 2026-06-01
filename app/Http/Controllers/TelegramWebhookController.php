@@ -121,6 +121,9 @@ class TelegramWebhookController extends Controller
         $user = User::where('telegram_chat_id', $chatId)->first();
 
         if ($user) {
+            // Set commands based on role
+            $this->telegram->setCommandsByRole($chatId, $user->role);
+            
             $roleLabel = $this->getRoleLabel($user->role);
             $this->telegram->sendMessage($chatId,
                 "Selamat datang kembali, <b>{$user->name}</b>! 👋\n\n"
@@ -188,6 +191,9 @@ class TelegramWebhookController extends Controller
         // Delete all link codes for this user
         TelegramLinkCode::where('user_id', $user->id)->delete();
 
+        // Set commands based on role
+        $this->telegram->setCommandsByRole($chatId, $user->role);
+
         $roleLabel = $this->getRoleLabel($user->role);
         $this->telegram->sendMessage($chatId,
             "✅ <b>Berhasil terhubung!</b>\n\n"
@@ -214,6 +220,9 @@ class TelegramWebhookController extends Controller
         }
 
         $user->update(['telegram_chat_id' => null]);
+
+        // Reset commands to guest/default
+        $this->telegram->setCommandsForGuest($chatId);
 
         $this->telegram->sendMessage($chatId,
             "🔓 <b>Koneksi diputus!</b>\n\n"

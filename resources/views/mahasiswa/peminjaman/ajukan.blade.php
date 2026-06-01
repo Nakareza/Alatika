@@ -61,7 +61,7 @@
                             <div class="flex items-center gap-2">
                                 <button type="button"
                                         @click="pilihan.jumlah = Math.max(1, pilihan.jumlah - 1)"
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition flex-shrink-0"
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition shrink-0"
                                         style="background:#EBF3FD;color:#185FA5;"
                                         onmouseover="this.style.background='#D4E6F8'"
                                         onmouseout="this.style.background='#EBF3FD'">
@@ -72,7 +72,7 @@
                                        class="inp text-center" style="padding:0.6rem;">
                                 <button type="button"
                                         @click="pilihan.jumlah = Math.min(pilihan.stok_max, pilihan.jumlah + 1)"
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition flex-shrink-0"
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition shrink-0"
                                         style="background:#EBF3FD;color:#185FA5;"
                                         onmouseover="this.style.background='#D4E6F8'"
                                         onmouseout="this.style.background='#EBF3FD'">
@@ -128,7 +128,7 @@
                                     <p class="text-xs mt-0.5" style="color:#94a3b8;"
                                        x-text="'Kode: ' + item.kode"></p>
                                 </div>
-                                <div class="flex items-center gap-2 flex-shrink-0">
+                                <div class="flex items-center gap-2 shrink-0">
                                     <button type="button"
                                             @click="item.jumlah = Math.max(1, item.jumlah - 1)"
                                             class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition"
@@ -150,7 +150,7 @@
                                     </button>
                                 </div>
                                 <button type="button" @click="hapusBarang(index)"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition flex-shrink-0"
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition shrink-0"
                                         style="color:#cbd5e1;"
                                         onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444';"
                                         onmouseout="this.style.background='';this.style.color='#cbd5e1';">
@@ -217,7 +217,7 @@
                 <div x-show="errorMsg" x-cloak
                      class="rounded-xl p-4 text-sm flex items-start gap-2"
                      style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
-                    <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+                    <i class="fas fa-exclamation-circle mt-0.5 shrink-0"></i>
                     <span x-text="errorMsg"></span>
                 </div>
 
