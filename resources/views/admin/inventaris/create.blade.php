@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="max-w-4xl mx-auto">
+<div class="w-full px-6">
 
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -90,12 +90,27 @@
                             Kategori <span class="text-red-500">*</span>
                         </label>
 
-                        <input
-                            type="text"
-                            name="kategori"
-                            value="{{ old('kategori') }}"
-                            placeholder="Microcontroller"
-                            class="inp w-full">
+                        <select name="kategori" id="kategoriSelect" class="inp">
+                            <option value="">Pilih Kategori</option>
+
+                            @foreach($kategoriOptions as $kategori)
+                                <option value="{{ $kategori }}">
+                                    {{ $kategori }}
+                                </option>
+                            @endforeach
+
+                            <option value="__new">+ Tambah kategori baru</option>
+                        </select>
+
+                        <input type="text" name="kategori_baru" id="kategoriBaru"
+                            class="inp mt-2 hidden"
+                            placeholder="Masukkan kategori baru">
+
+                        @error('kategori')
+                            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <i class="fas fa-circle-exclamation text-[10px]"></i> {{ $message }}
+                            </p>
+                        @enderror
                     </div>
 
                     {{-- Lokasi --}}

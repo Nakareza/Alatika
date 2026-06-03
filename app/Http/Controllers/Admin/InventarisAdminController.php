@@ -69,10 +69,13 @@ class InventarisAdminController extends Controller
 
         ];
 
-        $kategoriOptions = Alat::select('kategori')
-            ->distinct()
+        $kategoriOptions = Alat::query()
+            ->whereNotNull('kategori')
+            ->where('kategori', '!=', '')
             ->orderBy('kategori')
-            ->pluck('kategori');
+            ->pluck('kategori')
+            ->unique()
+            ->values();
 
         return view(
             'admin.inventaris.index',
@@ -85,7 +88,15 @@ class InventarisAdminController extends Controller
     }
     public function create()
     {
-        return view('admin.inventaris.create');
+        $kategoriOptions = Alat::whereNotNull('kategori')
+            ->where('kategori', '!=', '')
+            ->distinct()
+            ->orderBy('kategori')
+            ->pluck('kategori')
+            ->unique()
+            ->values();
+
+        return view('admin.inventaris.create', compact('kategoriOptions'));
     }
     public function edit(Alat $alat)
     {
