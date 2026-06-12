@@ -1,299 +1,226 @@
 @extends('layouts.dosen')
 
-@section('title', 'Katalog Alat')
+@section('title', 'Daftar Alat')
 
 @section('content')
 
-    {{-- Alert --}}
     @if(session('success'))
-        <div class="mb-6 flex items-center gap-2 rounded-2xl border px-4 py-3"
-             style="background:#ECFDF5;border-color:#A7F3D0;color:#065F46;">
-            <i class="fas fa-check-circle"></i>
-            <span class="text-sm font-medium">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-6 flex items-center gap-2 rounded-2xl border px-4 py-3"
-             style="background:#FEF2F2;border-color:#FECACA;color:#991B1B;">
-            <i class="fas fa-exclamation-circle"></i>
-            <span class="text-sm font-medium">{{ session('error') }}</span>
-        </div>
-    @endif
-
-    {{-- Top Action --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-
-        <div>
-            <h2 class="text-2xl font-bold"
-                style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
-                Katalog Alat
-            </h2>
-
-            <p class="text-sm mt-1" style="color:#94A3B8;">
-                Pilih alat, tambahkan ke keranjang, lalu ajukan peminjaman
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3">
-
-            @php
-                $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count();
-            @endphp
-
-            <a href="{{ route('dosen.keranjang') }}"
-               class="relative btn btn-secondary">
-
-                <i class="fas fa-shopping-cart"></i>
-                Keranjang
-
-                @if($cartCount > 0)
-                    <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                          style="background:#EF4444;">
-                        {{ $cartCount }}
-                    </span>
-                @endif
-
-            </a>
-
-            <a href="{{ route('dosen.peminjaman.ajukan') }}"
-               class="btn btn-primary">
-
-                <i class="fas fa-plus"></i>
-                Pinjam Langsung
-            </a>
-
-        </div>
-
+    <div class="mb-6 px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium"
+         style="background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;">
+        <i class="fas fa-check-circle"></i> {{ session('success') }}
     </div>
+    @endif
+    @if(session('error'))
+    <div class="mb-6 px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+    </div>
+    @endif
 
-    {{-- Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div x-data="cartModal()">
 
-        @forelse($alat as $item)
+        <!-- Top bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 
-            <div class="card overflow-hidden"
-                 x-data="{ open:false, jumlah:1 }">
-
-                {{-- Header Card --}}
-                <div class="h-36 flex items-center justify-center border-b"
-                     style="border-color:#EBF3FD;
-                     background:{{ $item->stok_tersedia > 0 ? '#FFF7ED' : '#F1F5F9' }};">
-
-                    <i class="fas fa-microchip text-5xl"
-                       style="color:{{ $item->stok_tersedia > 0 ? '#FB923C' : '#CBD5E1' }};">
-                    </i>
-
+            <!-- Kiri: Search + Filter -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="relative">
+                    <input type="text"
+                           x-model="search"
+                           placeholder="Cari nama alat..."
+                           class="inp pl-9 pr-4 py-2.5 w-52">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:#A0BBCC;"></i>
                 </div>
 
-                {{-- Content --}}
-                <div class="p-5">
+                <select x-model="filterKategori"
+                        class="inp py-2.5 px-4 pr-8 cursor-pointer appearance-none"
+                        style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;background-size:14px;">
+                    <option value="">Semua Kategori</option>
+                    @foreach($alat->pluck('kategori')->unique()->filter()->sort()->values() as $kat)
+                        <option value="{{ $kat }}">{{ $kat }}</option>
+                    @endforeach
+                </select>
 
-                    <div class="flex items-start justify-between gap-2 mb-2">
+                <select x-model="filterStok"
+                        class="inp py-2.5 px-4 pr-8 cursor-pointer appearance-none"
+                        style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;background-size:14px;">
+                    <option value="">Semua Stok</option>
+                    <option value="tersedia">Tersedia</option>
+                    <option value="habis">Habis</option>
+                </select>
+            </div>
 
-                        <span class="text-[11px] font-bold uppercase tracking-wider"
-                              style="color:#F97316;">
-                            {{ $item->kategori }}
-                        </span>
-
-                        @if($item->stok_tersedia > 0)
-
-                            <span class="badge badge-success">
-                                Tersedia
-                            </span>
-
-                        @else
-
-                            <span class="badge badge-danger">
-                                Habis
-                            </span>
-
-                        @endif
-
-                    </div>
-
-                    <h3 class="font-bold text-base leading-snug mb-4"
-                        style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
-
-                        {{ $item->nama }}
-
-                    </h3>
-
-                    <div class="flex items-center justify-between mb-5">
-
-                        <div>
-                            <p class="text-[11px]" style="color:#94A3B8;">
-                                Kode
-                            </p>
-
-                            <p class="text-sm font-semibold"
-                               style="color:#1E2B4A;">
-                                {{ $item->kode }}
-                            </p>
-                        </div>
-
-                        <div class="text-right">
-                            <p class="text-[11px]" style="color:#94A3B8;">
-                                Stok
-                            </p>
-
-                            <p class="text-sm font-bold"
-                               style="color:{{ $item->stok_tersedia > 0 ? '#10B981' : '#EF4444' }};">
-
-                                {{ $item->stok_tersedia }} / {{ $item->stok_total }}
-
-                            </p>
-                        </div>
-
-                    </div>
-
-                    {{-- Button --}}
-                    @if($item->stok_tersedia > 0)
-
-                        <button @click="open=true"
-                                class="w-full btn btn-primary justify-center">
-
-                            <i class="fas fa-cart-plus"></i>
-                            Tambah ke Keranjang
-
-                        </button>
-
-                    @else
-
-                        <div class="w-full py-3 rounded-xl text-center text-sm font-semibold"
-                             style="background:#F1F5F9;color:#94A3B8;">
-
-                            <i class="fas fa-ban mr-1"></i>
-                            Stok Habis
-
-                        </div>
-
+            <!-- Kanan: Action buttons -->
+            <div class="flex items-center gap-2">
+                <a href="{{ route('dosen.peminjaman.ajukan') }}" class="btn btn-primary relative">
+                    <i class="fas fa-shopping-cart"></i>
+                    Pengajuan Peminjaman
+                    @if($cartCount > 0)
+                    <span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-xs font-black rounded-full flex items-center justify-center">{{ $cartCount }}</span>
                     @endif
+                </a>
+            </div>
+        </div>
 
+        <!-- Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @forelse($alat as $item)
+            <div class="card overflow-hidden"
+                 x-show="
+                    (search === '' || '{{ strtolower($item->nama) }}'.includes(search.toLowerCase())) &&
+                    (filterKategori === '' || filterKategori === '{{ $item->kategori }}') &&
+                    (filterStok === '' || (filterStok === 'tersedia' && {{ $item->stok_tersedia }} > 0) || (filterStok === 'habis' && {{ $item->stok_tersedia }} === 0))
+                 "
+                 x-cloak>
+
+                <!-- Image -->
+                <div class="h-36 flex items-center justify-center border-b"
+                     style="{{ $item->stok_tersedia > 0 ? 'background:linear-gradient(135deg,#EBF3FD,#dbeafe);border-color:#D4E6F8;' : 'background:#f1f5f9;border-color:#e2e8f0;' }}">
+                    <i class="fas fa-microchip text-4xl" style="{{ $item->stok_tersedia > 0 ? 'color:#B5D4F4;' : 'color:#cbd5e1;' }}"></i>
                 </div>
 
-                {{-- Modal --}}
-                <div x-show="open"
-                     x-transition
-                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                     style="background:rgba(30,43,74,0.35);backdrop-filter:blur(4px);"
-                     @click.self="open=false">
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <span class="text-xs font-bold tracking-wider uppercase" style="color:#185FA5;">{{ $item->kategori }}</span>
+                        @if($item->stok_tersedia > 0)
+                            <span class="badge badge-success">Tersedia</span>
+                        @else
+                            <span class="badge badge-danger">Habis</span>
+                        @endif
+                    </div>
+                    <h3 class="text-base font-bold leading-tight mb-3" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">{{ $item->nama }}</h3>
 
-                    <div class="bg-white rounded-3xl w-full max-w-sm p-6"
-                         style="box-shadow:0 20px 60px rgba(30,43,74,0.18);">
-
-                        <div class="flex items-center gap-3 mb-5">
-
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                 style="background:#FFF7ED;">
-
-                                <i class="fas fa-microchip text-xl"
-                                   style="color:#FB923C;"></i>
-
-                            </div>
-
-                            <div>
-                                <h3 class="font-bold text-sm"
-                                    style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
-
-                                    {{ $item->nama }}
-
-                                </h3>
-
-                                <p class="text-xs mt-1" style="color:#94A3B8;">
-                                    Stok tersedia:
-                                    <span class="font-semibold text-emerald-600">
-                                        {{ $item->stok_tersedia }} unit
-                                    </span>
-                                </p>
-                            </div>
-
+                    <div class="flex items-center justify-between text-sm mb-4">
+                        <div>
+                            <span class="text-xs block mb-0.5" style="color:#A0BBCC;">Kode</span>
+                            <span class="font-semibold" style="color:#1E2B4A;">{{ $item->kode }}</span>
                         </div>
-
-                        <label class="form-label">
-                            Jumlah Peminjaman
-                        </label>
-
-                        <div class="flex items-center gap-3 mb-6">
-
-                            <button type="button"
-                                    @click="jumlah = Math.max(1, jumlah - 1)"
-                                    class="w-11 h-11 rounded-xl"
-                                    style="background:#F5F8FF;">
-
-                                <i class="fas fa-minus text-xs"></i>
-
-                            </button>
-
-                            <input type="number"
-                                   x-model="jumlah"
-                                   min="1"
-                                   max="{{ $item->stok_tersedia }}"
-                                   class="inp text-center font-bold">
-
-                            <button type="button"
-                                    @click="jumlah = Math.min({{ $item->stok_tersedia }}, jumlah + 1)"
-                                    class="w-11 h-11 rounded-xl"
-                                    style="background:#F5F8FF;">
-
-                                <i class="fas fa-plus text-xs"></i>
-
-                            </button>
-
+                        <div class="text-right">
+                            <span class="text-xs block mb-0.5" style="color:#A0BBCC;">Stok</span>
+                            <span class="font-bold" style="{{ $item->stok_tersedia > 0 ? 'color:#10b981;' : 'color:#ef4444;' }}">
+                                {{ $item->stok_tersedia }} / {{ $item->stok_total }}
+                            </span>
                         </div>
-
-                        <form action="{{ route('dosen.keranjang.add', $item->id) }}"
-                              method="POST">
-
-                            @csrf
-
-                            <input type="hidden"
-                                   name="jumlah"
-                                   :value="jumlah">
-
-                            <div class="flex gap-3">
-
-                                <button type="button"
-                                        @click="open=false"
-                                        class="flex-1 btn btn-secondary justify-center">
-
-                                    Batal
-
-                                </button>
-
-                                <button type="submit"
-                                        class="flex-1 btn btn-primary justify-center">
-
-                                    <i class="fas fa-check"></i>
-                                    Tambahkan
-
-                                </button>
-
-                            </div>
-
-                        </form>
-
                     </div>
 
+                    @if($item->stok_tersedia > 0)
+                        <button @click="openModal({{ $item->id }}, '{{ addslashes($item->nama) }}', {{ $item->stok_tersedia }})"
+                            class="btn btn-primary w-full justify-center">
+                            <i class="fas fa-cart-plus"></i> Tambah ke Pengajuan
+                        </button>
+                    @else
+                        <form action="{{ route('dosen.alat.waitlist', $item->id) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="w-full py-2.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 border"
+                                style="background:#fffbeb;color:#d97706;border-color:#fcd34d;font-family:'Plus Jakarta Sans',sans-serif;"
+                                onmouseover="this.style.background='#fef3c7'"
+                                onmouseout="this.style.background='#fffbeb'">
+                                <i class="fas fa-bell"></i> Kabari Saya saat Tersedia
+                            </button>
+                        </form>
+                    @endif
                 </div>
+            </div>
+            @empty
+            <div class="col-span-full py-16 text-center">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#EBF3FD;">
+                    <i class="fas fa-box-open text-xl" style="color:#B5D4F4;"></i>
+                </div>
+                <p class="text-sm font-semibold" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">Belum ada data alat di database.</p>
+            </div>
+            @endforelse
 
+            <!-- Empty state filter -->
+            <div class="col-span-full py-16 text-center"
+                 x-show="document.querySelectorAll('.card[style*=\'display: none\']').length === document.querySelectorAll('.card').length"
+                 x-cloak>
+                <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#EBF3FD;">
+                    <i class="fas fa-search text-xl" style="color:#B5D4F4;"></i>
+                </div>
+                <p class="text-sm font-semibold mb-1" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">Tidak ada alat yang cocok dengan filter.</p>
+                <button @click="search=''; filterKategori=''; filterStok=''"
+                        class="mt-2 text-sm font-semibold hover:opacity-70 transition-opacity"
+                        style="color:#185FA5;">
+                    Reset filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Keranjang -->
+        <x-modal name="keranjang" title="Tambah ke Pengajuan" type="default" size="md">
+            <p class="text-sm text-center mb-1" style="color:#64748b;">
+                Stok tersedia: <span class="font-semibold" style="color:#10b981;" x-text="selectedItem.stok + ' unit'"></span>
+            </p>
+
+            <label class="form-label mt-4">Jumlah yang dipinjam</label>
+            <div class="flex items-center gap-4 mb-2">
+                <button @click="jumlah = Math.max(1, jumlah - 1)" type="button"
+                    class="w-12 h-12 rounded-xl font-bold transition flex items-center justify-center"
+                    style="background:#EBF3FD;color:#185FA5;">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" x-model.number="jumlah" :max="selectedItem.stok"
+                    class="inp flex-1 text-center py-2.5 font-bold text-lg">
+                <button @click="jumlah = Math.min(selectedItem.stok, jumlah + 1)" type="button"
+                    class="w-12 h-12 rounded-xl font-bold transition flex items-center justify-center"
+                    style="background:#EBF3FD;color:#185FA5;">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
 
-        @empty
+            <form id="cartForm" method="POST" style="display:none;">
+                @csrf
+                <input type="hidden" id="jumlahInput" name="jumlah">
+            </form>
 
-            <div class="col-span-full py-20 text-center">
-
-                <i class="fas fa-box-open text-5xl mb-4"
-                   style="color:#CBD5E1;"></i>
-
-                <p class="text-sm" style="color:#94A3B8;">
-                    Belum ada data alat tersedia
-                </p>
-
-            </div>
-
-        @endforelse
+            <x-slot name="footer">
+                <button type="button" @click="$dispatch('close-modal-keranjang')"
+                    class="btn btn-secondary flex-1 justify-center">
+                    Batal
+                </button>
+                <button type="button" @click="submitCart()"
+                    class="btn btn-primary flex-1 justify-center">
+                    <i class="fas fa-check"></i> Tambahkan
+                </button>
+            </x-slot>
+        </x-modal>
 
     </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    function cartModal() {
+        return {
+            selectedItem: { id: null, nama: '', stok: 0 },
+            jumlah: 1,
+            search: '',
+            filterKategori: '',
+            filterStok: '',
+
+            openModal(id, nama, stok) {
+                this.selectedItem = { id, nama, stok };
+                this.jumlah = 1;
+                this.$dispatch('open-modal-keranjang');
+            },
+
+            closeModal() {
+                this.$dispatch('close-modal-keranjang');
+                this.selectedItem = { id: null, nama: '', stok: 0 };
+                this.jumlah = 1;
+            },
+
+            submitCart() {
+                const form = document.getElementById('cartForm');
+                const jumlahInput = document.getElementById('jumlahInput');
+                jumlahInput.value = this.jumlah;
+                form.action = `/dosen/keranjang/${this.selectedItem.id}/add`;
+                form.submit();
+                this.closeModal();
+            }
+        }
+    }
+</script>
+@endpush

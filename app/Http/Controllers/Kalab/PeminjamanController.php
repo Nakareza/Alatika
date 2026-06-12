@@ -6,21 +6,77 @@ use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
-    public function persetujuan()
+    public function persetujuan(Request $request)
     {
-        // Ka Lab sees ALL pending requests from Dosen
-        $peminjaman = Peminjaman::with(['user', 'alat'])
-            ->whereHas('user', function($q) {
+        $query = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', function ($q) {
+                $q->where('role', 'dosen');
+            });
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_peminjaman', 'like', "%{$search}%")
+                ->orWhereHas('user', function ($u) use ($search) {
+                    $u->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('alat', function ($a) use ($search) {
+                    $a->where('nama', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $peminjaman = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        // Statistik
+        $stats = [
+
+            // Menunggu persetujuan Kalab
+            'pending' => Peminjaman::whereHas('user', function ($q) {
                 $q->where('role', 'dosen');
             })
             ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
-        return view('kalab.persetujuan.index', compact('peminjaman'));
+            ->count(),
+
+            // Sedang dipinjam
+            'disetujui_bulan_ini' => Peminjaman::whereHas('user', function ($q) {
+                $q->where('role', 'dosen');
+            })
+            ->where('status', 'disetujui')
+            ->count(),
+
+            // Sudah dikembalikan
+            'dikembalikan_bulan_ini' => Peminjaman::whereHas('user', function ($q) {
+                $q->where('role', 'dosen');
+            })
+            ->where('status', 'dikembalikan')
+            ->count(),
+
+            // Total seluruh pengajuan
+            'total_pengajuan' => Peminjaman::whereHas('user', function ($q) {
+                $q->where('role', 'dosen');
+            })
+            ->count(),
+        ];
+
+        return view(
+            'kalab.persetujuan.index',
+            compact('peminjaman', 'stats')
+        );
     }
 
     public function riwayat()
@@ -33,14 +89,28 @@ class PeminjamanController extends Controller
         return view('kalab.riwayat.index', compact('peminjaman'));
     }
 
+    public function show($id)
+    {
+        $peminjaman = Peminjaman::with([
+            'user',
+            'alat',
+            'approvedBy'
+        ])->findOrFail($id);
+
+        return view(
+            'kalab.peminjaman.show',
+            compact('peminjaman')
+        );
+    }
+
     public function approve($id, TelegramService $telegram)
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
+        // Kalab approve: set kalab_approved_by/at, jangan ubah status
         $peminjaman->update([
-            'status' => 'disetujui',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
+            'kalab_approved_by' => Auth::id(),
+            'kalab_approved_at' => now(),
         ]);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
@@ -51,7 +121,7 @@ class PeminjamanController extends Controller
             'approver_role' => 'Kepala Lab',
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman Dosen disetujui');
+        return redirect()->back()->with('success', 'Peminjaman Dosen disetujui oleh Kalab. Menunggu persetujuan Admin.');
     }
 
     public function reject(Request $request, $id, TelegramService $telegram)
@@ -63,7 +133,7 @@ class PeminjamanController extends Controller
         $peminjaman->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->alasan,
-            'approved_by' => auth()->id(),
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -90,9 +160,8 @@ class PeminjamanController extends Controller
 
         foreach ($peminjamans as $peminjaman) {
             $peminjaman->update([
-                'status' => 'disetujui',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
+                'kalab_approved_by' => Auth::id(),
+                'kalab_approved_at' => now(),
             ]);
 
             $telegram->notifyPeminjamanApproved($peminjaman->user, [
@@ -106,6 +175,6 @@ class PeminjamanController extends Controller
             $approvedCount++;
         }
 
-        return redirect()->back()->with('success', "$approvedCount Peminjaman Dosen berhasil disetujui secara massal!");
+        return redirect()->back()->with('success', "$approvedCount Peminjaman Dosen berhasil disetujui oleh Kalab. Menunggu persetujuan Admin!");
     }
 }

@@ -172,35 +172,47 @@
 
                             <div class="flex justify-center gap-2">
 
-                            {{-- Menunggu Persetujuan --}}
-                            @if($p->status === 'pending')
+                            {{-- Menunggu Kalab --}}
+                            @if($p->status === 'pending' && !$p->kalab_approved_at)
+
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg text-slate-400 cursor-not-allowed"
+                                    title="Menunggu persetujuan Kalab"
+                                    disabled>
+                                    <i class="fas fa-hourglass-half"></i>
+                                </button>
+
+                            {{-- Menunggu Admin --}}
+                            @elseif($p->status === 'pending' && $p->kalab_approved_at && !$p->admin_approved_at)
 
                                 <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
-                                    method="POST">
+                                    method="POST"
+                                    style="display:inline;">
                                     @csrf
 
                                     <button
                                         type="submit"
-                                        class="w-9 h-9 rounded-lg text-green-600 hover:bg-green-50 transition">
+                                        class="w-9 h-9 rounded-lg text-green-600 hover:bg-green-50 transition"
+                                        title="Setujui">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </form>
 
-                                <form action="{{ route('admin.peminjaman.reject', $p->id) }}"
-                                    method="POST">
-                                    @csrf
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 transition"
+                                    title="Tolak"
+                                    onclick="showRejectModal({{ $p->id }})">
+                                    <i class="fas fa-times"></i>
+                                </button>
 
-                                    <input
-                                        type="hidden"
-                                        name="alasan"
-                                        value="Ditolak admin">
+                            {{-- Disetujui Semua --}}
+                            @elseif($p->status === 'pending' && $p->kalab_approved_at && $p->admin_approved_at)
 
-                                    <button
-                                        type="submit"
-                                        class="w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 transition">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </form>
+                                <span class="text-green-600 text-sm font-medium">
+                                    Disetujui
+                                </span>
 
                             @endif
 
@@ -258,6 +270,96 @@
 
 </div>
 
+{{-- Hidden Reject Forms --}}
+@foreach($peminjaman as $p)
+    <form id="reject-form-{{ $p->id }}"
+          action="{{ route('admin.peminjaman.reject', $p->id) }}"
+          method="POST"
+          class="hidden">
+        @csrf
+        <input type="hidden" name="alasan" id="alasan-input-{{ $p->id }}" value="">
+    </form>
+@endforeach
 
+{{-- Reject Modal --}}
+<div id="reject-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i class="fas fa-exclamation text-red-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold">Tolak Peminjaman</h3>
+        </div>
+
+        <p class="text-slate-600 text-sm mb-6">
+            Masukkan alasan penolakan untuk dosen:
+        </p>
+
+        <textarea
+            id="reject-reason"
+            placeholder="Contoh: Stok alat sedang tidak tersedia"
+            class="w-full inp h-24 resize-none mb-6"
+            required></textarea>
+
+        <div class="flex gap-3">
+            <button
+                type="button"
+                class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                onclick="closeRejectModal()">
+                Batal
+            </button>
+            <button
+                type="button"
+                class="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 transition"
+                onclick="submitReject()">
+                Tolak
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let rejectPeminjamanId = null;
+
+function showRejectModal(id) {
+    rejectPeminjamanId = id;
+    document.getElementById('reject-modal').classList.remove('hidden');
+    document.getElementById('reject-reason').value = '';
+    document.getElementById('reject-reason').focus();
+}
+
+function closeRejectModal() {
+    document.getElementById('reject-modal').classList.add('hidden');
+    rejectPeminjamanId = null;
+}
+
+function submitReject() {
+    const reason = document.getElementById('reject-reason').value.trim();
+    
+    if (!reason) {
+        alert('Alasan tidak boleh kosong');
+        return;
+    }
+    
+    if (rejectPeminjamanId) {
+        document.getElementById('alasan-input-' + rejectPeminjamanId).value = reason;
+        document.getElementById('reject-form-' + rejectPeminjamanId).submit();
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('reject-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRejectModal();
+    }
+});
+
+// Allow Enter to submit
+document.getElementById('reject-reason')?.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+        submitReject();
+    }
+});
+</script>
 
 @endsection

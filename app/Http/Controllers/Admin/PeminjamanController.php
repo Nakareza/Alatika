@@ -58,11 +58,21 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
+        // Check apakah kalab sudah approve terlebih dahulu
+        if (!$peminjaman->kalab_approved_at) {
+            return redirect()->back()->with('error', 'Peminjaman belum disetujui oleh Kalab. Mohon tunggu persetujuan Kalab terlebih dahulu.');
+        }
+
+        // Admin approve: set admin_approved_by/at
         $peminjaman->update([
-            'status' => 'dipinjam',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'admin_approved_by' => Auth::id(),
+            'admin_approved_at' => now(),
         ]);
+
+        // Jika kalab dan admin sudah approve, ubah status ke dipinjam
+        if ($peminjaman->kalab_approved_at && $peminjaman->admin_approved_at) {
+            $peminjaman->update(['status' => 'dipinjam']);
+        }
 
         // Send notif
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
@@ -70,10 +80,10 @@ class PeminjamanController extends Controller
             'alat' => $peminjaman->alat->nama,
             'jumlah' => $peminjaman->jumlah,
             'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
-            'approver_role' => Auth::user()->role === 'kalab' ? 'Kepala Lab' : 'Admin',
+            'approver_role' => 'Admin',
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman disetujui');
+        return redirect()->back()->with('success', 'Peminjaman Dosen disetujui oleh Admin. Persetujuan lengkap!');
     }
 
     public function reject(Request $request, $id, TelegramService $telegram)
@@ -82,14 +92,13 @@ class PeminjamanController extends Controller
 
         $peminjaman = Peminjaman::findOrFail($id);
         
+        // Admin reject
         $peminjaman->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->alasan,
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'admin_approved_by' => Auth::id(),
+            'admin_approved_at' => now(),
         ]);
-
-        // Restore stok (if logic was deducting early, usually done on approve, but we'll assume it's just rejected)
         
         // Send notif
         $telegram->notifyPeminjamanRejected($peminjaman->user, [
@@ -98,7 +107,7 @@ class PeminjamanController extends Controller
             'alasan' => $request->alasan,
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman ditolak');
+        return redirect()->back()->with('success', 'Peminjaman ditolak oleh Admin.');
     }
 
     public function markAsBorrowed($id)

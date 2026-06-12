@@ -264,8 +264,11 @@
 
                     <td class="px-6 py-4">
                         <a href="{{ route('admin.peminjaman') }}"
-                           class="text-blue-600 hover:text-blue-800 text-xs font-semibold">
-                            Detail
+                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                            style="background:#EBF3FD;color:#185FA5;">
+
+                                <i class="fas fa-eye"></i>
+                                Detail
                         </a>
                     </td>
 

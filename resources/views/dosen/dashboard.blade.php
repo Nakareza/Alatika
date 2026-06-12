@@ -8,110 +8,51 @@
     <div class="mb-6">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-[#1E2B4A] mb-1"
-                    style="font-family:'Plus Jakarta Sans',sans-serif;">
+                <h2 class="text-2xl font-bold mb-1" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
                     Selamat Datang, {{ Auth::user()->name }}
                 </h2>
-
-                <p class="text-sm text-slate-500" style="font-family:'Inter',sans-serif;">
-                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-                </p>
+                <p class="text-sm" style="color:#64748b;">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</p>
             </div>
-
-            <div class="flex items-center gap-3">
-                <a href="{{ route('dosen.peminjaman.ajukan') }}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <a href="{{ route('dosen.peminjaman.ajukan') }}" class="btn btn-primary flex items-center justify-center gap-2 flex-1 sm:flex-none">
+                    <i class="fas fa-plus-circle text-xs"></i>
                     <span>Ajukan Peminjaman</span>
                 </a>
-
-                <a href="{{ route('dosen.alat') }}" class="btn btn-secondary">
-                    <i class="fas fa-box-open"></i>
-                    <span>Lihat Katalog</span>
+                <a href="{{ route('dosen.alat') }}" class="btn btn-secondary flex items-center justify-center gap-2 flex-1 sm:flex-none">
+                    <i class="fas fa-box-open text-xs text-slate-400"></i>
+                    <span>Lihat Alat</span>
                 </a>
             </div>
         </div>
     </div>
+    
 
     <!-- Statistik -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-        <!-- Total -->
-        <div class="card p-5 border-l-4 border-[#378ADD]">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center"
-                     style="background:#EBF3FD;">
-                    <i class="fas fa-clipboard-list text-[#185FA5] text-lg"></i>
-                </div>
+        <x-card-stats
+            title="Total Peminjaman"
+            :value="$stats['total']"
+            icon="fas fa-clipboard-list"
+            color="blue" />
 
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style="background:#DCFCE7;color:#166534;">
-                    +15%
-                </span>
-            </div>
+        <x-card-stats
+            title="Sedang Dipinjam"
+            :value="$stats['dipinjam']"
+            icon="fas fa-hand-holding"
+            color="yellow" />
 
-            <p class="text-sm text-slate-500 mb-1">Total Peminjaman</p>
+        <x-card-stats
+            title="Selesai"
+            :value="$stats['selesai']"
+            icon="fas fa-check-circle"
+            color="green" />
 
-            <p class="text-3xl font-bold text-[#1E2B4A]"
-               style="font-family:'Plus Jakarta Sans',sans-serif;">
-                {{ $stats['total'] }}
-            </p>
-        </div>
-
-        <!-- Dipinjam -->
-        <div class="card p-5 border-l-4 border-[#F59E0B]">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center"
-                     style="background:#FEF3C7;">
-                    <i class="fas fa-hand-holding text-[#D97706] text-lg"></i>
-                </div>
-            </div>
-
-            <p class="text-sm text-slate-500 mb-1">Sedang Dipinjam</p>
-
-            <p class="text-3xl font-bold text-[#1E2B4A]"
-               style="font-family:'Plus Jakarta Sans',sans-serif;">
-                {{ $stats['dipinjam'] }}
-            </p>
-        </div>
-
-        <!-- Selesai -->
-        <div class="card p-5 border-l-4 border-[#10B981]">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center"
-                     style="background:#D1FAE5;">
-                    <i class="fas fa-check-circle text-[#059669] text-lg"></i>
-                </div>
-
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style="background:#DCFCE7;color:#166534;">
-                    +25%
-                </span>
-            </div>
-
-            <p class="text-sm text-slate-500 mb-1">Selesai</p>
-
-            <p class="text-3xl font-bold text-[#1E2B4A]"
-               style="font-family:'Plus Jakarta Sans',sans-serif;">
-                {{ $stats['selesai'] }}
-            </p>
-        </div>
-
-        <!-- Ditolak -->
-        <div class="card p-5 border-l-4 border-[#EF4444]">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center"
-                     style="background:#FEE2E2;">
-                    <i class="fas fa-times-circle text-[#DC2626] text-lg"></i>
-                </div>
-            </div>
-
-            <p class="text-sm text-slate-500 mb-1">Ditolak</p>
-
-            <p class="text-3xl font-bold text-[#1E2B4A]"
-               style="font-family:'Plus Jakarta Sans',sans-serif;">
-                {{ $stats['ditolak'] }}
-            </p>
-        </div>
+        <x-card-stats
+            title="Ditolak"
+            :value="$stats['ditolak']"
+            icon="fas fa-times-circle"
+            color="red" />
 
     </div>
 
@@ -293,53 +234,6 @@
 
                         </ul>
 
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- Ringkasan -->
-            <div class="card p-6">
-
-                <h3 class="text-base font-bold text-[#1E2B4A] mb-4"
-                    style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    Ringkasan Status
-                </h3>
-
-                <div class="space-y-3">
-
-                    <div class="flex items-center justify-between p-3 rounded-xl"
-                         style="background:#F5F8FF;">
-                        <span class="text-sm text-slate-600">
-                            Menunggu Persetujuan
-                        </span>
-
-                        <span class="font-bold text-[#1E2B4A]">
-                            {{ $statusSummary['pending'] }}
-                        </span>
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 rounded-xl"
-                         style="background:#F5F8FF;">
-                        <span class="text-sm text-slate-600">
-                            Dalam Penggunaan
-                        </span>
-
-                        <span class="font-bold text-[#1E2B4A]">
-                            {{ $statusSummary['dipinjam'] }}
-                        </span>
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 rounded-xl"
-                         style="background:#F5F8FF;">
-                        <span class="text-sm text-slate-600">
-                            Total Selesai
-                        </span>
-
-                        <span class="font-bold text-[#1E2B4A]">
-                            {{ $statusSummary['selesai'] }}
-                        </span>
                     </div>
 
                 </div>

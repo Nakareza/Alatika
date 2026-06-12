@@ -229,6 +229,8 @@
 
         </main>
 
+        @stack('modals')
+
         {{-- Footer --}}
         <footer class="bg-white border-t py-5 px-6 lg:px-8 mt-8"
                 style="border-color:#EBF3FD;">

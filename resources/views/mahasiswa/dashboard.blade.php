@@ -114,44 +114,7 @@
         {{-- Kanan --}}
         <div class="lg:col-span-1 space-y-4">
 
-            <div class="card p-6">
-                {{-- SESUDAH --}}
-                <h3 class="text-lg font-bold mb-4" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
-                    Menu Cepat
-                </h3>
-                <div class="space-y-2">
-                    <a href="{{ route('mahasiswa.peminjaman.store') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-all">
-                        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-all">
-                            <i class="fas fa-plus-circle text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-800">Pengajuan Peminjaman</p>
-                            <p class="text-sm text-slate-400 font-medium">Ajukan peminjaman alat</p>
-                        </div>
-                    </a>
-                    <a href="{{ route('mahasiswa.peminjaman.riwayat') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-all">
-                        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-all">
-                            <i class="fas fa-history text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-800">Riwayat</p>
-                            <p class="text-sm text-slate-400 font-medium">Lihat semua peminjaman</p>
-                        </div>
-                    </a>
-                    <a href="{{ route('mahasiswa.profil') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-all">
-                        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-all">
-                            <i class="fas fa-user text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-800">Profil</p>
-                            <p class="text-sm text-slate-400 font-medium">Kelola akun Anda</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
+            
 
             <div class="card p-6 bg-linear-to-br from-slate-50 to-blue-50/30 border-slate-200">
                 <div class="flex items-start gap-3">

@@ -9,14 +9,11 @@ use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisContr
 use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
-use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
-use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
-use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
+use App\Http\Controllers\Kalab\PeminjamanController as KalabPeminjamanController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
 use App\Services\TelegramService;
-
+use App\Http\Controllers\Kalab\AlatController as KalabAlatController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -171,12 +168,10 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::post('/persetujuan/bulk-approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'bulkApprove'])->name('persetujuan.bulk-approve');
     Route::post('/persetujuan/{id}/approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'approve'])->name('persetujuan.approve');
     Route::post('/persetujuan/{id}/reject', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'reject'])->name('persetujuan.reject');
-    
-    // Data Alat - Use Admin Controller since Kalab might just want to view it exactly like admin
-    Route::get('/alat', function () {
-        return view('kalab.alat.index');
-    })->name('alat');
-    
+    Route::get('/peminjaman/{id}',[\App\Http\Controllers\Kalab\PeminjamanController::class, 'show'])->name('peminjaman.show');
+    // Data Alat
+    Route::get('/alat', [\App\Http\Controllers\Kalab\AlatController::class, 'index'])->name('alat');
+    Route::put('/alat/{alat}', [\App\Http\Controllers\Kalab\AlatController::class, 'update'])->name('alat.update');
     // Riwayat Peminjaman
     Route::get('/riwayat', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'riwayat'])->name('riwayat');
     

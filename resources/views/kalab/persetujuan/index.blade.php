@@ -22,47 +22,126 @@
         </div>
     @endif
 
-    {{-- Header Card --}}
-    <div class="card p-6 mb-6">
+    <!-- Statistik -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
 
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <x-card-stats
+            title="Menunggu Persetujuan"
+            :value="$stats['pending']"
+            icon="fas fa-clock"
+            color="yellow" />
 
-            <div>
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full badge-info mb-3">
-                    <i class="fas fa-clipboard-check"></i>
-                    <span>Persetujuan Kepala Laboratorium</span>
-                </div>
+        <x-card-stats
+            title="Dipinjam"
+            :value="$stats['disetujui_bulan_ini']"
+            icon="fas fa-hand-holding"
+            color="blue" />
 
-                <h1 class="text-2xl font-bold mb-1"
-                    style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    Persetujuan Peminjaman Dosen
-                </h1>
+        <x-card-stats
+            title="Dikembalikan"
+            :value="$stats['dikembalikan_bulan_ini']"
+            icon="fas rotate-left"
+            color="green" />
 
-                <p class="text-sm text-slate-500">
-                    Daftar pengajuan alat dari dosen yang menunggu persetujuan.
-                </p>
-            </div>
-
-            <div class="flex items-center gap-3">
-
-                <div class="list-item flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#EBF3FD] flex items-center justify-center">
-                        <i class="fas fa-clock text-[#185FA5]"></i>
-                    </div>
-
-                    <div>
-                        <p class="text-xs text-slate-500">Menunggu</p>
-                        <p class="font-bold text-sm text-[#1E2B4A]">
-                            {{ $peminjaman->count() }} Pengajuan
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
+        <x-card-stats
+            title="Total Pengajuan"
+            :value="$stats['total_pengajuan']"
+            icon="fas fa-file-alt"
+            color="Purple" />
 
     </div>
+    
+    {{-- Filter & Search --}}
+    
+    <div class="card p-6 mb-6">
+
+        <form method="GET" action="{{ route('kalab.persetujuan') }}">
+
+            <div class="flex flex-col lg:flex-row gap-4">
+
+                {{-- Search --}}
+                <div class="flex-1 relative">
+
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari dosen, alat, atau kode peminjaman..."
+                        class="inp pl-11 w-full">
+
+                </div>
+
+                {{-- Status --}}
+                <select
+                    name="status"
+                    class="inp lg:w-56"
+                    onchange="this.form.submit()">
+
+                    <option value="">Semua Status</option>
+
+                    <option value="pending"
+                        {{ request('status') == 'pending' ? 'selected' : '' }}>
+                        Menunggu Persetujuan
+                    </option>
+
+                    <option value="disetujui"
+                        {{ request('status') == 'disetujui' ? 'selected' : '' }}>
+                        Dipinjam
+                    </option>
+
+                    <option value="dikembalikan"
+                        {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>
+                        Dikembalikan
+                    </option>
+
+                    <option value="ditolak"
+                        {{ request('status') == 'ditolak' ? 'selected' : '' }}>
+                        Ditolak
+                    </option>
+
+                </select>
+
+                {{-- Periode --}}
+                <select
+                    name="periode"
+                    class="inp lg:w-48"
+                    onchange="this.form.submit()">
+
+                    <option value="">Semua Periode</option>
+
+                    <option value="hari_ini"
+                        {{ request('periode') == 'hari_ini' ? 'selected' : '' }}>
+                        Hari Ini
+                    </option>
+
+                    <option value="minggu_ini"
+                        {{ request('periode') == 'minggu_ini' ? 'selected' : '' }}>
+                        Minggu Ini
+                    </option>
+
+                    <option value="bulan_ini"
+                        {{ request('periode') == 'bulan_ini' ? 'selected' : '' }}>
+                        Bulan Ini
+                    </option>
+
+                </select>
+
+                {{-- Reset --}}
+                <a href="{{ route('kalab.persetujuan') }}"
+                class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+
+                    <i class="fas fa-rotate-left"></i>
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
 
     {{-- Table Card --}}
     <div class="card overflow-hidden"
@@ -70,240 +149,294 @@
 
         {{-- Action Bar --}}
         <form action="{{ route('kalab.persetujuan.bulk-approve') }}"
-              method="POST"
-              id="bulkApproveForm">
+            method="POST"
+            x-data="{ selectAll: false }">
 
             @csrf
 
-            <div class="p-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-                 style="border-color:#EBF3FD;background:#F9FBFF;">
+            <x-table title="Monitoring Peminjaman">
 
-                <div class="flex items-center gap-3">
+                <thead class="bg-[#F5F8FF]">
 
-                    <input type="checkbox"
-                           id="selectAllCheckbox"
-                           x-model="selectAll"
-                           class="w-4 h-4 rounded border-gray-300 text-[#185FA5] focus:ring-[#378ADD]">
+                    <tr>
 
-                    <label for="selectAllCheckbox"
-                           class="text-sm font-semibold text-[#1E2B4A]"
-                           style="font-family:'Plus Jakarta Sans',sans-serif;">
-                        Pilih Semua
-                    </label>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase text-slate-500">No</th>
 
-                </div>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Peminjam
+                        </th>
 
-                <button type="submit"
-                        class="btn btn-primary">
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Alat
+                        </th>
 
-                    <i class="fas fa-check-double"></i>
-                    <span>Setujui Terpilih</span>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Jumlah
+                        </th>
 
-                </button>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Tanggal Pinjam
+                        </th>
 
-            </div>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Status
+                        </th>
 
-            {{-- Table --}}
-            <div class="overflow-x-auto">
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase text-slate-500">
+                            Aksi
+                        </th>
 
-                <table class="w-full">
+                    </tr>
 
-                    <thead>
+                </thead>
 
-                        <tr style="background:#F5F8FF;">
+                <tbody>
 
-                            <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                #
-                            </th>
+                    @forelse($peminjaman as $p)
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Dosen
-                            </th>
+                    <tr class="hover:bg-[#F8FBFF] transition">
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Alat / Jumlah
-                            </th>
+                        {{-- no --}}
+                        <td class="px-4 py-4 text-center font-medium text-slate-600">
+                            {{ $loop->iteration }}
+                        </td>
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Tanggal
-                            </th>
+                        {{-- Dosen --}}
+                        <td class="px-6 py-4">
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Keperluan
-                            </th>
+                            <div class="flex items-center gap-3">
 
-                            <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Aksi
-                            </th>
+                                <div class="w-10 h-10 rounded-xl bg-[#185FA5] text-white flex items-center justify-center text-sm font-bold">
+                                    {{ strtoupper(substr($p->user->name, 0, 2)) }}
+                                </div>
 
-                        </tr>
+                                <div>
 
-                    </thead>
+                                    <p class="font-semibold text-[#1E2B4A]">
+                                        {{ $p->user->name }}
+                                    </p>
 
-                    <tbody class="divide-y"
-                           style="divide-color:#EBF3FD;">
+                                    <p class="text-xs text-slate-500">
+                                        Dosen
+                                    </p>
 
-                        @forelse($peminjaman as $p)
+                                </div>
 
-                            <tr class="hover:bg-[#F9FBFF] transition-all duration-200">
+                            </div>
 
-                                {{-- Checkbox --}}
-                                <td class="px-4 py-5 text-center">
+                        </td>
 
-                                    <input type="checkbox"
-                                           name="peminjaman_ids[]"
-                                           value="{{ $p->id }}"
-                                           x-bind:checked="selectAll"
-                                           class="w-4 h-4 rounded border-gray-300 text-[#185FA5] focus:ring-[#378ADD]">
+                        {{-- Alat --}}
+                        <td class="px-6 py-4">
 
-                                </td>
+                            <p class="font-semibold text-[#1E2B4A]">
+                                {{ $p->alat->nama }}
+                            </p>
 
-                                {{-- Dosen --}}
-                                <td class="px-6 py-5">
+                            <p class="text-xs text-slate-500">
+                                {{ $p->alat->kode }}
+                            </p>
 
-                                    <div class="flex items-center gap-3">
+                        </td>
 
-                                        <div class="w-10 h-10 rounded-xl bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                                            {{ strtoupper(substr($p->user->name, 0, 2)) }}
-                                        </div>
+                        {{-- Jumlah --}}
+                        <td class="px-6 py-4">
 
-                                        <div>
-                                            <p class="font-semibold text-sm text-[#1E2B4A]">
-                                                {{ $p->user->name }}
-                                            </p>
+                            <span class="badge badge-info">
+                                {{ $p->jumlah }} Unit
+                            </span>
 
-                                            <p class="text-xs text-slate-500">
-                                                Dosen
-                                            </p>
-                                        </div>
+                        </td>
 
-                                    </div>
+                        {{-- Tanggal --}}
+                        <td class="px-6 py-4">
 
-                                </td>
+                            <p class="text-sm text-slate-700">
+                                {{ $p->tanggal_pinjam->format('d M Y') }}
+                            </p>
 
-                                {{-- Alat --}}
-                                <td class="px-6 py-5">
+                            <p class="text-xs text-slate-500">
+                                s/d {{ $p->tanggal_kembali->format('d M Y') }}
+                            </p>
 
-                                    <div class="space-y-1">
+                        </td>
 
-                                        <p class="text-sm font-semibold text-[#1E2B4A]">
-                                            {{ $p->alat->nama }}
-                                        </p>
+                        {{-- Keperluan --}}
+                        <td class="px-6 py-4">
 
-                                        <span class="badge badge-info">
-                                            {{ $p->jumlah }} Unit
-                                        </span>
+                            @if($p->status == 'pending' && !$p->kalab_approved_at)
 
-                                    </div>
+                                <span class="badge badge-warning">
+                                    Menunggu Kalab
+                                </span>
 
-                                </td>
+                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
 
-                                {{-- Tanggal --}}
-                                <td class="px-6 py-5">
+                                <span class="badge badge-info">
+                                    Menunggu Admin
+                                </span>
 
-                                    <div class="text-sm text-slate-600 space-y-1">
+                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
 
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-calendar-alt text-[#378ADD] text-xs"></i>
+                                <span class="badge badge-success">
+                                    Disetujui Semua
+                                </span>
 
-                                            <span>
-                                                {{ $p->tanggal_pinjam->format('d M Y') }}
-                                            </span>
-                                        </div>
+                            @elseif($p->status == 'dipinjam')
 
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-arrow-right text-slate-400 text-xs"></i>
+                                <span class="badge badge-info">
+                                    Sedang Dipinjam
+                                </span>
 
-                                            <span>
-                                                {{ $p->tanggal_kembali->format('d M Y') }}
-                                            </span>
-                                        </div>
+                            @elseif($p->status == 'dikembalikan')
 
-                                    </div>
+                                <span class="badge badge-success">
+                                    Dikembalikan
+                                </span>
 
-                                </td>
+                            @elseif($p->status == 'ditolak')
 
-                                {{-- Keperluan --}}
-                                <td class="px-6 py-5">
+                                <span class="badge badge-danger">
+                                    Ditolak
+                                </span>
 
-                                    <div class="max-w-xs">
+                            @endif
 
-                                        <p class="text-sm text-slate-600 leading-relaxed">
-                                            {{ $p->keperluan }}
-                                        </p>
+                        </td>
 
-                                    </div>
+                        {{-- Aksi --}}
+                        <td class="px-6 py-4">
 
-                                </td>
+                            @if($p->status == 'pending' && !$p->kalab_approved_at)
 
-                                {{-- Aksi --}}
-                                <td class="px-6 py-5">
+                                <div class="flex justify-center gap-2">
 
-                                    <div class="flex flex-col gap-2">
+                                    <button
+                                        type="submit"
+                                        formaction="{{ route('kalab.persetujuan.approve',$p->id) }}"
+                                        class="w-9 h-9 rounded-lg bg-green-100 text-green-700">
 
-                                        {{-- Approve --}}
-                                        <button type="submit"
-                                                formaction="{{ route('kalab.persetujuan.approve', $p->id) }}"
-                                                class="btn justify-center"
-                                                style="background:#dcfce7;color:#166534;padding:0.6rem 1rem;font-size:0.75rem;">
+                                        <i class="fas fa-check"></i>
 
-                                            <i class="fas fa-check"></i>
-                                            <span>Setujui</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onclick="document.getElementById('reject-form-{{ $p->id }}').submit()"
+                                        class="w-9 h-9 rounded-lg bg-red-100 text-red-700">
+
+                                        <i class="fas fa-times"></i>
+
+                                    </button>
+
+                                </div>
+
+                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
+
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                    title="Menunggu persetujuan Admin">
+
+                                    <i class="fas fa-hourglass-half"></i>
+
+                                </button>
+
+                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
+
+                                <button
+                                    type="button"
+                                    onclick="showDetail(
+                                        '{{ $p->kode_peminjaman }}',
+                                        '{{ $p->user->name }}',
+                                        '{{ $p->alat->nama }}',
+                                        '{{ $p->jumlah }}',
+                                        '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                        '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                        '{{ $p->status }}',
+                                        `{{ $p->keperluan }}`
+                                    )"
+                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
+
+                                    <i class="fas fa-eye"></i>
+
+                                </button>
+
+                            @elseif($p->status == 'dipinjam')
+
+                                <button
+                                    type="button"
+                                    onclick="showDetail(
+                                        '{{ $p->kode_peminjaman }}',
+                                        '{{ $p->user->name }}',
+                                        '{{ $p->alat->nama }}',
+                                        '{{ $p->jumlah }}',
+                                        '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                        '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                        '{{ $p->status }}',
+                                        `{{ $p->keperluan }}`
+                                    )"
+                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
+
+                                    <i class="fas fa-eye"></i>
+
+                                </button>
+
+                            @elseif($p->status == 'dikembalikan')
+
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+
+                                    <i class="fas fa-eye"></i>
+
+                                </button>
+
+                            @elseif($p->status == 'ditolak')
+
+                                        <button
+                                            type="button"
+                                            class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
+
+                                            <i class="fas fa-circle-info"></i>
 
                                         </button>
 
-                                        {{-- Reject --}}
-                                        <button type="button"
-                                                onclick="document.getElementById('reject-form-{{ $p->id }}').submit()"
-                                                class="btn justify-center"
-                                                style="background:#fee2e2;color:#b91c1c;padding:0.6rem 1rem;font-size:0.75rem;">
+                                    @endif
+                              </div>
+                        </td>
 
-                                            <i class="fas fa-times"></i>
-                                            <span>Tolak</span>
+                    </tr>
 
-                                        </button>
+                    @empty
 
-                                    </div>
+                    <tr>
 
-                                </td>
+                        <td colspan="7" class="py-12 text-center">
 
-                            </tr>
+                            <div class="flex flex-col items-center">
 
-                        @empty
+                                <i class="fas fa-check-circle text-4xl text-slate-300 mb-3"></i>
 
-                            <tr>
+                                <p class="font-semibold text-[#1E2B4A]">
+                                    Tidak Ada Pengajuan
+                                </p>
 
-                                <td colspan="6"
-                                    class="py-16 text-center">
+                                <p class="text-sm text-slate-500">
+                                    Semua pengajuan telah diproses.
+                                </p>
 
-                                    <div class="flex flex-col items-center">
+                            </div>
 
-                                        <div class="w-20 h-20 rounded-2xl bg-[#F5F8FF] flex items-center justify-center mb-4">
-                                            <i class="fas fa-check-circle text-4xl text-[#B5D4F4]"></i>
-                                        </div>
+                        </td>
 
-                                        <h3 class="font-bold text-[#1E2B4A] mb-1"
-                                            style="font-family:'Plus Jakarta Sans',sans-serif;">
-                                            Tidak Ada Pengajuan
-                                        </h3>
+                    </tr>
 
-                                        <p class="text-sm text-slate-500">
-                                            Semua pengajuan telah diproses.
-                                        </p>
+                    @endforelse
 
-                                    </div>
+                </tbody>
 
-                                </td>
-
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            </x-table>
 
         </form>
 
@@ -326,5 +459,102 @@
         </form>
 
     @endforeach
+
+<x-modal
+    name="detail-peminjaman"
+    title="Detail Peminjaman"
+    size="lg"
+    type="default">
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+
+        <div>
+            <p class="text-slate-500">Kode Peminjaman</p>
+            <p id="detail_kode" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Peminjam</p>
+            <p id="detail_user" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Alat</p>
+            <p id="detail_alat" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Jumlah</p>
+            <p id="detail_jumlah" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Pinjam</p>
+            <p id="detail_pinjam"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Kembali</p>
+            <p id="detail_kembali"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Status</p>
+            <p id="detail_status"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Keperluan</p>
+            <p id="detail_keperluan"></p>
+        </div>
+
+    </div>
+
+    <x-slot:footer>
+
+        <button
+            type="button"
+            onclick="window.dispatchEvent(
+                new CustomEvent('close-modal-detail-peminjaman')
+            )"
+            class="flex-1 px-4 py-3 rounded-xl border border-slate-200">
+
+            Tutup
+
+        </button>
+
+    </x-slot:footer>
+
+</x-modal>
+
+<script>
+
+function showDetail(
+    kode,
+    user,
+    alat,
+    jumlah,
+    pinjam,
+    kembali,
+    status,
+    keperluan
+){
+
+    document.getElementById('detail_kode').innerText = kode;
+    document.getElementById('detail_user').innerText = user;
+    document.getElementById('detail_alat').innerText = alat;
+    document.getElementById('detail_jumlah').innerText = jumlah + ' Unit';
+    document.getElementById('detail_pinjam').innerText = pinjam;
+    document.getElementById('detail_kembali').innerText = kembali;
+    document.getElementById('detail_status').innerText = status;
+    document.getElementById('detail_keperluan').innerText = keperluan;
+
+    window.dispatchEvent(
+        new CustomEvent('open-modal-detail-peminjaman')
+    );
+
+}
+
+</script>
 
 @endsection

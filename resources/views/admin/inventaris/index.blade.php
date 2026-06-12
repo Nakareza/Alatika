@@ -67,8 +67,6 @@
             icon="fas fa-check-circle"
             color="green" />
 
-    
-
     </div>
 
     <div class="card p-6">
@@ -231,17 +229,15 @@
                             <button
                                 type="button"
                                 onclick="window.dispatchEvent(new CustomEvent('open-modal-alat-{{ $item->id }}'))"
-                                class="px-3 py-2 rounded-lg border border-[#D4E6F8] text-sm text-[#185FA5] hover:bg-[#F5F8FF] transition">
+                                class="w-10 h-10 rounded-xl bg-[#EBF3FD] text-[#185FA5] hover:bg-[#DDEEFF] transition flex items-center justify-center">
 
-                                <i class="fas fa-eye mr-1"></i>
-                                Detail
+                                <i class="fas fa-eye"></i>
                             </button>
 
                             <a href="{{ route('admin.alat.edit', $item->id) }}"
-                            class="px-3 py-2 rounded-lg bg-amber-500 text-white text-sm hover:bg-amber-600 transition">
+                            class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center justify-center">
 
-                                <i class="fas fa-pen mr-1"></i>
-                                Edit
+                                <i class="fas fa-pen"></i>
                             </a>
 
                         </div>
@@ -268,7 +264,7 @@
     <div x-show="viewMode === 'grid'" x-transition class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         @forelse($alat as $item)
         <div class="card overflow-hidden group">
-            <div class="h-32 bg-gradient-to-br from-[#F5F8FF] to-[#EBF3FD] flex items-center justify-center border-b border-[#EBF3FD]">
+            <div class="h-32 bg-linear-to-br from-[#F5F8FF] to-[#EBF3FD] flex items-center justify-center border-b border-[#EBF3FD]">
                 <i class="fas fa-boxes text-5xl text-[#378ADD] group-hover:scale-110 transition-all duration-300"></i>
             </div>
 

@@ -20,6 +20,10 @@ class Peminjaman extends Model
         'status',
         'approved_by',
         'approved_at',
+        'kalab_approved_by',
+        'kalab_approved_at',
+        'admin_approved_by',
+        'admin_approved_at',
         'rejected_reason',
         'foto_bukti_kembali',
         'telegram_photo_file_id',
@@ -41,6 +45,8 @@ class Peminjaman extends Model
         'tanggal_pinjam'       => 'date',
         'tanggal_kembali'      => 'date',
         'approved_at'          => 'datetime',
+        'kalab_approved_at'    => 'datetime',
+        'admin_approved_at'    => 'datetime',
         'tanggal_dikembalikan' => 'datetime',
 
         'reminder_h1_sent'   => 'boolean',
@@ -76,6 +82,22 @@ class Peminjaman extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Kepala Lab yang menyetujui
+     */
+    public function kalabApprover()
+    {
+        return $this->belongsTo(User::class, 'kalab_approved_by');
+    }
+
+    /**
+     * Admin yang menyetujui
+     */
+    public function adminApprover()
+    {
+        return $this->belongsTo(User::class, 'admin_approved_by');
     }
 
     // ===================================================
@@ -207,10 +229,18 @@ class Peminjaman extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match ($this->status) {
+        // Double approval logic untuk dosen
+        if ($this->status === 'pending') {
+            if (!$this->kalab_approved_at) {
+                return 'Menunggu Kalab';
+            } elseif (!$this->admin_approved_at) {
+                return 'Menunggu Admin';
+            } else {
+                return 'Disetujui Semua';
+            }
+        }
 
-            'pending' =>
-                'Menunggu Persetujuan',
+        return match ($this->status) {
 
             'dipinjam' =>
                 'Sedang Dipinjam',
@@ -234,12 +264,27 @@ class Peminjaman extends Model
      */
     public function getStatusConfigAttribute(): array
     {
-        return match ($this->status) {
+        // Double approval logic untuk dosen
+        if ($this->status === 'pending') {
+            if (!$this->kalab_approved_at) {
+                return [
+                    'color' => 'bg-amber-100 text-amber-700',
+                    'icon'  => 'fa-hourglass-start',
+                ];
+            } elseif (!$this->admin_approved_at) {
+                return [
+                    'color' => 'bg-blue-100 text-blue-700',
+                    'icon'  => 'fa-hourglass-half',
+                ];
+            } else {
+                return [
+                    'color' => 'bg-green-100 text-green-700',
+                    'icon'  => 'fa-check-circle',
+                ];
+            }
+        }
 
-            'pending' => [
-                'color' => 'bg-amber-100 text-amber-700',
-                'icon'  => 'fa-clock',
-            ],
+        return match ($this->status) {
 
             'dipinjam' => [
                 'color' => 'bg-indigo-100 text-indigo-700',
