@@ -57,14 +57,14 @@ class PeminjamanController extends Controller
                 $q->where('role', 'dosen');
             })
             ->where('status', 'disetujui')
-            ->count(),
+            ->sum('jumlah'),
 
             // Sudah dikembalikan
             'dikembalikan_bulan_ini' => Peminjaman::whereHas('user', function ($q) {
                 $q->where('role', 'dosen');
             })
             ->where('status', 'dikembalikan')
-            ->count(),
+            ->sum('jumlah'),
 
             // Total seluruh pengajuan
             'total_pengajuan' => Peminjaman::whereHas('user', function ($q) {
@@ -79,14 +79,60 @@ class PeminjamanController extends Controller
         );
     }
 
-    public function riwayat()
+    public function riwayat(Request $request)
     {
-        // Ka lab sees all history
-        $peminjaman = Peminjaman::with(['user', 'alat'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
-        return view('kalab.riwayat.index', compact('peminjaman'));
+        $query = Peminjaman::with(['user', 'alat']);
+
+        // Search
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('kode_peminjaman', 'like', "%{$search}%")
+                ->orWhereHas('user', function ($user) use ($search) {
+
+                        $user->where('name', 'like', "%{$search}%");
+
+                })
+                ->orWhereHas('alat', function ($alat) use ($search) {
+
+                        $alat->where('nama', 'like', "%{$search}%");
+
+                });
+
+            });
+
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+
+            $query->where('status', $request->status);
+
+        }
+
+        // Filter Role
+        if ($request->filled('role')) {
+
+            $query->whereHas('user', function ($q) use ($request) {
+
+                $q->where('role', $request->role);
+
+            });
+
+        }
+
+        $peminjaman = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view(
+            'kalab.riwayat.index',
+            compact('peminjaman')
+        );
     }
 
     public function show($id)

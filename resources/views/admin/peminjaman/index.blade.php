@@ -90,185 +90,250 @@
 
     </div>
 
-    {{-- Table --}}
-    <div class="card overflow-hidden">
+    
+    <x-table title="Daftar Peminjaman">
 
-        <div class="overflow-x-auto">
+        <thead class="sticky top-0 bg-[#F8FBFF] border-b border-[#EBF3FD]">
 
-            <table class="w-full">
+            <tr>
 
-                <thead style="background:#F5F8FF;">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Mahasiswa</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Alat</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Tanggal Pinjam</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Deadline</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">Aksi</th>
-                    </tr>
-                </thead>
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    No
+                </th>
 
-                <tbody>
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    Mahasiswa
+                </th>
 
-                    @forelse($peminjaman as $index => $p)
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    Alat
+                </th>
 
-                    <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    Tanggal Pinjam
+                </th>
 
-                        <td class="px-6 py-4 text-sm text-slate-500">
-                            {{ $index + 1 }}
-                        </td>
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    Deadline
+                </th>
 
-                        <td class="px-6 py-4">
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    Status
+                </th>
 
-                            <div class="flex items-center gap-3">
+                <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
+                    Aksi
+                </th>
 
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-                                     style="background:#1E2B4A;">
-                                    {{ strtoupper(substr($p->user->name, 0, 1)) }}
-                                </div>
+            </tr>
 
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-800">
-                                        {{ $p->user->name }}
-                                    </p>
+        </thead>
 
-                                    <p class="text-xs text-slate-400">
-                                        {{ $p->user->nim ?? '-' }}
-                                    </p>
-                                </div>
+        <tbody class="divide-y divide-[#EBF3FD]">
 
-                            </div>
+            @forelse($peminjaman as $index => $p)
 
-                        </td>
+            <tr class="hover:bg-[#F8FBFF] transition">
 
-                        <td class="px-6 py-4">
-                            <p class="text-sm font-semibold text-slate-800">
-                                {{ $p->alat->nama }}
-                            </p>
+                {{-- No --}}
+                <td class="px-6 py-5 text-sm font-semibold text-slate-500">
+                    {{ $index + 1 }}
+                </td>
 
-                            <p class="text-xs text-slate-400">
-                                {{ $p->kode_peminjaman }}
-                            </p>
-                        </td>
+                {{-- Mahasiswa --}}
+                <td class="px-6 py-5">
 
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ $p->tanggal_pinjam->format('d M Y') }}
-                        </td>
+                    <div class="flex items-center gap-3">
 
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ $p->tanggal_kembali->format('d M Y') }}
-                        </td>
+                        <div class="w-10 h-10 rounded-xl bg-[#1E2B4A] text-white flex items-center justify-center font-bold">
 
-                        <td class="px-6 py-4">
-
-                            <span class="badge {{ $p->status_config['color'] }}">
-                                {{ $p->status_label }}
-                            </span>
-
-                        </td>
-
-                        <td class="px-6 py-4">
-
-                            <div class="flex justify-center gap-2">
-
-                            {{-- Menunggu Kalab --}}
-                            @if($p->status === 'pending' && !$p->kalab_approved_at)
-
-                                <button
-                                    type="button"
-                                    class="w-9 h-9 rounded-lg text-slate-400 cursor-not-allowed"
-                                    title="Menunggu persetujuan Kalab"
-                                    disabled>
-                                    <i class="fas fa-hourglass-half"></i>
-                                </button>
-
-                            {{-- Menunggu Admin --}}
-                            @elseif($p->status === 'pending' && $p->kalab_approved_at && !$p->admin_approved_at)
-
-                                <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
-                                    method="POST"
-                                    style="display:inline;">
-                                    @csrf
-
-                                    <button
-                                        type="submit"
-                                        class="w-9 h-9 rounded-lg text-green-600 hover:bg-green-50 transition"
-                                        title="Setujui">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                </form>
-
-                                <button
-                                    type="button"
-                                    class="w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 transition"
-                                    title="Tolak"
-                                    onclick="showRejectModal({{ $p->id }})">
-                                    <i class="fas fa-times"></i>
-                                </button>
-
-                            {{-- Disetujui Semua --}}
-                            @elseif($p->status === 'pending' && $p->kalab_approved_at && $p->admin_approved_at)
-
-                                <span class="text-green-600 text-sm font-medium">
-                                    Disetujui
-                                </span>
-
-                            @endif
-
-                            {{-- Sedang Dipinjam --}}
-                            @if($p->status === 'dipinjam')
-
-                                <span class="text-indigo-600 text-sm font-medium">
-                                    Sedang Dipinjam
-                                </span>
-
-                            @endif
-
-                            {{-- Selesai --}}
-                            @if($p->status === 'selesai')
-
-                                <span class="text-emerald-600 text-sm font-medium">
-                                    Selesai
-                                </span>
-
-                            @endif
-
-                            {{-- Ditolak --}}
-                            @if($p->status === 'ditolak')
-
-                                <span class="text-red-600 text-sm font-medium">
-                                    Ditolak
-                                </span>
-
-                            @endif
+                            {{ strtoupper(substr($p->user->name,0,1)) }}
 
                         </div>
 
-                        </td>
+                        <div>
 
-                    </tr>
+                            <p class="font-semibold text-[#1E2B4A]">
+                                {{ $p->user->name }}
+                            </p>
 
-                    @empty
+                            <p class="text-xs text-slate-500">
+                                {{ $p->user->nim ?? '-' }}
+                            </p>
 
-                    <tr>
-                        <td colspan="7"
-                            class="px-6 py-10 text-center text-slate-400">
-                            Belum ada data peminjaman.
-                        </td>
-                    </tr>
+                        </div>
 
-                    @endforelse
+                    </div>
 
-                </tbody>
+                </td>
 
-            </table>
+                {{-- Alat --}}
+                <td class="px-6 py-5">
 
-        </div>
+                    <p class="font-semibold text-[#1E2B4A]">
+                        {{ $p->alat->nama }}
+                    </p>
 
-    </div>
+                    <p class="text-xs text-slate-500">
+                        {{ $p->kode_peminjaman }}
+                    </p>
 
-</div>
+                </td>
+
+                {{-- Tanggal --}}
+                <td class="px-6 py-5 text-sm text-slate-600">
+
+                    {{ $p->tanggal_pinjam->format('d M Y') }}
+
+                </td>
+
+                {{-- Deadline --}}
+                <td class="px-6 py-5 text-sm text-slate-600">
+
+                    {{ $p->tanggal_kembali->format('d M Y') }}
+
+                </td>
+
+                {{-- Status --}}
+                <td class="px-6 py-5">
+
+                    <span class="badge {{ $p->status_config['color'] }}">
+
+                        {{ $p->status_label }}
+
+                    </span>
+
+                </td>
+
+                {{-- Aksi --}}
+                <td class="px-6 py-5">
+
+                    <div class="flex justify-center items-center gap-2">
+
+                        {{-- Menunggu Kalab --}}
+                        @if($p->status === 'pending' && !$p->kalab_approved_at)
+
+                            <button
+                                type="button"
+                                disabled
+                                title="Menunggu persetujuan Kalab"
+                                class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 cursor-not-allowed">
+
+                                <i class="fas fa-hourglass-half"></i>
+
+                            </button>
+
+                        {{-- Menunggu Admin --}}
+                        @elseif($p->status === 'pending' && $p->kalab_approved_at && !$p->admin_approved_at)
+
+                            <form
+                                action="{{ route('admin.peminjaman.approve', $p->id) }}"
+                                method="POST">
+
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    title="Setujui"
+                                    class="w-10 h-10 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition">
+
+                                    <i class="fas fa-check"></i>
+
+                                </button>
+
+                            </form>
+
+                            <button
+                                type="button"
+                                title="Tolak"
+                                onclick="showRejectModal({{ $p->id }})"
+                                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition">
+
+                                <i class="fas fa-times"></i>
+
+                            </button>
+
+                        {{-- Disetujui --}}
+                        @elseif($p->status === 'pending' && $p->kalab_approved_at && $p->admin_approved_at)
+
+                            <span class="badge badge-success">
+
+                                Disetujui
+
+                            </span>
+
+                        @endif
+
+                        @if($p->status === 'dipinjam')
+
+                            <span class="badge badge-info">
+
+                                Sedang Dipinjam
+
+                            </span>
+
+                        @endif
+
+                        @if($p->status === 'selesai')
+
+                            <span class="badge badge-success">
+
+                                Selesai
+
+                            </span>
+
+                        @endif
+
+                        @if($p->status === 'ditolak')
+
+                            <span class="badge badge-danger">
+
+                                Ditolak
+
+                            </span>
+
+                        @endif
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            @empty
+
+            <tr>
+
+                <td colspan="7" class="py-16 text-center">
+
+                    <div class="flex flex-col items-center">
+
+                        <i class="fas fa-inbox text-5xl text-slate-300 mb-4"></i>
+
+                        <h3 class="font-bold text-lg text-[#1E2B4A]">
+
+                            Belum Ada Data Peminjaman
+
+                        </h3>
+
+                        <p class="text-slate-500">
+
+                            Data peminjaman akan muncul di sini.
+
+                        </p>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            @endforelse
+
+        </tbody>
+
+    </x-table>
+    <x-pagination :data="$peminjaman" />
 
 {{-- Hidden Reject Forms --}}
 @foreach($peminjaman as $p)

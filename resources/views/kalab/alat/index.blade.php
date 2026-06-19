@@ -378,11 +378,6 @@
             </div>
 
             <div>
-                <p class="text-xs text-slate-500">Lokasi</p>
-                <p class="font-semibold">{{ $item->lokasi ?? '-' }}</p>
-            </div>
-
-            <div>
                 <p class="text-xs text-slate-500">Stok Total</p>
                 <p class="font-semibold">{{ $item->stok_total }}</p>
             </div>
@@ -426,155 +421,170 @@
     title="Edit Data Inventaris"
     size="lg">
 
-<form
-    action="{{ route('kalab.alat.update',$item->id) }}"
-    method="POST"
-    id="form-edit-{{ $item->id }}"
-    class="space-y-4">
+    <form
+        action="{{ route('kalab.alat.update',$item->id) }}"
+        method="POST"
+        id="form-edit-{{ $item->id }}"
+        class="space-y-4">
 
-    @csrf
-    @method('PUT')
-
-    <div>
-
-        <label class="text-sm font-medium">
-            Nama Alat
-        </label>
-
-        <input
-            type="text"
-            name="nama"
-            value="{{ $item->nama }}"
-            class="inp w-full">
-
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
+        @csrf
+        @method('PUT')
 
         <div>
 
             <label class="text-sm font-medium">
-
-                Kategori
-
+                Nama Alat
             </label>
 
             <input
                 type="text"
-                name="kategori"
-                value="{{ $item->kategori }}"
+                name="nama"
+                value="{{ $item->nama }}"
                 class="inp w-full">
+
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <div>
+
+                <label class="text-sm font-medium">
+
+                    Kategori
+
+                </label>
+
+                <input
+                    type="text"
+                    name="kategori"
+                    value="{{ $item->kategori }}"
+                    class="inp w-full">
+
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <div>
+
+                <label class="text-sm font-medium">
+
+                    Stok Total
+
+                </label>
+
+                <input
+                    type="number"
+                    name="stok_total"
+                    value="{{ $item->stok_total }}"
+                    class="inp w-full">
+
+            </div>
+
+            <div>
+
+                <label class="text-sm font-medium">
+
+                    Stok Tersedia
+
+                </label>
+
+                <input
+                    type="number"
+                    name="stok_tersedia"
+                    value="{{ $item->stok_tersedia }}"
+                    class="inp w-full">
+
+            </div>
 
         </div>
 
         <div>
-
             <label class="text-sm font-medium">
-
-                Lokasi
-
+                Kondisi Alat
             </label>
 
-            <input
-                type="text"
-                name="lokasi"
-                value="{{ $item->lokasi }}"
+            <select
+                name="kondisi"
                 class="inp w-full">
 
-        </div>
+                <option value="baik"
+                    {{ $item->kondisi == 'baik' ? 'selected' : '' }}>
+                    Baik
+                </option>
 
-    </div>
+                <option value="rusak"
+                    {{ $item->kondisi == 'rusak' ? 'selected' : '' }}>
+                    Rusak
+                </option>
 
-    <div class="grid grid-cols-2 gap-4">
-
-        <div>
-
-            <label class="text-sm font-medium">
-
-                Stok Total
-
-            </label>
-
-            <input
-                type="number"
-                name="stok_total"
-                value="{{ $item->stok_total }}"
-                class="inp w-full">
-
+                <option value="perlu_pengecekan"
+                    {{ $item->kondisi == 'perlu_pengecekan' ? 'selected' : '' }}>
+                    Perlu Pengecekan
+                </option>
+            </select>
         </div>
 
         <div>
-
             <label class="text-sm font-medium">
-
-                Stok Tersedia
-
+                Status Saat Ini
             </label>
 
-            <input
-                type="number"
-                name="stok_tersedia"
-                value="{{ $item->stok_tersedia }}"
-                class="inp w-full">
+            <div class="mt-2 p-3 rounded-xl bg-slate-50 border">
 
+                @if($item->kondisi == 'hilang')
+
+                    <span class="badge badge-danger">
+                        Hilang
+                    </span>
+
+                @elseif($item->kondisi == 'maintenance')
+
+                    <span class="badge badge-warning">
+                        Maintenance
+                    </span>
+
+                @elseif($item->stok_tersedia == 0)
+
+                    <span class="badge badge-info">
+                        Dipinjam
+                    </span>
+
+                @else
+
+                    <span class="badge badge-success">
+                        Tersedia
+                    </span>
+
+                @endif
+
+            </div>
         </div>
 
-    </div>
+        <x-slot:footer>
 
-    <div>
+            <button
+                type="button"
+                onclick="window.dispatchEvent(new CustomEvent('close-modal-edit-{{ $item->id }}'))"
+                class="flex-1 py-3 rounded-xl bg-slate-100">
 
-        <label class="text-sm font-medium">
+                Batal
 
-            Status
+            </button>
 
-        </label>
+            <button
+                type="submit"
+                form="form-edit-{{ $item->id }}"
+                class="flex-1 btn btn-primary">
 
-        <select
-            name="status"
-            class="inp w-full">
+                Simpan Perubahan
 
-            <option value="tersedia"
-                {{ $item->status=='tersedia'?'selected':'' }}>
-                Tersedia
-            </option>
+            </button>
 
-            <option value="maintenance"
-                {{ $item->status=='maintenance'?'selected':'' }}>
-                Maintenance
-            </option>
+        </x-slot>
 
-            <option value="rusak"
-                {{ $item->status=='rusak'?'selected':'' }}>
-                Rusak
-            </option>
-
-        </select>
-
-    </div>
-
-    <x-slot:footer>
-
-        <button
-            type="button"
-            onclick="window.dispatchEvent(new CustomEvent('close-modal-edit-{{ $item->id }}'))"
-            class="flex-1 py-3 rounded-xl bg-slate-100">
-
-            Batal
-
-        </button>
-
-        <button
-            type="submit"
-            form="form-edit-{{ $item->id }}"
-            class="flex-1 btn btn-primary">
-
-            Simpan Perubahan
-
-        </button>
-
-    </x-slot>
-
-</form>
+    </form>
 
 </x-modal>
 

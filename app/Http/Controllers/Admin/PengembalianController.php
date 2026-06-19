@@ -54,7 +54,8 @@ class PengembalianController extends Controller
                 )
             ")
             ->orderBy('updated_at', 'desc')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $stats = [
             'total'      => Peminjaman::count(),

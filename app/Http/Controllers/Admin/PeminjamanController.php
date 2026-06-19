@@ -39,12 +39,13 @@ class PeminjamanController extends Controller
 
     $peminjaman = $query
         ->orderBy('created_at', 'desc')
-        ->get();
+        ->paginate(10)
+        ->withQueryString();
 
     $stats = [
         'total' => Peminjaman::count(),
         'pending' => Peminjaman::where('status', 'pending')->count(),
-        'aktif' => Peminjaman::where('status', 'dipinjam')->count(),
+        'aktif' => Peminjaman::where('status', 'dipinjam')->sum('jumlah'),
         'ditolak' => Peminjaman::where('status', 'ditolak')->count(),
     ];
 
@@ -59,8 +60,31 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::findOrFail($id);
         
         // Check apakah kalab sudah approve terlebih dahulu
-        if (!$peminjaman->kalab_approved_at) {
-            return redirect()->back()->with('error', 'Peminjaman belum disetujui oleh Kalab. Mohon tunggu persetujuan Kalab terlebih dahulu.');
+        if ($peminjaman->kalab_approved_at && $peminjaman->admin_approved_at) {
+
+            $alat = $peminjaman->alat;
+
+            // cek stok
+            if ($alat->stok_tersedia < $peminjaman->jumlah) {
+
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'Stok alat tidak mencukupi.'
+                    );
+            }
+
+            // kurangi stok
+            $alat->decrement(
+                'stok_tersedia',
+                $peminjaman->jumlah
+            );
+
+            // ubah status
+            $peminjaman->update([
+                'status' => 'dipinjam'
+            ]);
         }
 
         // Admin approve: set admin_approved_by/at
@@ -110,30 +134,6 @@ class PeminjamanController extends Controller
         return redirect()->back()->with('success', 'Peminjaman ditolak oleh Admin.');
     }
 
-    public function markAsBorrowed($id)
-    {
-        $peminjaman = Peminjaman::findOrFail($id);
-        
-        if ($peminjaman->status !== 'dipinjam') {
-            return redirect()->back()->with('error', 'Peminjaman harus disetujui dahulu.');
-        }
-
-        // Check stock
-        if (!$peminjaman->alat->isAvailable($peminjaman->jumlah)) {
-            return redirect()->back()->with('error', 'Stok alat tidak mencukupi saat ini.');
-        }
-
-        // Deduct stock
-        $alat = $peminjaman->alat;
-        $alat->stok_tersedia -= $peminjaman->jumlah;
-        $alat->save();
-
-        $peminjaman->update([
-            'status' => 'dipinjam',
-        ]);
-
-        return redirect()->back()->with('success', 'Status diubah menjadi DIPINJAM. Stok alat dikurangi.');
-    }
 
     public function approveReturn($id)
 {
