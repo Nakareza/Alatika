@@ -86,182 +86,226 @@
     </div>
 
     {{-- Table --}}
-    <div  class="card overflow-hidden">
+    <x-table title="Data Pengembalian Alat">
 
-        <div class="overflow-x-auto">
+        <thead class="sticky top-0 bg-[#F8FBFF] border-b border-[#EBF3FD]">
 
-            <table class="w-full">
+            <tr>
 
-                <thead class="bg-[#F5F8FF]">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">No</th>
-                        <th class="px-2 py-4 text-left text-xs font-bold uppercase text-slate-500">Mahasiswa</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Alat</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Deadline</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">Bukti</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">Aksi</th>
-                    </tr>
-                </thead>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                    No
+                </th>
 
-                <tbody>
+                <th class="px-2 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                    Mahasiswa
+                </th>
 
-                    @forelse($pengembalian as $index => $p)
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                    Alat
+                </th>
 
-                    <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                    Deadline
+                </th>
 
-                        <td class="px-6 py-4 text-sm text-slate-500">
-                            {{ $index + 1 }}
-                        </td>
-                    {{-- Mahasiswa --}}
-                    <td class="px-2 py-4">
-                        <div class="flex items-center gap-3">
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                    Status
+                </th>
 
-                            <div
-                                class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-                                style="background:#1E2B4A;">
-                                {{ strtoupper(substr($p->user->name,0,1)) }}
-                            </div>
+                <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">
+                    Bukti
+                </th>
 
-                            <div>
-                                <p class="text-sm font-semibold text-slate-800">
-                                    {{ $p->user->name }}
-                                </p>
+                <th class="px-6 py-4 text-center text-xs font-bold uppercase text-slate-500">
+                    Aksi
+                </th>
 
-                                <p class="text-xs text-slate-400">
-                                    {{ $p->user->nim ?? '-' }}
-                                </p>
-                            </div>
+            </tr>
+
+        </thead>
+
+        <tbody class="divide-y divide-[#EBF3FD]">
+
+            @forelse($pengembalian as $index => $p)
+
+            <tr class="hover:bg-[#F8FBFF] transition">
+
+                {{-- No --}}
+                <td class="px-6 py-5 text-sm text-slate-500 font-semibold">
+                    {{ $index + 1 }}
+                </td>
+
+                {{-- Mahasiswa --}}
+                <td class="px-2 py-5">
+
+                    <div class="flex items-center gap-3">
+
+                        <div
+                            class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold bg-[#1E2B4A]">
+
+                            {{ strtoupper(substr($p->user->name,0,1)) }}
 
                         </div>
-                    </td>
 
-                    {{-- Alat --}}
-                    <td class="px-6 py-4">
-                        <p class="text-sm font-semibold text-slate-800">
-                            {{ $p->alat->nama }}
-                        </p>
+                        <div>
 
-                        <p class="text-xs text-slate-400">
-                            {{ $p->kode_peminjaman }}
-                        </p>
-                    </td>
-
-                    {{-- Deadline --}}
-                    <td class="px-6 py-4">
-
-                        <div class="text-sm">
-
-                            <p class="{{ $p->isOverdue() ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
-                                {{ $p->tanggal_kembali->format('d M Y') }}
+                            <p class="text-sm font-semibold text-slate-800">
+                                {{ $p->user->name }}
                             </p>
 
-                            @if($p->isOverdue() && $p->status !== 'selesai')
-                                <span class="text-xs text-red-500">
-                                    Terlambat
-                                </span>
-                            @endif
+                            <p class="text-xs text-slate-400">
+                                {{ $p->user->nim ?? '-' }}
+                            </p>
 
                         </div>
 
-                    </td>
+                    </div>
 
-                    {{-- Status --}}
-                    <td class="px-6 py-4">
+                </td>
 
-                        <span class="badge {{ $p->status_config['color'] }}">
-                            {{ $p->status_label }}
+                {{-- Alat --}}
+                <td class="px-6 py-5">
+
+                    <p class="text-sm font-semibold text-slate-800">
+                        {{ $p->alat->nama }}
+                    </p>
+
+                    <p class="text-xs text-slate-400">
+                        {{ $p->kode_peminjaman }}
+                    </p>
+
+                </td>
+
+                {{-- Deadline --}}
+                <td class="px-6 py-5">
+
+                    <div>
+
+                        <p class="text-sm {{ $p->isOverdue() ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
+                            {{ $p->tanggal_kembali->format('d M Y') }}
+                        </p>
+
+                        @if($p->isOverdue() && $p->status !== 'selesai')
+
+                            <span class="text-xs text-red-500">
+                                Terlambat
+                            </span>
+
+                        @endif
+
+                    </div>
+
+                </td>
+
+                {{-- Status --}}
+                <td class="px-6 py-5">
+
+                    <span class="badge {{ $p->status_config['color'] }}">
+                        {{ $p->status_label }}
+                    </span>
+
+                </td>
+
+                {{-- Bukti --}}
+                <td class="px-6 py-5 text-center">
+
+                    @if($p->foto_bukti_kembali)
+
+                        <button
+                            type="button"
+                            onclick="window.dispatchEvent(new CustomEvent('open-modal-bukti-{{ $p->id }}'))"
+                            class="w-10 h-10 rounded-xl bg-[#EBF3FD] text-[#185FA5] hover:bg-[#D9EAFE] transition">
+
+                            <i class="fas fa-image"></i>
+
+                        </button>
+
+                    @else
+
+                        <span class="text-slate-300">
+                            <i class="fas fa-image"></i>
                         </span>
 
-                    </td>
+                    @endif
 
-                    {{-- Bukti --}}
-                    <td class="px-6 py-4 text-center">
+                </td>
 
-                        @if($p->foto_bukti_kembali)
+                {{-- Aksi --}}
+                <td class="px-6 py-5 text-center">
+
+                    @if($p->status === 'menunggu_verifikasi')
+
+                        <form
+                            action="{{ route('admin.pengembalian.verify', $p->id) }}"
+                            method="POST"
+                            onsubmit="return confirm('Verifikasi pengembalian alat ini?');">
+
+                            @csrf
+
+                            <input
+                                type="hidden"
+                                name="kondisi_kembali"
+                                value="baik">
 
                             <button
-                                type="button"
-                                onclick="window.dispatchEvent(new CustomEvent('open-modal-bukti-{{ $p->id }}'))"
-                                class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
+                                type="submit"
+                                class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm hover:bg-emerald-700 transition">
 
-                                <i class="fas fa-image"></i>
+                                <i class="fas fa-check mr-1"></i>
+                                Verifikasi
 
                             </button>
 
-                        @else
+                        </form>
 
-                            <span class="text-slate-300">
-                                <i class="fas fa-image"></i>
-                            </span>
+                    @elseif($p->status === 'selesai')
 
-                        @endif
+                        <span class="text-emerald-600 font-semibold text-sm">
+                            Selesai
+                        </span>
 
-                    </td>
+                    @else
 
-                    {{-- Aksi --}}
-                    <td class="px-6 py-4 text-center">
+                        <span class="text-slate-400 text-sm">
+                            Menunggu
+                        </span>
 
-                        @if($p->status === 'menunggu_verifikasi')
+                    @endif
 
-                            <form
-                                action="{{ route('admin.pengembalian.verify', $p->id) }}"
-                                method="POST"
-                                onsubmit="return confirm('Verifikasi pengembalian alat ini?');">
+                </td>
 
-                                @csrf
+            </tr>
 
-                                <input
-                                    type="hidden"
-                                    name="kondisi_kembali"
-                                    value="baik">
+            @empty
 
-                                <button
-                                    type="submit"
-                                    class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700 transition">
+            <tr>
 
-                                    <i class="fas fa-check mr-1"></i>
-                                    Verifikasi
+                <td colspan="7" class="py-14 text-center">
 
-                                </button>
+                    <div class="flex flex-col items-center">
 
-                            </form>
+                        <i class="fas fa-inbox text-5xl text-slate-300 mb-4"></i>
 
-                        @elseif($p->status === 'selesai')
+                        <h3 class="font-bold text-lg text-[#1E2B4A]">
+                            Belum Ada Data Pengembalian
+                        </h3>
 
-                            <span class="text-emerald-600 font-semibold text-sm">
-                                Selesai
-                            </span>
+                        <p class="text-slate-500">
+                            Data pengembalian alat akan muncul di sini.
+                        </p>
 
-                        @else
+                    </div>
 
-                            <span class="text-slate-400 text-sm">
-                                Menunggu
-                            </span>
+                </td>
 
-                        @endif
+            </tr>
 
-                    </td>
+            @endforelse
 
-                </tr>
+        </tbody>
 
-                    @empty
-
-                    <tr>
-                        <td colspan="8" class="py-10 text-center text-slate-500">
-                            Belum ada data pengembalian alat.
-                        </td>
-                    </tr>
-
-                    @endforelse
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
+    </x-table>
+    <x-pagination :data="$pengembalian" />
 
 </div>
 @foreach($pengembalian as $p)

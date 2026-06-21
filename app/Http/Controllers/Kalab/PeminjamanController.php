@@ -72,7 +72,7 @@ class PeminjamanController extends Controller
         );
     }
 
-    public function riwayat()
+    public function riwayat(Request $request)
     {
         // Ka Lab hanya melihat riwayat peminjaman DOSEN
         $peminjaman = Peminjaman::with(['user', 'alat'])

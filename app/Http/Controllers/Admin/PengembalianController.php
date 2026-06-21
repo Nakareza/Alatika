@@ -58,7 +58,8 @@ class PengembalianController extends Controller
                 )
             ")
             ->orderBy('updated_at', 'desc')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
         $stats = [

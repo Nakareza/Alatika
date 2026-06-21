@@ -73,22 +73,20 @@ class AlatController extends Controller
     public function update(Request $request, Alat $alat)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'kategori' => 'required|string|max:255',
-            'lokasi' => 'nullable|string|max:255',
-            'stok_total' => 'required|integer|min:0',
-            'stok_tersedia' => 'required|integer|min:0',
-            'status' => 'required',
+            'nama' => 'required',
+            'kategori' => 'required',
+            'stok_total' => 'required|integer',
+            'stok_tersedia' => 'required|integer',
+            'kondisi' => 'required'
         ]);
 
-        $alat->update($request->only([
-            'nama',
-            'kategori',
-            'lokasi',
-            'stok_total',
-            'stok_tersedia',
-            'status',
-        ]));
+        $alat->update([
+            'nama' => $request->nama,
+            'kategori' => $request->kategori,
+            'stok_total' => $request->stok_total,
+            'stok_tersedia' => $request->stok_tersedia,
+            'kondisi' => $request->kondisi,
+        ]);
 
         return back()->with(
             'success',
