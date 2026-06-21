@@ -13,12 +13,15 @@ class PeminjamanApiController extends Controller
      */
     public function stats()
     {
-        $pending = Peminjaman::where('status', 'pending')->count();
-        $dipinjam = Peminjaman::where('status', 'dipinjam')->count();
-        $menungguVerifikasi = Peminjaman::where('status', 'menunggu_verifikasi')->count();
+        // API untuk dashboard admin -> hanya mahasiswa
+        $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
 
-        // Also get the latest 5 activities
+        $pending = (clone $mhs)->where('status', 'pending')->count();
+        $dipinjam = (clone $mhs)->where('status', 'dipinjam')->count();
+        $menungguVerifikasi = (clone $mhs)->where('status', 'menunggu_verifikasi')->count();
+
         $recent = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get()
@@ -50,7 +53,9 @@ class PeminjamanApiController extends Controller
      */
     public function pendingVerifications()
     {
+        // Hanya pengembalian dari mahasiswa
         $returns = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->where('status', 'menunggu_verifikasi')
             ->orderBy('tanggal_dikembalikan', 'desc')
             ->get()

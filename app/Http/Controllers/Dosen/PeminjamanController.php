@@ -9,6 +9,7 @@ use App\Models\Peminjaman;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
@@ -45,7 +46,10 @@ class PeminjamanController extends Controller
         // Kelompokkan alat by kategori
         $kategori = $alat->groupBy('kategori')->keys();
 
-        return view('dosen.peminjaman.ajukan', compact('pengajuan', 'alat', 'kategori'));
+        // Load keperluan options from config
+        $keperluanOptions = $this->getKeperluanOptions();
+
+        return view('dosen.peminjaman.ajukan', compact('pengajuan', 'alat', 'kategori', 'keperluanOptions'));
     }
 
     public function store(Request $request, TelegramService $telegram)
@@ -122,5 +126,15 @@ class PeminjamanController extends Controller
                 'success',
                 'Pengajuan berhasil dikirim ke Teknisi dan Kepala Laboratorium.'
             );
+    }
+
+    private function getKeperluanOptions(): array
+    {
+        $path = storage_path('app/keperluan.json');
+        if (!file_exists($path)) {
+            return ['Penelitian', 'Tugas Harian', 'Pengabdian', 'Praktikum', 'Perkuliahan'];
+        }
+        $data = json_decode(file_get_contents($path), true);
+        return is_array($data) ? $data : [];
     }
 }

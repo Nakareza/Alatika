@@ -429,7 +429,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))->first();
+        $peminjaman = \App\Models\Peminjaman::with('alat')->where('kode_peminjaman', strtoupper($kode))->first();
         if (!$peminjaman) {
             $this->telegram->sendMessage($chatId, "❌ Peminjaman tidak ditemukan.");
             return;
@@ -450,11 +450,28 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman->update([
-            'status' => 'dipinjam',
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
+        // Check stock availability before approving
+        $alat = $peminjaman->alat;
+        if ($alat->stok_tersedia < $peminjaman->jumlah) {
+            $this->telegram->sendMessage($chatId,
+                "⚠️ Stok alat \"{$alat->nama}\" tidak mencukupi (tersedia: {$alat->stok_tersedia}, diminta: {$peminjaman->jumlah})."
+            );
+            return;
+        }
+
+        // Decrement stock upon approval
+        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+
+        // Use role-specific approver fields (matching web controllers)
+        $updateData = ['status' => 'dipinjam'];
+        if ($user->role === 'admin') {
+            $updateData['admin_approved_by'] = $user->id;
+            $updateData['admin_approved_at'] = now();
+        } else {
+            $updateData['kalab_approved_by'] = $user->id;
+            $updateData['kalab_approved_at'] = now();
+        }
+        $peminjaman->update($updateData);
 
         $this->telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
@@ -522,12 +539,19 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman->update([
+        // Use role-specific approver fields (matching web controllers)
+        $updateData = [
             'status' => 'ditolak',
             'rejected_reason' => $alasan,
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
+        ];
+        if ($user->role === 'admin') {
+            $updateData['admin_approved_by'] = $user->id;
+            $updateData['admin_approved_at'] = now();
+        } else {
+            $updateData['kalab_approved_by'] = $user->id;
+            $updateData['kalab_approved_at'] = now();
+        }
+        $peminjaman->update($updateData);
 
         $this->telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,

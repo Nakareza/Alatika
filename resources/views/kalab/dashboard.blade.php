@@ -26,9 +26,9 @@
             color="yellow" />
 
         <x-card-stats 
-            title="Disetujui" 
-            :value="$stats['disetujui']" 
-            icon="fas fa-check-circle" 
+            title="Selesai" 
+            :value="$stats['selesai']" 
+            icon="fas fa-check-double" 
             color="green" />
 
         <x-card-stats 
@@ -219,7 +219,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-slate-800">Data Alat</p>
-                            <p class="text-sm text-slate-400 font-medium">Lihat inventaris</p>
+                            <p class="text-sm text-slate-400 font-medium">Lihat data alat</p>
                         </div>
                     </a>
                     <a href="{{ route('kalab.riwayat') }}"

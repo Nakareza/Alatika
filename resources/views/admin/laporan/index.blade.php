@@ -13,7 +13,7 @@
                 Laporan & Statistik
             </h2>
             <p class="text-sm text-slate-500 mt-1">
-                Ringkasan aktivitas peminjaman dan inventaris laboratorium
+                Ringkasan aktivitas peminjaman dan data alat laboratorium
             </p>
         </div>
 
@@ -44,13 +44,8 @@
                 </span>
             </div>
 
-            <h3 class="text-3xl font-bold text-slate-800">142</h3>
+            <h3 class="text-3xl font-bold text-slate-800">{{ $stats['total_peminjaman'] }}</h3>
             <p class="text-sm text-slate-500 mt-1">Total Peminjaman</p>
-
-            <div class="mt-3 text-xs font-semibold text-emerald-600">
-                <i class="fas fa-arrow-up mr-1"></i>
-                +12% dari bulan lalu
-            </div>
         </div>
 
         <div class="card p-6">
@@ -60,17 +55,12 @@
                 </div>
 
                 <span class="badge badge-success">
-                    Baik
+                    Selesai
                 </span>
             </div>
 
-            <h3 class="text-3xl font-bold text-slate-800">94%</h3>
-            <p class="text-sm text-slate-500 mt-1">Rate Pengembalian</p>
-
-            <div class="mt-3 text-xs font-semibold text-emerald-600">
-                <i class="fas fa-clock mr-1"></i>
-                Tepat waktu
-            </div>
+            <h3 class="text-3xl font-bold text-slate-800">{{ $stats['total_selesai'] }}</h3>
+            <p class="text-sm text-slate-500 mt-1">Peminjaman Selesai</p>
         </div>
 
         <div class="card p-6">
@@ -84,7 +74,7 @@
                 </span>
             </div>
 
-            <h3 class="text-3xl font-bold text-slate-800">18</h3>
+            <h3 class="text-3xl font-bold text-slate-800">{{ $mahasiswaAktif }}</h3>
             <p class="text-sm text-slate-500 mt-1">Peminjam Aktif</p>
 
             <div class="mt-3 text-xs font-semibold text-blue-600">
@@ -100,17 +90,12 @@
                 </div>
 
                 <span class="badge badge-warning">
-                    Rata-rata
+                    Dipinjam
                 </span>
             </div>
 
-            <h3 class="text-3xl font-bold text-slate-800">72%</h3>
-            <p class="text-sm text-slate-500 mt-1">Utilisasi Alat</p>
-
-            <div class="mt-3 text-xs font-semibold text-amber-600">
-                <i class="fas fa-chart-line mr-1"></i>
-                Penggunaan alat
-            </div>
+            <h3 class="text-3xl font-bold text-slate-800">{{ $stats['total_dipinjam'] }}</h3>
+            <p class="text-sm text-slate-500 mt-1">Sedang Dipinjam</p>
         </div>
 
         <div class="card p-6">
@@ -120,17 +105,12 @@
                 </div>
 
                 <span class="badge badge-danger">
-                    Warning
+                    Overdue
                 </span>
             </div>
 
-            <h3 class="text-3xl font-bold text-slate-800">3</h3>
+            <h3 class="text-3xl font-bold text-slate-800">{{ $stats['overdue'] }}</h3>
             <p class="text-sm text-slate-500 mt-1">Keterlambatan</p>
-
-            <div class="mt-3 text-xs font-semibold text-red-600">
-                <i class="fas fa-arrow-down mr-1"></i>
-                -2 dari bulan lalu
-            </div>
         </div>
 
     </div>
@@ -159,16 +139,14 @@
             </div>
 
             @php
-                $months = [
-                    ['bulan' => 'Jul', 'jumlah' => 8],
-                    ['bulan' => 'Agu', 'jumlah' => 12],
-                    ['bulan' => 'Sep', 'jumlah' => 22],
-                    ['bulan' => 'Okt', 'jumlah' => 28],
-                    ['bulan' => 'Nov', 'jumlah' => 35],
-                    ['bulan' => 'Des', 'jumlah' => 37],
-                ];
+                $months = collect($ringkasanBulanan)->map(function($r) {
+                    return [
+                        'bulan' => \Carbon\Carbon::parse($r['bulan'])->translatedFormat('M'),
+                        'jumlah' => $r['pengajuan'],
+                    ];
+                })->values()->all();
 
-                $maxVal = max(array_column($months, 'jumlah'));
+                $maxVal = max(array_column($months, 'jumlah')) ?: 1;
             @endphp
 
             <div class="flex items-end gap-4 h-64">
@@ -212,44 +190,41 @@
                 </h3>
 
                 <p class="text-sm text-slate-500 mt-1">
-                    Berdasarkan jumlah inventaris
+                    Berdasarkan jumlah alat
                 </p>
             </div>
 
             @php
-                $categories = [
-                    ['nama' => 'Microcontroller', 'jumlah' => 43, 'persen' => 49],
-                    ['nama' => 'Sensor & Aktuator', 'jumlah' => 55, 'persen' => 63],
-                    ['nama' => 'Lab Equipment', 'jumlah' => 28, 'persen' => 32],
-                    ['nama' => 'Komponen Elektronik', 'jumlah' => 150, 'persen' => 85],
-                ];
+                $maxKategori = $kategoriDistribusi->max('jumlah') ?: 1;
             @endphp
 
             <div class="space-y-5">
 
-                @foreach($categories as $c)
+                @forelse($kategoriDistribusi as $c)
 
                 <div>
 
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm font-medium text-slate-700">
-                            {{ $c['nama'] }}
+                            {{ $c->kategori }}
                         </span>
 
                         <span class="text-sm font-bold text-slate-800">
-                            {{ $c['jumlah'] }} unit
+                            {{ $c->jumlah }} unit
                         </span>
                     </div>
 
                     <div class="w-full h-3 bg-[#EBF3FD] rounded-full overflow-hidden">
                         <div class="h-full bg-[#378ADD] rounded-full"
-                             style="width: {{ $c['persen'] }}%">
+                             style="width: {{ ($c->jumlah / $maxKategori) * 100 }}%">
                         </div>
                     </div>
 
                 </div>
 
-                @endforeach
+                @empty
+                <p class="text-sm text-slate-400 text-center py-4">Belum ada data kategori alat.</p>
+                @endforelse
 
             </div>
 
@@ -274,19 +249,9 @@
                 </p>
             </div>
 
-            @php
-                $topItems = [
-                    ['nama' => 'Arduino Uno R3', 'kode' => 'ARD-001', 'total' => 42],
-                    ['nama' => 'ESP32 DevKit V1', 'kode' => 'ESP-015', 'total' => 38],
-                    ['nama' => 'Sensor DHT22', 'kode' => 'SNS-022', 'total' => 31],
-                    ['nama' => 'Multimeter Digital', 'kode' => 'MUL-012', 'total' => 28],
-                    ['nama' => 'Breadboard Set', 'kode' => 'BRD-010', 'total' => 25],
-                ];
-            @endphp
-
             <div class="space-y-4">
 
-                @foreach($topItems as $index => $item)
+                @forelse($topAlat as $index => $item)
 
                 <div class="list-item flex items-center gap-4">
 
@@ -296,17 +261,17 @@
 
                     <div class="flex-1">
                         <h4 class="text-sm font-semibold text-slate-800">
-                            {{ $item['nama'] }}
+                            {{ $item->alat->nama ?? '—' }}
                         </h4>
 
                         <p class="text-xs text-slate-400 font-mono">
-                            {{ $item['kode'] }}
+                            {{ $item->alat->kode ?? '—' }}
                         </p>
                     </div>
 
                     <div class="text-right">
                         <p class="text-sm font-bold text-slate-800">
-                            {{ $item['total'] }}x
+                            {{ $item->total_pinjam }}x
                         </p>
 
                         <p class="text-xs text-slate-400">
@@ -316,7 +281,9 @@
 
                 </div>
 
-                @endforeach
+                @empty
+                <p class="text-sm text-slate-400 text-center py-4">Belum ada data peminjaman.</p>
+                @endforelse
 
             </div>
 
@@ -366,15 +333,7 @@
 
                     <tbody class="divide-y divide-[#EBF3FD]">
 
-                        @php
-                            $ringkasan = [
-                                ['bulan' => 'Desember 2025', 'pengajuan' => 37, 'disetujui' => 32, 'ditolak' => 3, 'selesai' => 28],
-                                ['bulan' => 'November 2025', 'pengajuan' => 35, 'disetujui' => 30, 'ditolak' => 2, 'selesai' => 33],
-                                ['bulan' => 'Oktober 2025', 'pengajuan' => 28, 'disetujui' => 25, 'ditolak' => 1, 'selesai' => 24],
-                            ];
-                        @endphp
-
-                        @foreach($ringkasan as $r)
+                        @forelse($ringkasanBulanan as $r)
 
                         <tr class="hover:bg-[#F8FBFF] transition">
 
@@ -406,7 +365,13 @@
 
                         </tr>
 
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-sm text-slate-400">
+                                Belum ada data peminjaman bulanan.
+                            </td>
+                        </tr>
+                        @endforelse
 
                     </tbody>
 

@@ -9,11 +9,9 @@ use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisContr
 use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Kalab\PeminjamanController as KalabPeminjamanController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
 use App\Services\TelegramService;
-use App\Http\Controllers\Kalab\AlatController as KalabAlatController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -77,6 +75,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::post('/peminjaman/{id}/reject', [\App\Http\Controllers\Admin\PeminjamanController::class, 'reject'])->name('peminjaman.reject');
     Route::post('/peminjaman/{id}/dipinjam', [\App\Http\Controllers\Admin\PeminjamanController::class, 'markAsBorrowed'])->name('peminjaman.dipinjam');
     
+    // Kelola Keperluan
+    Route::post('/peminjaman/keperluan/add', [\App\Http\Controllers\Admin\PeminjamanController::class, 'addKeperluan'])->name('peminjaman.keperluan.add');
+    Route::post('/peminjaman/keperluan/remove', [\App\Http\Controllers\Admin\PeminjamanController::class, 'removeKeperluan'])->name('peminjaman.keperluan.remove');
+    
     // Kelola Pengembalian Routes
     Route::get('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'index'])->name('pengembalian');
     Route::post('/pengembalian/{id}/verify', [\App\Http\Controllers\Admin\PengembalianController::class, 'verify'])->name('pengembalian.verify');
@@ -118,7 +120,63 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     
     // Laporan Routes
     Route::get('/laporan', function () {
-        return view('admin.laporan.index');
+        $mhs = \App\Models\Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
+
+        $stats = [
+            'total_peminjaman' => (clone $mhs)->count(),
+            'total_dipinjam'   => (clone $mhs)->where('status', 'dipinjam')->sum('jumlah'),
+            'total_selesai'    => (clone $mhs)->where('status', 'selesai')->count(),
+            'total_ditolak'    => (clone $mhs)->where('status', 'ditolak')->count(),
+            'total_pending'    => (clone $mhs)->where('status', 'pending')->count(),
+            'overdue'          => (clone $mhs)->where('status', 'dipinjam')
+                ->where('tanggal_kembali', '<', now()->toDateString())
+                ->count(),
+        ];
+
+        $alatStats = [
+            'total_alat'    => \App\Models\Alat::count(),
+            'total_stok'    => \App\Models\Alat::sum('stok_total'),
+            'total_tersedia' => \App\Models\Alat::sum('stok_tersedia'),
+            'maintenance'   => \App\Models\Alat::where('status', 'maintenance')->count(),
+        ];
+
+        $mahasiswaAktif = \App\Models\User::where('role', 'mahasiswa')
+            ->whereHas('peminjaman')
+            ->count();
+
+        $topAlat = \App\Models\Peminjaman::with('alat')
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
+            ->selectRaw('alat_id, count(*) as total_pinjam')
+            ->groupBy('alat_id')
+            ->orderByDesc('total_pinjam')
+            ->take(5)
+            ->get();
+
+        $ringkasanBulanan = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $start = now()->subMonths($i)->startOfMonth();
+            $end = now()->subMonths($i)->endOfMonth();
+            $bulanan = \App\Models\Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
+                ->whereBetween('created_at', [$start, $end]);
+            $ringkasanBulanan[] = [
+                'bulan'     => \Carbon\Carbon::parse($start)->translatedFormat('F Y'),
+                'pengajuan' => (clone $bulanan)->count(),
+                'disetujui' => (clone $bulanan)->whereIn('status', ['dipinjam', 'selesai'])->count(),
+                'ditolak'   => (clone $bulanan)->where('status', 'ditolak')->count(),
+                'selesai'   => (clone $bulanan)->where('status', 'selesai')->count(),
+            ];
+        }
+
+        $kategoriDistribusi = \App\Models\Alat::selectRaw('kategori, count(*) as jumlah')
+            ->whereNotNull('kategori')
+            ->where('kategori', '!=', '')
+            ->groupBy('kategori')
+            ->orderByDesc('jumlah')
+            ->get();
+
+        return view('admin.laporan.index', compact(
+            'stats', 'alatStats', 'mahasiswaAktif', 'topAlat', 'ringkasanBulanan', 'kategoriDistribusi'
+        ));
     })->name('laporan');
     
     // Profil Admin Routes
@@ -176,9 +234,7 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::get('/riwayat', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'riwayat'])->name('riwayat');
     
     // Laporan
-    Route::get('/laporan', function () {
-        return view('kalab.laporan.index');
-    })->name('laporan');
+    Route::get('/laporan', [\App\Http\Controllers\Kalab\LaporanController::class, 'index'])->name('laporan');
     
     // Profil
     Route::get('/profil', function () {

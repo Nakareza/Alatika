@@ -35,6 +35,69 @@
 
     </div>
 
+    {{-- Success / Error Messages --}}
+    @if(session('success'))
+    <div class="rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
+    {{-- Kelola Keperluan --}}
+    <div class="card p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#EBF3FD;color:#185FA5;">
+                <i class="fas fa-tags text-sm"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-sm" style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">Kelola Keperluan Peminjaman</h3>
+                <p class="text-xs text-slate-400">Tambah atau hapus opsi keperluan yang tersedia untuk mahasiswa dan dosen.</p>
+            </div>
+        </div>
+
+        {{-- Current Options --}}
+        <div class="flex flex-wrap gap-2 mb-4">
+            @forelse($keperluanOptions as $option)
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                 style="background:#EBF3FD;color:#185FA5;">
+                <span>{{ $option }}</span>
+                <form action="{{ route('admin.peminjaman.keperluan.remove') }}" method="POST" class="inline" onsubmit="return confirm('Hapus keperluan \"{{ $option }}\"?')">
+                    @csrf
+                    <input type="hidden" name="keperluan" value="{{ $option }}">
+                    <button type="submit" class="text-red-400 hover:text-red-600 transition">
+                        <i class="fas fa-times text-[10px]"></i>
+                    </button>
+                </form>
+            </div>
+            @empty
+            <p class="text-xs text-slate-400">Belum ada opsi keperluan.</p>
+            @endforelse
+        </div>
+
+        {{-- Add New Option --}}
+        <form action="{{ route('admin.peminjaman.keperluan.add') }}" method="POST" class="flex gap-2">
+            @csrf
+            <input type="text" name="keperluan" placeholder="Tambah keperluan baru..."
+                   class="inp flex-1" maxlength="100" required>
+            <button type="submit"
+                    class="px-4 py-2 rounded-xl text-white text-sm font-semibold transition"
+                    style="background:#185FA5;"
+                    onmouseover="this.style.background='#1E2B4A'"
+                    onmouseout="this.style.background='#185FA5'">
+                <i class="fas fa-plus mr-1"></i> Tambah
+            </button>
+        </form>
+    </div>
+
     {{-- Filter --}}
     <div class="card p-6">
 
@@ -150,6 +213,13 @@
                             <p class="text-xs text-slate-400">
                                 {{ $p->kode_peminjaman }}
                             </p>
+
+                            @if($p->status === 'pending')
+                                <span class="text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium {{ $p->alat->stok_tersedia >= $p->jumlah ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
+                                    <i class="fas fa-box text-[9px]"></i>
+                                    Stok: {{ $p->alat->stok_tersedia }}/{{ $p->alat->stok_total }}
+                                </span>
+                            @endif
                         </td>
 
                         <td class="px-6 py-4 text-sm text-slate-600">
@@ -172,25 +242,32 @@
 
                             <div class="flex justify-center gap-2">
 
-                            {{-- Menunggu Kalab --}}
-                            @if($p->status === 'pending' && !$p->kalab_approved_at)
+                            {{-- Detail Button --}}
+                            <button
+                                type="button"
+                                class="w-9 h-9 rounded-lg text-blue-600 hover:bg-blue-50 transition"
+                                title="Detail"
+                                onclick="showDetail(
+                                    '{{ $p->kode_peminjaman }}',
+                                    '{{ $p->user->name }}',
+                                    '{{ $p->user->nim ?? '-' }}',
+                                    '{{ $p->alat->nama }}',
+                                    {{ $p->jumlah }},
+                                    '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                    '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                    '{{ $p->status_label }}',
+                                    '{{ $p->keperluan ?? '-' }}'
+                                )">
+                                <i class="fas fa-eye"></i>
+                            </button>
 
-                                <button
-                                    type="button"
-                                    class="w-9 h-9 rounded-lg text-slate-400 cursor-not-allowed"
-                                    title="Menunggu persetujuan Kalab"
-                                    disabled>
-                                    <i class="fas fa-hourglass-half"></i>
-                                </button>
-
-                            {{-- Menunggu Admin --}}
-                            @elseif($p->status === 'pending' && $p->kalab_approved_at && !$p->admin_approved_at)
+                            {{-- Pending: Admin langsung approve/reject --}}
+                            @if($p->status === 'pending')
 
                                 <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
                                     method="POST"
                                     style="display:inline;">
                                     @csrf
-
                                     <button
                                         type="submit"
                                         class="w-9 h-9 rounded-lg text-green-600 hover:bg-green-50 transition"
@@ -207,40 +284,21 @@
                                     <i class="fas fa-times"></i>
                                 </button>
 
-                            {{-- Disetujui Semua --}}
-                            @elseif($p->status === 'pending' && $p->kalab_approved_at && $p->admin_approved_at)
-
-                                <span class="text-green-600 text-sm font-medium">
-                                    Disetujui
-                                </span>
-
                             @endif
 
                             {{-- Sedang Dipinjam --}}
                             @if($p->status === 'dipinjam')
-
-                                <span class="text-indigo-600 text-sm font-medium">
-                                    Sedang Dipinjam
-                                </span>
-
+                                <span class="text-indigo-600 text-sm font-medium">Sedang Dipinjam</span>
                             @endif
 
                             {{-- Selesai --}}
                             @if($p->status === 'selesai')
-
-                                <span class="text-emerald-600 text-sm font-medium">
-                                    Selesai
-                                </span>
-
+                                <span class="text-emerald-600 text-sm font-medium">Selesai</span>
                             @endif
 
                             {{-- Ditolak --}}
                             @if($p->status === 'ditolak')
-
-                                <span class="text-red-600 text-sm font-medium">
-                                    Ditolak
-                                </span>
-
+                                <span class="text-red-600 text-sm font-medium">Ditolak</span>
                             @endif
 
                         </div>
@@ -281,6 +339,71 @@
     </form>
 @endforeach
 
+{{-- Detail Peminjaman Modal --}}
+<x-modal
+    name="detail-peminjaman"
+    title="Detail Peminjaman"
+    size="lg"
+    type="default">
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+
+        <div>
+            <p class="text-slate-500">Kode Peminjaman</p>
+            <p id="detail_kode" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Peminjam</p>
+            <p id="detail_user" class="font-semibold text-[#1E2B4A]"></p>
+            <p id="detail_nim" class="text-xs text-slate-400"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Alat</p>
+            <p id="detail_alat" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Jumlah</p>
+            <p id="detail_jumlah" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Pinjam</p>
+            <p id="detail_pinjam"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Kembali</p>
+            <p id="detail_kembali"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Status</p>
+            <p id="detail_status"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Keperluan</p>
+            <p id="detail_keperluan" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+    </div>
+
+    <x-slot:footer>
+        <button
+            type="button"
+            onclick="window.dispatchEvent(
+                new CustomEvent('close-modal-detail-peminjaman')
+            )"
+            class="flex-1 px-4 py-3 rounded-xl border border-slate-200">
+            Tutup
+        </button>
+    </x-slot:footer>
+
+</x-modal>
+
 {{-- Reject Modal --}}
 <div id="reject-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
@@ -292,7 +415,7 @@
         </div>
 
         <p class="text-slate-600 text-sm mb-6">
-            Masukkan alasan penolakan untuk dosen:
+            Masukkan alasan penolakan untuk mahasiswa:
         </p>
 
         <textarea
@@ -319,6 +442,22 @@
 </div>
 
 <script>
+function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, keperluan) {
+    document.getElementById('detail_kode').innerText = kode;
+    document.getElementById('detail_user').innerText = user;
+    document.getElementById('detail_nim').innerText = nim;
+    document.getElementById('detail_alat').innerText = alat;
+    document.getElementById('detail_jumlah').innerText = jumlah + ' Unit';
+    document.getElementById('detail_pinjam').innerText = pinjam;
+    document.getElementById('detail_kembali').innerText = kembali;
+    document.getElementById('detail_status').innerText = status;
+    document.getElementById('detail_keperluan').innerText = keperluan;
+
+    window.dispatchEvent(
+        new CustomEvent('open-modal-detail-peminjaman')
+    );
+}
+
 let rejectPeminjamanId = null;
 
 function showRejectModal(id) {

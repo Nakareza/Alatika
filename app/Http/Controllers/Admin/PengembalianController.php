@@ -11,7 +11,11 @@ class PengembalianController extends Controller
 {
     public function index(Request $request)
     {
+        // Admin hanya menangani pengembalian MAHASISWA
         $query = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', function ($q) {
+                $q->where('role', 'mahasiswa');
+            })
             ->whereIn('status', [
                 'dipinjam',
                 'menunggu_verifikasi',
@@ -56,11 +60,12 @@ class PengembalianController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
+        $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
         $stats = [
-            'total'      => Peminjaman::count(),
-            'selesai'    => Peminjaman::where('status', 'selesai')->count(),
-            'dipinjam'   => Peminjaman::where('status', 'dipinjam')->count(),
-            'verifikasi' => Peminjaman::where('status', 'menunggu_verifikasi')->count(),
+            'total'      => (clone $mhs)->count(),
+            'selesai'    => (clone $mhs)->where('status', 'selesai')->count(),
+            'dipinjam'   => (clone $mhs)->where('status', 'dipinjam')->count(),
+            'verifikasi' => (clone $mhs)->where('status', 'menunggu_verifikasi')->count(),
         ];
 
         return view(

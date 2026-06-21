@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Inventaris')
+@section('title', 'Edit Alat')
 
 @section('content')
 
@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-[#1E2B4A]">
-                Tambah Inventaris
+                Edit Alat
             </h2>
 
             <p class="text-slate-500 mt-1">
@@ -89,6 +89,25 @@
                         class="inp w-full">
                 </div>
 
+                <div>
+                    <label class="block text-sm mb-2">
+                        Status
+                    </label>
+
+                    <select name="status" class="inp w-full">
+                        <option value="tersedia" {{ old('status', $alat->status) == 'tersedia' ? 'selected' : '' }}>
+                            Tersedia
+                        </option>
+                        <option value="maintenance" {{ old('status', $alat->status) == 'maintenance' ? 'selected' : '' }}>
+                            Maintenance
+                        </option>
+                    </select>
+
+                    @error('status')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
             </div>
 
             <div class="mt-5">
@@ -112,7 +131,7 @@
                 <button
                     type="submit"
                     class="px-5 py-3 bg-[#185FA5] text-white rounded-xl">
-                    Simpan Inventaris
+                    Simpan Alat
                 </button>
 
             </div>

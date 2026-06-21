@@ -33,14 +33,14 @@
 
         <x-card-stats
             title="Dipinjam"
-            :value="$stats['disetujui_bulan_ini']"
+            :value="$stats['dipinjam']"
             icon="fas fa-hand-holding"
             color="blue" />
 
         <x-card-stats
-            title="Dikembalikan"
-            :value="$stats['dikembalikan_bulan_ini']"
-            icon="fas rotate-left"
+            title="Selesai"
+            :value="$stats['selesai']"
+            icon="fas fa-check-double"
             color="green" />
 
         <x-card-stats
@@ -86,14 +86,14 @@
                         Menunggu Persetujuan
                     </option>
 
-                    <option value="disetujui"
-                        {{ request('status') == 'disetujui' ? 'selected' : '' }}>
+                    <option value="dipinjam"
+                        {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
                         Dipinjam
                     </option>
 
-                    <option value="dikembalikan"
-                        {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>
-                        Dikembalikan
+                    <option value="selesai"
+                        {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                        Selesai
                     </option>
 
                     <option value="ditolak"
@@ -261,25 +261,13 @@
 
                         </td>
 
-                        {{-- Keperluan --}}
+                        {{-- Status --}}
                         <td class="px-6 py-4">
 
-                            @if($p->status == 'pending' && !$p->kalab_approved_at)
+                            @if($p->status == 'pending')
 
                                 <span class="badge badge-warning">
-                                    Menunggu Kalab
-                                </span>
-
-                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
-
-                                <span class="badge badge-info">
-                                    Menunggu Admin
-                                </span>
-
-                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
-
-                                <span class="badge badge-success">
-                                    Disetujui Semua
+                                    Menunggu Persetujuan
                                 </span>
 
                             @elseif($p->status == 'dipinjam')
@@ -288,10 +276,10 @@
                                     Sedang Dipinjam
                                 </span>
 
-                            @elseif($p->status == 'dikembalikan')
+                            @elseif($p->status == 'selesai')
 
                                 <span class="badge badge-success">
-                                    Dikembalikan
+                                    Selesai
                                 </span>
 
                             @elseif($p->status == 'ditolak')
@@ -307,7 +295,7 @@
                         {{-- Aksi --}}
                         <td class="px-6 py-4">
 
-                            @if($p->status == 'pending' && !$p->kalab_approved_at)
+                            @if($p->status == 'pending')
 
                                 <div class="flex justify-center gap-2">
 
@@ -331,37 +319,6 @@
 
                                 </div>
 
-                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
-
-                                <button
-                                    type="button"
-                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200"
-                                    title="Menunggu persetujuan Admin">
-
-                                    <i class="fas fa-hourglass-half"></i>
-
-                                </button>
-
-                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
-
-                                <button
-                                    type="button"
-                                    onclick="showDetail(
-                                        '{{ $p->kode_peminjaman }}',
-                                        '{{ $p->user->name }}',
-                                        '{{ $p->alat->nama }}',
-                                        '{{ $p->jumlah }}',
-                                        '{{ $p->tanggal_pinjam->format('d M Y') }}',
-                                        '{{ $p->tanggal_kembali->format('d M Y') }}',
-                                        '{{ $p->status }}',
-                                        `{{ $p->keperluan }}`
-                                    )"
-                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
-
-                                    <i class="fas fa-eye"></i>
-
-                                </button>
-
                             @elseif($p->status == 'dipinjam')
 
                                 <button
@@ -374,7 +331,7 @@
                                         '{{ $p->tanggal_pinjam->format('d M Y') }}',
                                         '{{ $p->tanggal_kembali->format('d M Y') }}',
                                         '{{ $p->status }}',
-                                        `{{ $p->keperluan }}`
+                                        '{{ addslashes($p->keperluan) }}'
                                     )"
                                     class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
 
@@ -382,7 +339,7 @@
 
                                 </button>
 
-                            @elseif($p->status == 'dikembalikan')
+                            @elseif($p->status == 'selesai')
 
                                 <button
                                     type="button"
@@ -394,16 +351,15 @@
 
                             @elseif($p->status == 'ditolak')
 
-                                        <button
-                                            type="button"
-                                            class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
 
-                                            <i class="fas fa-circle-info"></i>
+                                    <i class="fas fa-circle-info"></i>
 
-                                        </button>
+                                </button>
 
-                                    @endif
-                              </div>
+                            @endif
                         </td>
 
                     </tr>

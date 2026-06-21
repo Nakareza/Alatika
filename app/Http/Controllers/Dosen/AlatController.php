@@ -12,9 +12,11 @@ class AlatController extends Controller
 {
     public function index()
     {
-        $alat = Alat::orderBy('stok_tersedia', 'desc')
-            ->orderBy('nama')
-            ->get();
+        // TODO: Untuk sementara data alat dosen dikosongkan karena belum ada
+        // data dari dosen pembimbing. Data alat saat ini masih menggunakan
+        // data admin (shared pool). Nantinya akan diisi dengan alat yang
+        // spesifik dimiliki/dikelola oleh dosen yang bersangkutan.
+        $alat = collect();
         
         $cartCount = Keranjang::where('user_id', auth()->id())->count();
             
