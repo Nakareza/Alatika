@@ -5,8 +5,18 @@
 @section('content')
 
    <div class="max-w-4xl mx-auto space-y-6"
-     x-data="{ showLogoutModal: false }"
+     x-data="{ showLogoutModal: false, showPasswordFields: false }"
      @open-modal-logout.window="showLogoutModal = true">
+
+        {{-- Success Alert --}}
+        @if(session('success'))
+        <div class="rounded-2xl p-4 flex items-center gap-3" style="background:#ecfdf5;border:1px solid #a7f3d0;">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#d1fae5;">
+                <i class="fas fa-check-circle" style="color:#10b981;"></i>
+            </div>
+            <p class="text-sm font-semibold" style="color:#065f46;">{{ session('success') }}</p>
+        </div>
+        @endif
 
         {{-- Profile Card --}}
         <div class="card overflow-hidden">
@@ -46,6 +56,104 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- Edit Profil --}}
+        <div class="card p-6">
+            <h3 class="text-base font-bold mb-4 flex items-center gap-2" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
+                <i class="fas fa-user-edit" style="color:#94a3b8;"></i> Edit Profil
+            </h3>
+
+            <form action="{{ route('mahasiswa.profil.update') }}" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                {{-- Nama --}}
+                <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Nama Lengkap</label>
+                    <input type="text" name="name" value="{{ old('name', Auth::user()->name) }}"
+                           class="w-full rounded-xl px-4 py-3 text-sm border transition-all focus:outline-none focus:ring-2"
+                           style="border-color:#EBF3FD;background:#F5F8FF;color:#1E2B4A;"
+                           onfocus="this.style.borderColor='#378ADD'"
+                           onblur="this.style.borderColor='#EBF3FD'"
+                           required>
+                    @error('name')
+                        <p class="text-xs mt-1" style="color:#ef4444;">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Email --}}
+                <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Email</label>
+                    <input type="email" name="email" value="{{ old('email', Auth::user()->email) }}"
+                           class="w-full rounded-xl px-4 py-3 text-sm border transition-all focus:outline-none focus:ring-2"
+                           style="border-color:#EBF3FD;background:#F5F8FF;color:#1E2B4A;"
+                           onfocus="this.style.borderColor='#378ADD'"
+                           onblur="this.style.borderColor='#EBF3FD'"
+                           required>
+                    @error('email')
+                        <p class="text-xs mt-1" style="color:#ef4444;">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Toggle Password --}}
+                <div class="pt-2">
+                    <button type="button"
+                            @click="showPasswordFields = !showPasswordFields"
+                            class="flex items-center gap-2 text-sm font-semibold transition-all"
+                            style="color:#185FA5;">
+                        <i class="fas" :class="showPasswordFields ? 'fa-eye-slash' : 'fa-lock'"></i>
+                        <span x-text="showPasswordFields ? 'Sembunyikan Form Password' : 'Ubah Password (Opsional)'"></span>
+                    </button>
+                </div>
+
+                {{-- Password Fields --}}
+                <div x-show="showPasswordFields" x-transition class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Password Saat Ini</label>
+                        <input type="password" name="current_password"
+                               class="w-full rounded-xl px-4 py-3 text-sm border transition-all focus:outline-none focus:ring-2"
+                               style="border-color:#EBF3FD;background:#F5F8FF;color:#1E2B4A;"
+                               onfocus="this.style.borderColor='#378ADD'"
+                               onblur="this.style.borderColor='#EBF3FD'">
+                        @error('current_password')
+                            <p class="text-xs mt-1" style="color:#ef4444;">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Password Baru</label>
+                        <input type="password" name="new_password"
+                               class="w-full rounded-xl px-4 py-3 text-sm border transition-all focus:outline-none focus:ring-2"
+                               style="border-color:#EBF3FD;background:#F5F8FF;color:#1E2B4A;"
+                               onfocus="this.style.borderColor='#378ADD'"
+                               onblur="this.style.borderColor='#EBF3FD'">
+                        @error('new_password')
+                            <p class="text-xs mt-1" style="color:#ef4444;">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Konfirmasi Password Baru</label>
+                        <input type="password" name="new_password_confirmation"
+                               class="w-full rounded-xl px-4 py-3 text-sm border transition-all focus:outline-none focus:ring-2"
+                               style="border-color:#EBF3FD;background:#F5F8FF;color:#1E2B4A;"
+                               onfocus="this.style.borderColor='#378ADD'"
+                               onblur="this.style.borderColor='#EBF3FD'">
+                    </div>
+                </div>
+
+                {{-- Submit --}}
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all"
+                            style="background:linear-gradient(135deg,#185FA5,#378ADD);box-shadow:0 4px 14px rgba(24,95,165,0.3);"
+                            onmouseover="this.style.filter='brightness(1.1)'"
+                            onmouseout="this.style.filter=''">
+                        <i class="fas fa-save mr-2"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
         </div>
 
         {{-- Telegram Integration --}}

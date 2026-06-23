@@ -176,14 +176,18 @@
                     <div class="space-y-4">
                         <div>
                             <label class="form-label">Keperluan <span class="text-red-500">*</span></label>
-                            <select x-model="keperluan" @change="onKeperluanChange" class="inp" required
-                                    style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
-                                <option value="">-- Pilih Keperluan --</option>
-                                <option value="Penelitian">Penelitian</option>
-                                <option value="Pengabdian">Pengabdian</option>
-                                <option value="Praktikum">Praktikum</option>
-                                <option value="Perkuliahan">Perkuliahan</option>
-                            </select>
+                            <input type="text" list="keperluan-list" x-model="keperluan" @input="onKeperluanChange"
+                                   class="inp" placeholder="Ketik atau pilih keperluan..." required
+                                   autocomplete="off">
+                            <datalist id="keperluan-list">
+                                @foreach($keperluanOptions as $option)
+                                    <option value="{{ $option }}">{{ $option }}</option>
+                                @endforeach
+                            </datalist>
+                            <p class="text-xs mt-1.5" style="color:#94a3b8;">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Ketik keperluan baru atau pilih dari saran di atas. Keperluan akan ditinjau oleh Kepala Lab.
+                            </p>
                         </div>
 
                         <div>

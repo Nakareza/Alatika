@@ -140,7 +140,7 @@
     </div>
 
     {{-- Table --}}
-    <x-table title="Data Inventaris Laboratorium">
+    <x-table title="Data Alat Laboratorium">
 
         <thead class="bg-[#F5F8FF]">
             <tr>
@@ -355,7 +355,7 @@
 @push('modals')
 <x-modal
     name="detail-{{ $item->id }}"
-    title="Detail Inventaris"
+    title="Detail Alat"
     size="lg">
 
     <div class="space-y-5">
@@ -418,7 +418,7 @@
 
 <x-modal
     name="edit-{{ $item->id }}"
-    title="Edit Data Inventaris"
+    title="Edit Data Alat"
     size="lg">
 
     <form

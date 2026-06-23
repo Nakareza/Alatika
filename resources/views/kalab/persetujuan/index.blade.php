@@ -33,14 +33,14 @@
 
         <x-card-stats
             title="Dipinjam"
-            :value="$stats['disetujui_bulan_ini']"
+            :value="$stats['dipinjam']"
             icon="fas fa-hand-holding"
             color="blue" />
 
         <x-card-stats
-            title="Dikembalikan"
-            :value="$stats['dikembalikan_bulan_ini']"
-            icon="fas rotate-left"
+            title="Selesai"
+            :value="$stats['selesai']"
+            icon="fas fa-check-double"
             color="green" />
 
         <x-card-stats
@@ -86,14 +86,14 @@
                         Menunggu Persetujuan
                     </option>
 
-                    <option value="disetujui"
-                        {{ request('status') == 'disetujui' ? 'selected' : '' }}>
+                    <option value="dipinjam"
+                        {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
                         Dipinjam
                     </option>
 
-                    <option value="dikembalikan"
-                        {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>
-                        Dikembalikan
+                    <option value="selesai"
+                        {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                        Selesai
                     </option>
 
                     <option value="ditolak"
@@ -261,25 +261,13 @@
 
                         </td>
 
-                        {{-- Keperluan --}}
+                        {{-- Status --}}
                         <td class="px-6 py-4">
 
-                            @if($p->status == 'pending' && !$p->kalab_approved_at)
+                            @if($p->status == 'pending')
 
                                 <span class="badge badge-warning">
-                                    Menunggu Kalab
-                                </span>
-
-                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
-
-                                <span class="badge badge-info">
-                                    Menunggu Admin
-                                </span>
-
-                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
-
-                                <span class="badge badge-success">
-                                    Disetujui Semua
+                                    Menunggu Persetujuan
                                 </span>
 
                             @elseif($p->status == 'dipinjam')
@@ -288,10 +276,10 @@
                                     Sedang Dipinjam
                                 </span>
 
-                            @elseif($p->status == 'dikembalikan')
+                            @elseif($p->status == 'selesai')
 
                                 <span class="badge badge-success">
-                                    Dikembalikan
+                                    Selesai
                                 </span>
 
                             @elseif($p->status == 'ditolak')
@@ -307,14 +295,21 @@
                         {{-- Aksi --}}
                         <td class="px-6 py-4">
 
-                            @if($p->status == 'pending' && !$p->kalab_approved_at)
+                            @if($p->status == 'pending')
 
                                 <div class="flex justify-center gap-2">
 
                                     <button
-                                        type="submit"
-                                        formaction="{{ route('kalab.persetujuan.approve',$p->id) }}"
-                                        class="w-9 h-9 rounded-lg bg-green-100 text-green-700">
+                                        type="button"
+                                        onclick="showApproveModal(
+                                            {{ $p->id }},
+                                            '{{ addslashes($p->keperluan ?? '') }}',
+                                            '{{ addslashes($p->user->name) }}',
+                                            '{{ addslashes($p->alat->nama) }}',
+                                            {{ $p->jumlah }}
+                                        )"
+                                        class="w-9 h-9 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"
+                                        title="Setujui">
 
                                         <i class="fas fa-check"></i>
 
@@ -323,44 +318,14 @@
                                     <button
                                         type="button"
                                         onclick="document.getElementById('reject-form-{{ $p->id }}').submit()"
-                                        class="w-9 h-9 rounded-lg bg-red-100 text-red-700">
+                                        class="w-9 h-9 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"
+                                        title="Tolak">
 
                                         <i class="fas fa-times"></i>
 
                                     </button>
 
                                 </div>
-
-                            @elseif($p->kalab_approved_at && !$p->admin_approved_at)
-
-                                <button
-                                    type="button"
-                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200"
-                                    title="Menunggu persetujuan Admin">
-
-                                    <i class="fas fa-hourglass-half"></i>
-
-                                </button>
-
-                            @elseif($p->kalab_approved_at && $p->admin_approved_at)
-
-                                <button
-                                    type="button"
-                                    onclick="showDetail(
-                                        '{{ $p->kode_peminjaman }}',
-                                        '{{ $p->user->name }}',
-                                        '{{ $p->alat->nama }}',
-                                        '{{ $p->jumlah }}',
-                                        '{{ $p->tanggal_pinjam->format('d M Y') }}',
-                                        '{{ $p->tanggal_kembali->format('d M Y') }}',
-                                        '{{ $p->status }}',
-                                        `{{ $p->keperluan }}`
-                                    )"
-                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
-
-                                    <i class="fas fa-eye"></i>
-
-                                </button>
 
                             @elseif($p->status == 'dipinjam')
 
@@ -374,7 +339,7 @@
                                         '{{ $p->tanggal_pinjam->format('d M Y') }}',
                                         '{{ $p->tanggal_kembali->format('d M Y') }}',
                                         '{{ $p->status }}',
-                                        `{{ $p->keperluan }}`
+                                        '{{ addslashes($p->keperluan) }}'
                                     )"
                                     class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
 
@@ -382,7 +347,7 @@
 
                                 </button>
 
-                            @elseif($p->status == 'dikembalikan')
+                            @elseif($p->status == 'selesai')
 
                                 <button
                                     type="button"
@@ -394,16 +359,15 @@
 
                             @elseif($p->status == 'ditolak')
 
-                                        <button
-                                            type="button"
-                                            class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
 
-                                            <i class="fas fa-circle-info"></i>
+                                    <i class="fas fa-circle-info"></i>
 
-                                        </button>
+                                </button>
 
-                                    @endif
-                              </div>
+                            @endif
                         </td>
 
                     </tr>
@@ -458,6 +422,17 @@
 
         </form>
 
+    @endforeach
+
+    {{-- Hidden Approve Forms --}}
+    @foreach($peminjaman as $p)
+        <form id="approve-form-{{ $p->id }}"
+              action="{{ route('kalab.persetujuan.approve', $p->id) }}"
+              method="POST"
+              class="hidden">
+            @csrf
+            <input type="hidden" name="keperluan" id="approve-keperluan-{{ $p->id }}" value="">
+        </form>
     @endforeach
 
 <x-modal
@@ -555,6 +530,82 @@ function showDetail(
 
 }
 
+</script>
+
+{{-- Approve Modal --}}
+<div id="approve-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fas fa-check text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">Setujui Peminjaman</h3>
+        </div>
+
+        <div class="mb-4 p-3 rounded-xl" style="background:#F5F8FF;border:1px solid #EBF3FD;">
+            <p class="text-xs text-slate-500 mb-1">Peminjam</p>
+            <p id="approve-user" class="text-sm font-semibold text-[#1E2B4A]"></p>
+            <p class="text-xs text-slate-500 mt-2 mb-1">Alat & Jumlah</p>
+            <p id="approve-alat" class="text-sm font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keperluan <span class="text-slate-400">(bisa diubah)</span></label>
+            <input type="text" id="approve-keperluan-input"
+                   class="inp w-full"
+                   placeholder="Keperluan peminjaman...">
+            <p class="text-xs mt-1 text-slate-400">Kosongkan untuk menggunakan keperluan asli dari dosen.</p>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="button"
+                    class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                    onclick="closeApproveModal()">
+                Batal
+            </button>
+            <button type="button"
+                    class="flex-1 px-4 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition font-semibold"
+                    onclick="submitApprove()">
+                <i class="fas fa-check mr-1"></i> Setujui
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let approvePeminjamanId = null;
+
+function showApproveModal(id, keperluan, user, alat, jumlah) {
+    approvePeminjamanId = id;
+    document.getElementById('approve-user').innerText = user;
+    document.getElementById('approve-alat').innerText = alat + ' — ' + jumlah + ' Unit';
+    document.getElementById('approve-keperluan-input').value = keperluan;
+    document.getElementById('approve-modal').classList.remove('hidden');
+}
+
+function closeApproveModal() {
+    document.getElementById('approve-modal').classList.add('hidden');
+    approvePeminjamanId = null;
+}
+
+function submitApprove() {
+    if (!approvePeminjamanId) return;
+
+    var keperluanInput = document.getElementById('approve-keperluan-input');
+    var keperluanField = document.getElementById('approve-keperluan-' + approvePeminjamanId);
+    keperluanField.value = keperluanInput.value;
+    document.getElementById('approve-form-' + approvePeminjamanId).submit();
+}
+
+// Close modal on outside click
+document.getElementById('approve-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeApproveModal();
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeApproveModal();
+});
 </script>
 
 @endsection

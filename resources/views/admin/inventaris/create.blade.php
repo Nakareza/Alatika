@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Inventaris')
+@section('title', 'Tambah Alat')
 
 @section('content')
 
@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-[#1E2B4A]">
-                Tambah Inventaris
+                Tambah Alat
             </h2>
 
             <p class="text-slate-500 mt-1">
@@ -30,11 +30,11 @@
 
                 <div>
                     <h3 class="font-bold text-lg text-[#1E2B4A]">
-                        Informasi Inventaris
+                        Informasi Alat
                     </h3>
 
                     <p class="text-sm text-slate-500">
-                        Lengkapi data inventaris alat laboratorium
+                        Lengkapi data alat laboratorium
                     </p>
                 </div>
             </div>
@@ -94,19 +94,25 @@
                             <option value="">Pilih Kategori</option>
 
                             @foreach($kategoriOptions as $kategori)
-                                <option value="{{ $kategori }}">
+                                <option value="{{ $kategori }}" {{ old('kategori') == $kategori ? 'selected' : '' }}>
                                     {{ $kategori }}
                                 </option>
                             @endforeach
 
-                            <option value="__new">+ Tambah kategori baru</option>
+                            <option value="__new" {{ old('kategori') == '__new' ? 'selected' : '' }}>+ Tambah kategori baru</option>
                         </select>
 
                         <input type="text" name="kategori_baru" id="kategoriBaru"
                             class="inp mt-2 hidden"
-                            placeholder="Masukkan kategori baru">
+                            value="{{ old('kategori_baru') }}"
+                            placeholder="Masukkan nama kategori baru">
 
                         @error('kategori')
+                            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <i class="fas fa-circle-exclamation text-[10px]"></i> {{ $message }}
+                            </p>
+                        @enderror
+                        @error('kategori_baru')
                             <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
                                 <i class="fas fa-circle-exclamation text-[10px]"></i> {{ $message }}
                             </p>
@@ -167,7 +173,7 @@
                             <ul class="text-sm text-blue-700 mt-1 space-y-1">
                                 <li>• Stok tersedia = stok total</li>
                                 <li>• Status alat otomatis "Tersedia"</li>
-                                <li>• Inventaris langsung muncul di daftar alat</li>
+                                <li>• Alat langsung muncul di daftar alat</li>
                             </ul>
 
                         </div>
@@ -192,7 +198,7 @@
                     class="btn btn-primary flex items-center justify-center gap-2 flex-1 sm:flex-none">
 
                     <i class="fas fa-save mr-2"></i>
-                    Simpan Inventaris
+                    Simpan Alat
 
                 </button>
 
@@ -205,3 +211,28 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    const kategoriSelect = document.getElementById('kategoriSelect');
+    const kategoriBaru = document.getElementById('kategoriBaru');
+
+    function toggleKategori() {
+        if (kategoriSelect.value === '__new') {
+            kategoriBaru.classList.remove('hidden');
+            kategoriBaru.setAttribute('required', 'required');
+            kategoriSelect.removeAttribute('required');
+        } else {
+            kategoriBaru.classList.add('hidden');
+            kategoriBaru.removeAttribute('required');
+            kategoriBaru.value = '';
+            kategoriSelect.setAttribute('required', 'required');
+        }
+    }
+
+    kategoriSelect.addEventListener('change', toggleKategori);
+
+    // Trigger on page load (e.g. after validation error)
+    toggleKategori();
+</script>
+@endpush

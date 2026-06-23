@@ -12,33 +12,35 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        // Ka Lab hanya menangani peminjaman DOSEN
+        $dsn = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'dosen'));
         
         $stats = [
             'total_alat' => \App\Models\Alat::count(),
             'tersedia' => \App\Models\Alat::sum('stok_tersedia'),
-            'dipinjam' => Peminjaman::where('status', 'dipinjam')->count(),
-            'pending_dosen' => Peminjaman::whereHas('user', function($q) {
-                $q->where('role', 'dosen');
-            })->where('status', 'pending')->count(),
-            'disetujui' => Peminjaman::where('status', 'disetujui')->whereMonth('created_at', now()->month)->count(),
-            'overdue' => Peminjaman::where('status', 'dipinjam')
+            'dipinjam' => (clone $dsn)->where('status', 'dipinjam')->sum('jumlah'),
+            'pending_dosen' => (clone $dsn)->where('status', 'pending')->count(),
+            'selesai' => (clone $dsn)->where('status', 'selesai')->count(),
+            'overdue' => (clone $dsn)->where('status', 'dipinjam')
                 ->where('tanggal_kembali', '<', now()->toDateString())
                 ->count(),
-            'rusak' => 0, // Placeholder, usually there's a status for this
+            'rusak' => 0,
         ];
 
-        // Fetch recent pending approvals
+        // Fetch recent pending approvals (dosen only)
         $pending_approvals = Peminjaman::with(['user', 'alat'])
             ->whereHas('user', function($q) {
-                $q->where('role', 'dosen'); // Ka Lab mostly approves Dosen
+                $q->where('role', 'dosen');
             })
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        // Fetch recent activities (all actions)
+        // Fetch recent activities (dosen only)
         $recent_activities = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', fn($q) => $q->where('role', 'dosen'))
             ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get();

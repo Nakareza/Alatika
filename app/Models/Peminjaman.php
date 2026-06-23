@@ -229,18 +229,10 @@ class Peminjaman extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        // Double approval logic untuk dosen
-        if ($this->status === 'pending') {
-            if (!$this->kalab_approved_at) {
-                return 'Menunggu Kalab';
-            } elseif (!$this->admin_approved_at) {
-                return 'Menunggu Admin';
-            } else {
-                return 'Disetujui Semua';
-            }
-        }
-
         return match ($this->status) {
+
+            'pending' =>
+                'Menunggu Persetujuan',
 
             'dipinjam' =>
                 'Sedang Dipinjam',
@@ -264,27 +256,12 @@ class Peminjaman extends Model
      */
     public function getStatusConfigAttribute(): array
     {
-        // Double approval logic untuk dosen
-        if ($this->status === 'pending') {
-            if (!$this->kalab_approved_at) {
-                return [
-                    'color' => 'bg-amber-100 text-amber-700',
-                    'icon'  => 'fa-hourglass-start',
-                ];
-            } elseif (!$this->admin_approved_at) {
-                return [
-                    'color' => 'bg-blue-100 text-blue-700',
-                    'icon'  => 'fa-hourglass-half',
-                ];
-            } else {
-                return [
-                    'color' => 'bg-green-100 text-green-700',
-                    'icon'  => 'fa-check-circle',
-                ];
-            }
-        }
-
         return match ($this->status) {
+
+            'pending' => [
+                'color' => 'bg-amber-100 text-amber-700',
+                'icon'  => 'fa-hourglass-start',
+            ],
 
             'dipinjam' => [
                 'color' => 'bg-indigo-100 text-indigo-700',

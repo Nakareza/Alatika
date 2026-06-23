@@ -11,14 +11,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Real-time stats
+        // Admin hanya menangani peminjaman MAHASISWA
+        $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
+
         $stats = [
-            'total'      => Peminjaman::count(),
-            'pending'    => Peminjaman::where('status', 'pending')->count(),
-            'dipinjam'   => Peminjaman::where('status', 'dipinjam')->count(),
-            'selesai'    => Peminjaman::where('status', 'selesai')->count(),
-            'ditolak'    => Peminjaman::where('status', 'ditolak')->count(),
-            'overdue'    => Peminjaman::where('status', 'dipinjam')
+            'total'      => (clone $mhs)->count(),
+            'pending'    => (clone $mhs)->where('status', 'pending')->count(),
+            'dipinjam'   => (clone $mhs)->where('status', 'dipinjam')->count(),
+            'selesai'    => (clone $mhs)->where('status', 'selesai')->count(),
+            'ditolak'    => (clone $mhs)->where('status', 'ditolak')->count(),
+            'overdue'    => (clone $mhs)->where('status', 'dipinjam')
                                ->where('tanggal_kembali', '<', now()->startOfDay())
                                ->count(),
         ];
@@ -30,14 +32,16 @@ class DashboardController extends Controller
             'total_mahasiswa' => User::where('role', 'mahasiswa')->count(),
         ];
 
-        // 10 peminjaman terbaru for the recent table
+        // 10 peminjaman mahasiswa terbaru
         $recentPeminjaman = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->latest()
             ->take(10)
             ->get();
 
-        // 5 aktivitas terbaru for activity feed
+        // 5 aktivitas mahasiswa terbaru
         $recentActivities = Peminjaman::with('user')
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->latest('updated_at')
             ->take(5)
             ->get();

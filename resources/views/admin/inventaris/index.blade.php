@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Data Inventaris')
+@section('title', 'Data Alat')
 
 @section('content')
 @php
@@ -27,10 +27,10 @@
 
         <div>
             <h2 class="text-2xl font-bold mb-1" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
-                Inventaris Alat Laboratorium
+                Data Alat Laboratorium
             </h2>
                 <p class="text-sm mt-1 text-slate-500">
-                Sumber data tunggal untuk alat borrowable dan aset statis
+                Daftar semua alat laboratorium beserta status stok dan peminjaman
             </p>
         </div>
         <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -44,7 +44,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         
         <x-card-stats
-            title="Total Inventaris"
+            title="Total Alat"
             :value="$stats['total_alat']"
             icon="fas fa-boxes"
             color="blue" />
@@ -342,7 +342,9 @@
                         </p>
                     </div>
 
-                    @php($status = $statusBadge($item->status))
+                    @php
+                        $status = $statusBadge($item->status);
+                    @endphp
                     <span class="badge {{ $status['class'] }}">
                         {{ $status['label'] }}
                     </span>
@@ -404,7 +406,7 @@
 
 <x-modal
     name="alat-{{ $item->id }}"
-    title="Detail Inventaris"
+    title="Detail Alat"
     size="lg">
 
     <div class="space-y-5">
@@ -448,6 +450,35 @@
             </div>
         </div>
 
+        {{-- Borrowing info --}}
+        @php
+            $borrowers = $activePeminjaman[$item->id] ?? collect();
+        @endphp
+        @if($borrowers->isNotEmpty())
+        <div>
+            <p class="text-xs text-slate-500 mb-2">Sedang Dipinjam Oleh</p>
+            <div class="bg-indigo-50 rounded-xl p-4 space-y-2">
+                @foreach($borrowers as $b)
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:#1E2B4A;">
+                            {{ strtoupper(substr($b->user->name ?? '?', 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-700">{{ $b->user->name ?? 'Unknown' }}</p>
+                            <p class="text-xs text-slate-400">{{ $b->user->nim ?? $b->user->nip ?? '' }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-indigo-600">{{ $b->jumlah }} unit</p>
+                        <p class="text-xs text-slate-400">s/d {{ $b->tanggal_kembali->format('d M Y') }}</p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
     </div>
 
     <x-slot name="footer">
@@ -463,6 +494,60 @@
 
 </x-modal>
 
+@endforeach
+
+{{-- Borrowers Modal (who borrowed this alat) --}}
+@foreach($alat as $item)
+    @php
+        $borrowers = $activePeminjaman[$item->id] ?? collect();
+    @endphp
+    @if($borrowers->isNotEmpty())
+    <x-modal
+        name="borrowers-{{ $item->id }}"
+        title="Peminjam Aktif - {{ $item->nama }}"
+        size="lg">
+
+        <div class="space-y-3">
+            <div class="flex items-center gap-2 mb-4 p-3 rounded-xl" style="background:#eef2ff;">
+                <i class="fas fa-info-circle text-indigo-500"></i>
+                <p class="text-sm text-indigo-700">
+                    <span class="font-semibold">{{ $borrowers->sum('jumlah') }} unit</span> sedang dipinjam dari total {{ $item->stok_total }} unit
+                </p>
+            </div>
+
+            @foreach($borrowers as $b)
+            <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background:#1E2B4A;">
+                        {{ strtoupper(substr($b->user->name ?? '?', 0, 1)) }}
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ $b->user->name ?? 'Unknown' }}</p>
+                        <p class="text-xs text-slate-400">{{ $b->user->nim ?? $b->user->nip ?? '' }} &bull; {{ $b->user->role ?? '' }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-indigo-600">{{ $b->jumlah }} unit</p>
+                    <p class="text-xs text-slate-400">Kembali: {{ $b->tanggal_kembali->format('d M Y') }}</p>
+                    @if($b->isOverdue())
+                        <span class="text-xs font-semibold text-red-500">Terlambat</span>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <x-slot name="footer">
+            <button
+                type="button"
+                onclick="window.dispatchEvent(new CustomEvent('close-modal-borrowers-{{ $item->id }}'))"
+                class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                Tutup
+            </button>
+        </x-slot>
+
+    </x-modal>
+    @endif
 @endforeach
 
 @endsection

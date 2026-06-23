@@ -275,7 +275,7 @@
 
                         <div
                             class="absolute bottom-0 left-0 w-full bg-[#378ADD] rounded-full transition-all duration-700"
-                            style="height:{{ ($item->total/$max)*100 }}%">
+                            @style(['height' => ($item->total / $max) * 100 . '%'])>
 
                         </div>
 
@@ -378,7 +378,7 @@
 
                         <div
                             class="h-full rounded-full transition-all duration-700"
-                            style="width:{{ $persen }}%;background:{{ $warna }};">
+                            @style(['width' => $persen . '%', 'background' => $warna])>
 
                         </div>
 

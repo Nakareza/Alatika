@@ -88,7 +88,7 @@ class KeranjangController extends Controller
                     'status'           => 'pending',
                 ]);
 
-                $item->alat->decrement('stok_tersedia', $item->jumlah);
+                // Stock is NOT decremented here — it will be decremented when Kalab approves
                 $alatNames[] = "{$item->alat->nama} ({$item->jumlah} unit)";
             }
 

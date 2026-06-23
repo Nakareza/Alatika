@@ -2,8 +2,7 @@
 @props([
     'title' => 'Dashboard',
     'subtitle' => null,
-    'breadcrumbs' => [],
-    'hideSearch' => false
+    'breadcrumbs' => []
 ])
 
 <header class="sticky top-0 z-30 h-16"
@@ -90,32 +89,6 @@
             {{-- RIGHT --}}
             <div class="flex items-center gap-2">
 
-                {{-- Search --}}
-                @if(!$hideSearch)
-                <div class="hidden md:flex items-center mr-2">
-                    <div class="relative w-72">
-
-                        <input type="text"
-                               placeholder="Cari alat, mahasiswa..."
-                               class="w-full pl-9 pr-4 py-2 text-sm rounded-xl outline-none transition-all"
-                               style="background:rgba(255,255,255,0.1);
-                                      border:1.5px solid rgba(255,255,255,0.15);
-                                      color:#fff;
-                                      font-family:'Inter',sans-serif;"
-
-                               onfocus="this.style.borderColor='#378ADD';
-                                        this.style.background='rgba(255,255,255,0.15)';
-                                        this.style.boxShadow='0 0 0 3px rgba(55,138,221,0.20)'"
-
-                               onblur="this.style.borderColor='rgba(255,255,255,0.15)';
-                                       this.style.background='rgba(255,255,255,0.1)';
-                                       this.style.boxShadow=''">
-
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-                           style="color:rgba(255,255,255,0.35);"></i>
-                    </div>
-                </div>
-                @endif
 
                 {{-- Notifications --}}
                 <div x-data="{ open: false }" class="relative">
@@ -245,13 +218,6 @@
                                 Profil Saya
                             </a>
 
-                            <a href="#"
-                               class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-
-                                <i class="fas fa-cog text-slate-400"></i>
-
-                                Pengaturan
-                            </a>
 
                         </div>
 

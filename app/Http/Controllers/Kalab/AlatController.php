@@ -46,10 +46,12 @@ class AlatController extends Controller
             'total' => Alat::count(),
 
             'tersedia' => Alat::where('stok_tersedia', '>', 0)
+                ->where('status', 'tersedia')
                 ->count(),
 
-            'dipinjam' => Alat::whereColumn('stok_tersedia', '<', 'stok_total')
-                ->count(),
+            'dipinjam' => \App\Models\Peminjaman::where('status', 'dipinjam')
+                ->whereHas('user', fn($q) => $q->where('role', 'dosen'))
+                ->sum('jumlah'),
 
             'maintenance' => Alat::where('status', 'maintenance')
                 ->count(),

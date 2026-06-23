@@ -177,8 +177,9 @@
                             <select x-model="keperluan" @change="onKeperluanChange" class="inp" required
                                     style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
                                 <option value="">-- Pilih Keperluan --</option>
-                                <option value="Penelitian">Penelitian</option>
-                                <option value="Tugas Harian">Tugas Harian</option>
+                                @foreach($keperluanOptions as $option)
+                                    <option value="{{ $option }}">{{ $option }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -188,9 +189,9 @@
                                    min="{{ date('Y-m-d') }}" class="inp" required>
                         </div>
 
-                        <div x-show="keperluan === 'Penelitian'" x-transition>
+                        <div x-show="keperluan && keperluan !== 'Tugas Harian'" x-transition>
                             <label class="form-label">Tanggal Kembali <span class="text-red-500">*</span></label>
-                            <input type="date" x-model="tanggalKembali" :min="tanggalPinjam" class="inp" :required="keperluan === 'Penelitian'">
+                            <input type="date" x-model="tanggalKembali" :min="tanggalPinjam" class="inp" :required="keperluan && keperluan !== 'Tugas Harian'">
                         </div>
                     </div>
                 </div>
@@ -350,11 +351,11 @@
                 if (!this.tanggalPinjam) { this.errorMsg = 'Tanggal pinjam harus diisi.'; return; }
                 if (!this.keperluan) { this.errorMsg = 'Keperluan harus diisi.'; return; }
 
-                // LOGIKA VALIDASI BARU
+                // LOGIKA VALIDASI
                 if (this.keperluan === 'Tugas Harian') {
                     this.tanggalKembali = this.tanggalPinjam; // Memastikan dipinjam hanya sehari
-                } else if (this.keperluan === 'Penelitian') {
-                    if (!this.tanggalKembali) { this.errorMsg = 'Tanggal kembali harus diisi untuk keperluan penelitian.'; return; }
+                } else {
+                    if (!this.tanggalKembali) { this.errorMsg = 'Tanggal kembali harus diisi.'; return; }
                     if (new Date(this.tanggalKembali) < new Date(this.tanggalPinjam)) {
                         this.errorMsg = 'Tanggal kembali tidak boleh kurang dari tanggal pinjam.';
                         return;
