@@ -516,6 +516,15 @@
                 <span class="toggle-pw" onclick="togglePw('pwLogin',this)"><i class="fas fa-eye"></i></span>
             </div>
 
+            <div class="rounded-lg p-2.5 mb-2 flex items-start gap-2" style="background:#EFF6FF;border:1px solid #BFDBFE;">
+                <i class="fas fa-info-circle text-xs mt-0.5 flex-shrink-0" style="color:#3B82F6;"></i>
+                <p class="text-xs leading-relaxed" style="color:#1E40AF;">
+                    <strong>Info Login Awal:</strong> Untuk login pertama kali, gunakan <strong>NIM/NIP tanpa tanda titik (.)</strong> sebagai password awal.<br>
+                    Contoh: NIM <em>1.23.45.6.78</em> &rarr; password <em>12345678</em>.<br>
+                    Demi keamanan akun, segera ubah password Anda setelah berhasil login.
+                </p>
+            </div>
+
             <a href="#" class="link-subtle">Lupa kata sandi?</a>
             <button type="submit" class="btn-primary">
                 <i class="fas fa-right-to-bracket"></i> Masuk

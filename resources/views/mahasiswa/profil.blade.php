@@ -109,6 +109,19 @@
 
                 {{-- Password Fields --}}
                 <div x-show="showPasswordFields" x-transition class="space-y-4">
+                    {{-- Default Password Warning --}}
+                    @if(Auth::user()->isUsingDefaultPassword())
+                    <div class="rounded-xl p-3 flex items-start gap-3" style="background:#FEF3C7;border:1px solid #FDE68A;">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#FDE68A;">
+                            <i class="fas fa-exclamation-triangle text-sm" style="color:#D97706;"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold" style="color:#92400E;">Password Masih Default!</p>
+                            <p class="text-xs mt-0.5" style="color:#A16207;">Password Anda masih menggunakan NIM tanpa titik. Segera ganti demi keamanan akun.</p>
+                        </div>
+                    </div>
+                    @endif
+
                     <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:#64748b;">Password Saat Ini</label>
                         <input type="password" name="current_password"

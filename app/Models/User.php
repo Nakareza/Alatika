@@ -90,4 +90,17 @@ class User extends Authenticatable
     {
         return $this->peminjaman()->whereIn('status', ['dipinjam', 'disetujui'])->count();
     }
+
+    /**
+     * Check if the user is still using the default password (NIM/NIP without dots).
+     */
+    public function isUsingDefaultPassword(): bool
+    {
+        $identifier = $this->nim ?: $this->nip;
+        if (!$identifier) {
+            return false;
+        }
+        $defaultPassword = str_replace('.', '', $identifier);
+        return \Illuminate\Support\Facades\Hash::check($defaultPassword, $this->password);
+    }
 }
