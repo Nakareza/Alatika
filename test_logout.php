@@ -30,6 +30,7 @@ $request = Illuminate\Http\Request::create(
     'POST',
     []
 );
+$request->setLaravelSession($app->make('session')->driver());
 
 // Manually set up session for testing
 $request->setUserResolver(function () use ($user) {

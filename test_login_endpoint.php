@@ -13,6 +13,8 @@ $request = \Illuminate\Http\Request::create(
         'password' => 'password',
     ]
 );
+$request->setLaravelSession($app->make('session')->driver());
+
 
 echo "=== TESTING LOGIN ENDPOINT DIRECTLY ===\n\n";
 echo "Request: POST /login\n";

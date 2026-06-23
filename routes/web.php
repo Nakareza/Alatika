@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisContr
 use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\ProfilController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
 use App\Services\TelegramService;
@@ -215,6 +216,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::get('/profil', function () {
         return view('mahasiswa.profil');
     })->name('profil');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
 });
 
 // KA Lab Routes (requires authentication + kalab role)
@@ -266,4 +268,5 @@ Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->grou
     Route::get('/profil', function () {
         return view('dosen.profil');
     })->name('profil');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
 });

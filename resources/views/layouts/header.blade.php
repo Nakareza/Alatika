@@ -3,8 +3,7 @@
 @props([
     'title' => null,
     'subtitle' => null,
-    'breadcrumbs' => [],
-    'hideSearch' => false
+    'breadcrumbs' => []
 ])
 
 <header x-data="{}"
@@ -102,38 +101,6 @@
 
                 </div>
             </div>
-
-            {{-- SEARCH --}}
-            @if(!$hideSearch)
-
-            <div class="hidden md:flex items-center flex-1 max-w-xs mx-6">
-
-                <div class="relative w-full">
-
-                    <input type="text"
-                           placeholder="Cari data..."
-                           class="w-full pl-9 pr-4 py-2 text-sm rounded-xl outline-none transition-all"
-                           style="background:rgba(255,255,255,0.1);
-                                  border:1.5px solid rgba(255,255,255,0.15);
-                                  color:#fff;
-                                  font-family:'Inter',sans-serif;"
-
-                           onfocus="this.style.borderColor='#378ADD';
-                                    this.style.background='rgba(255,255,255,0.15)';
-                                    this.style.boxShadow='0 0 0 3px rgba(55,138,221,0.25)'"
-
-                           onblur="this.style.borderColor='rgba(255,255,255,0.15)';
-                                   this.style.background='rgba(255,255,255,0.1)';
-                                   this.style.boxShadow=''">
-
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-                       style="color:rgba(255,255,255,0.35);"></i>
-
-                </div>
-
-            </div>
-
-            @endif
 
             {{-- RIGHT --}}
             <div class="flex items-center gap-2">
@@ -292,19 +259,6 @@
                                style="color:#B5D4F4;font-size:12px;"></i>
 
                             Profil Saya
-                        </a>
-
-                        {{-- Settings --}}
-                        <a href="#"
-                           class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
-                           style="color:#475569;font-family:'Inter',sans-serif;"
-                           onmouseover="this.style.background='#F5F8FF';this.style.color='#185FA5'"
-                           onmouseout="this.style.background='';this.style.color='#475569'">
-
-                            <i class="fas fa-cog w-4 text-center"
-                               style="color:#B5D4F4;font-size:12px;"></i>
-
-                            Pengaturan
                         </a>
 
                         <div class="my-1.5 mx-3"

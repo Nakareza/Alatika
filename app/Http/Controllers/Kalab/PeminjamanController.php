@@ -99,7 +99,7 @@ class PeminjamanController extends Controller
         );
     }
 
-    public function approve($id, TelegramService $telegram)
+    public function approve(Request $request, $id, TelegramService $telegram)
     {
         $peminjaman = Peminjaman::with(['user', 'alat'])->findOrFail($id);
 
@@ -118,12 +118,22 @@ class PeminjamanController extends Controller
         $alat->stok_tersedia -= $peminjaman->jumlah;
         $alat->save();
 
-        // Kalab langsung setujui (sole approver untuk dosen)
-        $peminjaman->update([
+        // Update keperluan if Kalab modified it
+        $updateData = [
             'kalab_approved_by' => Auth::id(),
             'kalab_approved_at' => now(),
             'status' => 'dipinjam',
-        ]);
+        ];
+
+        if ($request->filled('keperluan')) {
+            $newKeperluan = $request->input('keperluan');
+            $updateData['keperluan'] = $newKeperluan;
+
+            // Add new keperluan to the global list if it doesn't exist
+            $this->addKeperluanIfNew($newKeperluan);
+        }
+
+        $peminjaman->update($updateData);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
@@ -216,5 +226,25 @@ class PeminjamanController extends Controller
         }
 
         return redirect()->back()->with($failedMessages ? 'error' : 'success', $message);
+    }
+
+    /**
+     * Add a new keperluan to the global JSON list if it doesn't already exist.
+     */
+    private function addKeperluanIfNew(string $keperluan): void
+    {
+        $path = storage_path('app/keperluan.json');
+        $list = [];
+
+        if (file_exists($path)) {
+            $list = json_decode(file_get_contents($path), true) ?? [];
+        }
+
+        $normalized = trim($keperluan);
+
+        if ($normalized !== '' && !in_array($normalized, $list, true)) {
+            $list[] = $normalized;
+            file_put_contents($path, json_encode($list, JSON_UNESCAPED_UNICODE));
+        }
     }
 }
