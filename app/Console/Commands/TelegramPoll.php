@@ -15,12 +15,30 @@ class TelegramPoll extends Command
     public function handle(): void
     {
         $this->info('🤖 Telegram Bot polling started. Press Ctrl+C to stop.');
-        $this->info('Waiting for messages...');
+        $this->info('Setting up bot commands and menu...');
 
         $telegram = new TelegramService();
 
         // Remove webhook first (required for getUpdates to work)
         $telegram->removeWebhook();
+
+        // Setup commands menu
+        $commandsResult = $telegram->setCommands();
+        if ($commandsResult['ok'] ?? false) {
+            $this->info('✅ Command menu set successfully!');
+        } else {
+            $this->warn('⚠️ Could not set command menu: ' . ($commandsResult['description'] ?? 'Unknown error'));
+        }
+
+        // Setup menu button
+        $menuResult = $telegram->setMenuButton();
+        if ($menuResult['ok'] ?? false) {
+            $this->info('✅ Menu button set successfully!');
+        } else {
+            $this->warn('⚠️ Could not set menu button: ' . ($menuResult['description'] ?? 'Unknown error'));
+        }
+
+        $this->info('Waiting for messages...');
 
         $offset = 0;
 

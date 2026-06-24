@@ -22,47 +22,126 @@
         </div>
     @endif
 
-    {{-- Header Card --}}
-    <div class="card p-6 mb-6">
+    <!-- Statistik -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
 
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <x-card-stats
+            title="Menunggu Persetujuan"
+            :value="$stats['pending']"
+            icon="fas fa-clock"
+            color="yellow" />
 
-            <div>
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full badge-info mb-3">
-                    <i class="fas fa-clipboard-check"></i>
-                    <span>Persetujuan Kepala Laboratorium</span>
-                </div>
+        <x-card-stats
+            title="Dipinjam"
+            :value="$stats['dipinjam']"
+            icon="fas fa-hand-holding"
+            color="blue" />
 
-                <h1 class="text-2xl font-bold mb-1"
-                    style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    Persetujuan Peminjaman Dosen
-                </h1>
+        <x-card-stats
+            title="Selesai"
+            :value="$stats['selesai']"
+            icon="fas fa-check-double"
+            color="green" />
 
-                <p class="text-sm text-slate-500">
-                    Daftar pengajuan alat dari dosen yang menunggu persetujuan.
-                </p>
-            </div>
-
-            <div class="flex items-center gap-3">
-
-                <div class="list-item flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#EBF3FD] flex items-center justify-center">
-                        <i class="fas fa-clock text-[#185FA5]"></i>
-                    </div>
-
-                    <div>
-                        <p class="text-xs text-slate-500">Menunggu</p>
-                        <p class="font-bold text-sm text-[#1E2B4A]">
-                            {{ $peminjaman->count() }} Pengajuan
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
+        <x-card-stats
+            title="Total Pengajuan"
+            :value="$stats['total_pengajuan']"
+            icon="fas fa-file-alt"
+            color="Purple" />
 
     </div>
+    
+    {{-- Filter & Search --}}
+    
+    <div class="card p-6 mb-6">
+
+        <form method="GET" action="{{ route('kalab.persetujuan') }}">
+
+            <div class="flex flex-col lg:flex-row gap-4">
+
+                {{-- Search --}}
+                <div class="flex-1 relative">
+
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari dosen, alat, atau kode peminjaman..."
+                        class="inp pl-11 w-full">
+
+                </div>
+
+                {{-- Status --}}
+                <select
+                    name="status"
+                    class="inp lg:w-56"
+                    onchange="this.form.submit()">
+
+                    <option value="">Semua Status</option>
+
+                    <option value="pending"
+                        {{ request('status') == 'pending' ? 'selected' : '' }}>
+                        Menunggu Persetujuan
+                    </option>
+
+                    <option value="dipinjam"
+                        {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
+                        Dipinjam
+                    </option>
+
+                    <option value="selesai"
+                        {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                        Selesai
+                    </option>
+
+                    <option value="ditolak"
+                        {{ request('status') == 'ditolak' ? 'selected' : '' }}>
+                        Ditolak
+                    </option>
+
+                </select>
+
+                {{-- Periode --}}
+                <select
+                    name="periode"
+                    class="inp lg:w-48"
+                    onchange="this.form.submit()">
+
+                    <option value="">Semua Periode</option>
+
+                    <option value="hari_ini"
+                        {{ request('periode') == 'hari_ini' ? 'selected' : '' }}>
+                        Hari Ini
+                    </option>
+
+                    <option value="minggu_ini"
+                        {{ request('periode') == 'minggu_ini' ? 'selected' : '' }}>
+                        Minggu Ini
+                    </option>
+
+                    <option value="bulan_ini"
+                        {{ request('periode') == 'bulan_ini' ? 'selected' : '' }}>
+                        Bulan Ini
+                    </option>
+
+                </select>
+
+                {{-- Reset --}}
+                <a href="{{ route('kalab.persetujuan') }}"
+                class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+
+                    <i class="fas fa-rotate-left"></i>
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
 
     {{-- Table Card --}}
     <div class="card overflow-hidden"
@@ -70,240 +149,258 @@
 
         {{-- Action Bar --}}
         <form action="{{ route('kalab.persetujuan.bulk-approve') }}"
-              method="POST"
-              id="bulkApproveForm">
+            method="POST"
+            x-data="{ selectAll: false }">
 
             @csrf
 
-            <div class="p-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-                 style="border-color:#EBF3FD;background:#F9FBFF;">
+            <x-table title="Monitoring Peminjaman">
 
-                <div class="flex items-center gap-3">
+                <thead class="bg-[#F5F8FF]">
 
-                    <input type="checkbox"
-                           id="selectAllCheckbox"
-                           x-model="selectAll"
-                           class="w-4 h-4 rounded border-gray-300 text-[#185FA5] focus:ring-[#378ADD]">
+                    <tr>
 
-                    <label for="selectAllCheckbox"
-                           class="text-sm font-semibold text-[#1E2B4A]"
-                           style="font-family:'Plus Jakarta Sans',sans-serif;">
-                        Pilih Semua
-                    </label>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase text-slate-500">No</th>
 
-                </div>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Peminjam
+                        </th>
 
-                <button type="submit"
-                        class="btn btn-primary">
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Alat
+                        </th>
 
-                    <i class="fas fa-check-double"></i>
-                    <span>Setujui Terpilih</span>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Jumlah
+                        </th>
 
-                </button>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Tanggal Pinjam
+                        </th>
 
-            </div>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                            Status
+                        </th>
 
-            {{-- Table --}}
-            <div class="overflow-x-auto">
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase text-slate-500">
+                            Aksi
+                        </th>
 
-                <table class="w-full">
+                    </tr>
 
-                    <thead>
+                </thead>
 
-                        <tr style="background:#F5F8FF;">
+                <tbody>
 
-                            <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                #
-                            </th>
+                    @forelse($peminjaman as $p)
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Dosen
-                            </th>
+                    <tr class="hover:bg-[#F8FBFF] transition">
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Alat / Jumlah
-                            </th>
+                        {{-- no --}}
+                        <td class="px-4 py-4 text-center font-medium text-slate-600">
+                            {{ $loop->iteration }}
+                        </td>
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Tanggal
-                            </th>
+                        {{-- Dosen --}}
+                        <td class="px-6 py-4">
 
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Keperluan
-                            </th>
+                            <div class="flex items-center gap-3">
 
-                            <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Aksi
-                            </th>
+                                <div class="w-10 h-10 rounded-xl bg-[#185FA5] text-white flex items-center justify-center text-sm font-bold">
+                                    {{ strtoupper(substr($p->user->name, 0, 2)) }}
+                                </div>
 
-                        </tr>
+                                <div>
 
-                    </thead>
+                                    <p class="font-semibold text-[#1E2B4A]">
+                                        {{ $p->user->name }}
+                                    </p>
 
-                    <tbody class="divide-y"
-                           style="divide-color:#EBF3FD;">
+                                    <p class="text-xs text-slate-500">
+                                        Dosen
+                                    </p>
 
-                        @forelse($peminjaman as $p)
+                                </div>
 
-                            <tr class="hover:bg-[#F9FBFF] transition-all duration-200">
+                            </div>
 
-                                {{-- Checkbox --}}
-                                <td class="px-4 py-5 text-center">
+                        </td>
 
-                                    <input type="checkbox"
-                                           name="peminjaman_ids[]"
-                                           value="{{ $p->id }}"
-                                           x-bind:checked="selectAll"
-                                           class="w-4 h-4 rounded border-gray-300 text-[#185FA5] focus:ring-[#378ADD]">
+                        {{-- Alat --}}
+                        <td class="px-6 py-4">
 
-                                </td>
+                            <p class="font-semibold text-[#1E2B4A]">
+                                {{ $p->alat->nama }}
+                            </p>
 
-                                {{-- Dosen --}}
-                                <td class="px-6 py-5">
+                            <p class="text-xs text-slate-500">
+                                {{ $p->alat->kode }}
+                            </p>
 
-                                    <div class="flex items-center gap-3">
+                        </td>
 
-                                        <div class="w-10 h-10 rounded-xl bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                                            {{ strtoupper(substr($p->user->name, 0, 2)) }}
-                                        </div>
+                        {{-- Jumlah --}}
+                        <td class="px-6 py-4">
 
-                                        <div>
-                                            <p class="font-semibold text-sm text-[#1E2B4A]">
-                                                {{ $p->user->name }}
-                                            </p>
+                            <span class="badge badge-info">
+                                {{ $p->jumlah }} Unit
+                            </span>
 
-                                            <p class="text-xs text-slate-500">
-                                                Dosen
-                                            </p>
-                                        </div>
+                        </td>
 
-                                    </div>
+                        {{-- Tanggal --}}
+                        <td class="px-6 py-4">
 
-                                </td>
+                            <p class="text-sm text-slate-700">
+                                {{ $p->tanggal_pinjam->format('d M Y') }}
+                            </p>
 
-                                {{-- Alat --}}
-                                <td class="px-6 py-5">
+                            <p class="text-xs text-slate-500">
+                                s/d {{ $p->tanggal_kembali->format('d M Y') }}
+                            </p>
 
-                                    <div class="space-y-1">
+                        </td>
 
-                                        <p class="text-sm font-semibold text-[#1E2B4A]">
-                                            {{ $p->alat->nama }}
-                                        </p>
+                        {{-- Status --}}
+                        <td class="px-6 py-4">
 
-                                        <span class="badge badge-info">
-                                            {{ $p->jumlah }} Unit
-                                        </span>
+                            @if($p->status == 'pending')
 
-                                    </div>
+                                <span class="badge badge-warning">
+                                    Menunggu Persetujuan
+                                </span>
 
-                                </td>
+                            @elseif($p->status == 'dipinjam')
 
-                                {{-- Tanggal --}}
-                                <td class="px-6 py-5">
+                                <span class="badge badge-info">
+                                    Sedang Dipinjam
+                                </span>
 
-                                    <div class="text-sm text-slate-600 space-y-1">
+                            @elseif($p->status == 'selesai')
 
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-calendar-alt text-[#378ADD] text-xs"></i>
+                                <span class="badge badge-success">
+                                    Selesai
+                                </span>
 
-                                            <span>
-                                                {{ $p->tanggal_pinjam->format('d M Y') }}
-                                            </span>
-                                        </div>
+                            @elseif($p->status == 'ditolak')
 
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-arrow-right text-slate-400 text-xs"></i>
+                                <span class="badge badge-danger">
+                                    Ditolak
+                                </span>
 
-                                            <span>
-                                                {{ $p->tanggal_kembali->format('d M Y') }}
-                                            </span>
-                                        </div>
+                            @endif
 
-                                    </div>
+                        </td>
 
-                                </td>
+                        {{-- Aksi --}}
+                        <td class="px-6 py-4">
 
-                                {{-- Keperluan --}}
-                                <td class="px-6 py-5">
+                            @if($p->status == 'pending')
 
-                                    <div class="max-w-xs">
+                                <div class="flex justify-center gap-2">
 
-                                        <p class="text-sm text-slate-600 leading-relaxed">
-                                            {{ $p->keperluan }}
-                                        </p>
+                                    <button
+                                        type="button"
+                                        onclick="showApproveModal(
+                                            {{ $p->id }},
+                                            '{{ addslashes($p->keperluan ?? '') }}',
+                                            '{{ addslashes($p->user->name) }}',
+                                            '{{ addslashes($p->alat->nama) }}',
+                                            {{ $p->jumlah }}
+                                        )"
+                                        class="w-9 h-9 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"
+                                        title="Setujui">
 
-                                    </div>
+                                        <i class="fas fa-check"></i>
 
-                                </td>
+                                    </button>
 
-                                {{-- Aksi --}}
-                                <td class="px-6 py-5">
+                                    <button
+                                        type="button"
+                                        onclick="document.getElementById('reject-form-{{ $p->id }}').submit()"
+                                        class="w-9 h-9 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"
+                                        title="Tolak">
 
-                                    <div class="flex flex-col gap-2">
+                                        <i class="fas fa-times"></i>
 
-                                        {{-- Approve --}}
-                                        <button type="submit"
-                                                formaction="{{ route('kalab.persetujuan.approve', $p->id) }}"
-                                                class="btn justify-center"
-                                                style="background:#dcfce7;color:#166534;padding:0.6rem 1rem;font-size:0.75rem;">
+                                    </button>
 
-                                            <i class="fas fa-check"></i>
-                                            <span>Setujui</span>
+                                </div>
 
-                                        </button>
+                            @elseif($p->status == 'dipinjam')
 
-                                        {{-- Reject --}}
-                                        <button type="button"
-                                                onclick="document.getElementById('reject-form-{{ $p->id }}').submit()"
-                                                class="btn justify-center"
-                                                style="background:#fee2e2;color:#b91c1c;padding:0.6rem 1rem;font-size:0.75rem;">
+                                <button
+                                    type="button"
+                                    onclick="showDetail(
+                                        '{{ $p->kode_peminjaman }}',
+                                        '{{ $p->user->name }}',
+                                        '{{ $p->alat->nama }}',
+                                        '{{ $p->jumlah }}',
+                                        '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                        '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                        '{{ $p->status }}',
+                                        '{{ addslashes($p->keperluan) }}'
+                                    )"
+                                    class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
 
-                                            <i class="fas fa-times"></i>
-                                            <span>Tolak</span>
+                                    <i class="fas fa-eye"></i>
 
-                                        </button>
+                                </button>
 
-                                    </div>
+                            @elseif($p->status == 'selesai')
 
-                                </td>
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
 
-                            </tr>
+                                    <i class="fas fa-eye"></i>
 
-                        @empty
+                                </button>
 
-                            <tr>
+                            @elseif($p->status == 'ditolak')
 
-                                <td colspan="6"
-                                    class="py-16 text-center">
+                                <button
+                                    type="button"
+                                    class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200">
 
-                                    <div class="flex flex-col items-center">
+                                    <i class="fas fa-circle-info"></i>
 
-                                        <div class="w-20 h-20 rounded-2xl bg-[#F5F8FF] flex items-center justify-center mb-4">
-                                            <i class="fas fa-check-circle text-4xl text-[#B5D4F4]"></i>
-                                        </div>
+                                </button>
 
-                                        <h3 class="font-bold text-[#1E2B4A] mb-1"
-                                            style="font-family:'Plus Jakarta Sans',sans-serif;">
-                                            Tidak Ada Pengajuan
-                                        </h3>
+                            @endif
+                        </td>
 
-                                        <p class="text-sm text-slate-500">
-                                            Semua pengajuan telah diproses.
-                                        </p>
+                    </tr>
 
-                                    </div>
+                    @empty
 
-                                </td>
+                    <tr>
 
-                            </tr>
+                        <td colspan="7" class="py-12 text-center">
 
-                        @endforelse
+                            <div class="flex flex-col items-center">
 
-                    </tbody>
+                                <i class="fas fa-check-circle text-4xl text-slate-300 mb-3"></i>
 
-                </table>
+                                <p class="font-semibold text-[#1E2B4A]">
+                                    Tidak Ada Pengajuan
+                                </p>
 
-            </div>
+                                <p class="text-sm text-slate-500">
+                                    Semua pengajuan telah diproses.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </x-table>
 
         </form>
 
@@ -326,5 +423,189 @@
         </form>
 
     @endforeach
+
+    {{-- Hidden Approve Forms --}}
+    @foreach($peminjaman as $p)
+        <form id="approve-form-{{ $p->id }}"
+              action="{{ route('kalab.persetujuan.approve', $p->id) }}"
+              method="POST"
+              class="hidden">
+            @csrf
+            <input type="hidden" name="keperluan" id="approve-keperluan-{{ $p->id }}" value="">
+        </form>
+    @endforeach
+
+<x-modal
+    name="detail-peminjaman"
+    title="Detail Peminjaman"
+    size="lg"
+    type="default">
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+
+        <div>
+            <p class="text-slate-500">Kode Peminjaman</p>
+            <p id="detail_kode" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Peminjam</p>
+            <p id="detail_user" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Alat</p>
+            <p id="detail_alat" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Jumlah</p>
+            <p id="detail_jumlah" class="font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Pinjam</p>
+            <p id="detail_pinjam"></p>
+        </div>
+
+        <div>
+            <p class="text-slate-500">Tanggal Kembali</p>
+            <p id="detail_kembali"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Status</p>
+            <p id="detail_status"></p>
+        </div>
+
+        <div class="col-span-2">
+            <p class="text-slate-500">Keperluan</p>
+            <p id="detail_keperluan"></p>
+        </div>
+
+    </div>
+
+    <x-slot:footer>
+
+        <button
+            type="button"
+            onclick="window.dispatchEvent(
+                new CustomEvent('close-modal-detail-peminjaman')
+            )"
+            class="flex-1 px-4 py-3 rounded-xl border border-slate-200">
+
+            Tutup
+
+        </button>
+
+    </x-slot:footer>
+
+</x-modal>
+
+<script>
+
+function showDetail(
+    kode,
+    user,
+    alat,
+    jumlah,
+    pinjam,
+    kembali,
+    status,
+    keperluan
+){
+
+    document.getElementById('detail_kode').innerText = kode;
+    document.getElementById('detail_user').innerText = user;
+    document.getElementById('detail_alat').innerText = alat;
+    document.getElementById('detail_jumlah').innerText = jumlah + ' Unit';
+    document.getElementById('detail_pinjam').innerText = pinjam;
+    document.getElementById('detail_kembali').innerText = kembali;
+    document.getElementById('detail_status').innerText = status;
+    document.getElementById('detail_keperluan').innerText = keperluan;
+
+    window.dispatchEvent(
+        new CustomEvent('open-modal-detail-peminjaman')
+    );
+
+}
+
+</script>
+
+{{-- Approve Modal --}}
+<div id="approve-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fas fa-check text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">Setujui Peminjaman</h3>
+        </div>
+
+        <div class="mb-4 p-3 rounded-xl" style="background:#F5F8FF;border:1px solid #EBF3FD;">
+            <p class="text-xs text-slate-500 mb-1">Peminjam</p>
+            <p id="approve-user" class="text-sm font-semibold text-[#1E2B4A]"></p>
+            <p class="text-xs text-slate-500 mt-2 mb-1">Alat & Jumlah</p>
+            <p id="approve-alat" class="text-sm font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keperluan <span class="text-slate-400">(bisa diubah)</span></label>
+            <input type="text" id="approve-keperluan-input"
+                   class="inp w-full"
+                   placeholder="Keperluan peminjaman...">
+            <p class="text-xs mt-1 text-slate-400">Kosongkan untuk menggunakan keperluan asli dari dosen.</p>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="button"
+                    class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                    onclick="closeApproveModal()">
+                Batal
+            </button>
+            <button type="button"
+                    class="flex-1 px-4 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition font-semibold"
+                    onclick="submitApprove()">
+                <i class="fas fa-check mr-1"></i> Setujui
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let approvePeminjamanId = null;
+
+function showApproveModal(id, keperluan, user, alat, jumlah) {
+    approvePeminjamanId = id;
+    document.getElementById('approve-user').innerText = user;
+    document.getElementById('approve-alat').innerText = alat + ' — ' + jumlah + ' Unit';
+    document.getElementById('approve-keperluan-input').value = keperluan;
+    document.getElementById('approve-modal').classList.remove('hidden');
+}
+
+function closeApproveModal() {
+    document.getElementById('approve-modal').classList.add('hidden');
+    approvePeminjamanId = null;
+}
+
+function submitApprove() {
+    if (!approvePeminjamanId) return;
+
+    var keperluanInput = document.getElementById('approve-keperluan-input');
+    var keperluanField = document.getElementById('approve-keperluan-' + approvePeminjamanId);
+    keperluanField.value = keperluanInput.value;
+    document.getElementById('approve-form-' + approvePeminjamanId).submit();
+}
+
+// Close modal on outside click
+document.getElementById('approve-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeApproveModal();
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeApproveModal();
+});
+</script>
 
 @endsection

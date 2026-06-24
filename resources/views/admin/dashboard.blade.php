@@ -47,66 +47,49 @@
 @section('content')
 
 {{-- Welcome Section --}}
-<div class="bg-white rounded-2xl p-8 md:p-10 border border-slate-100 luxury-shadow animate-slide-down overflow-hidden relative mb-6">
-    <div class="flex items-center gap-6 md:gap-8">
-        
-        <div class="hidden md:flex items-center justify-center w-20 h-20 rounded-2xl bg-[#F5F8FF] border border-[#D4E6F8]">
-            <img src="{{ asset('images/logo-polines.png') }}" 
-                 alt="Logo Polines" 
-                 class="w-12 h-12 object-contain">
-        </div>
-
-        <div class="flex-1">
-            <div class="mb-2">
-                <span class="inline-block px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
-                    <i class="fas fa-shield-alt mr-1.5 text-slate-500"></i>
-                    Administrator Panel
-                </span>
+<div class="mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h2 class="text-2xl font-bold mb-1" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
+                    Selamat Datang, {{ Auth::user()->name }}
+                </h2>
+                <p class="text-sm" style="color:#64748b;">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</p>
             </div>
-
-            <h1 class="text-3xl md:text-4xl font-extrabold mb-2 leading-tight text-[#1E2B4A]">
-                Selamat Datang, {{ Auth::user()->name }}
-            </h1>
-
-            <p class="text-slate-500 text-sm font-medium">
-                Sistem Peminjaman Alat Laboratorium Elektronik Politeknik Negeri Semarang
-            </p>
         </div>
-    </div>
 </div>
 
 {{-- Statistics Cards --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
 
-    <x-card-stats-admin 
+    <x-card-stats
         title="Total Peminjaman" 
         :value="$stats['total']" 
         icon="fas fa-clipboard-list" 
         color="blue" />
 
-    <x-card-stats-admin 
+    <x-card-stats
         title="Menunggu Persetujuan" 
         :value="$stats['pending']" 
         icon="fas fa-clock" 
         color="yellow" />
 
-    <x-card-stats-admin 
+    <x-card-stats 
         title="Sedang Dipinjam" 
         :value="$stats['dipinjam']" 
         icon="fas fa-hand-holding" 
         color="indigo" />
 
-    <x-card-stats-admin 
+    <x-card-stats 
         title="Selesai" 
         :value="$stats['selesai']" 
         icon="fas fa-check-double" 
         color="green" />
 
-    <x-card-stats-admin 
+    <x-card-stats 
         title="Terlambat" 
         :value="$stats['overdue']" 
         icon="fas fa-exclamation-triangle" 
-        color="red" />
+        color="r    " />
 
 </div>
 
@@ -281,8 +264,11 @@
 
                     <td class="px-6 py-4">
                         <a href="{{ route('admin.peminjaman') }}"
-                           class="text-blue-600 hover:text-blue-800 text-xs font-semibold">
-                            Detail
+                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                            style="background:#EBF3FD;color:#185FA5;">
+
+                                <i class="fas fa-eye"></i>
+                                Detail
                         </a>
                     </td>
 

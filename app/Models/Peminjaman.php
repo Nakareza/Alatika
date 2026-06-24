@@ -20,6 +20,10 @@ class Peminjaman extends Model
         'status',
         'approved_by',
         'approved_at',
+        'kalab_approved_by',
+        'kalab_approved_at',
+        'admin_approved_by',
+        'admin_approved_at',
         'rejected_reason',
         'foto_bukti_kembali',
         'telegram_photo_file_id',
@@ -41,6 +45,8 @@ class Peminjaman extends Model
         'tanggal_pinjam'       => 'date',
         'tanggal_kembali'      => 'date',
         'approved_at'          => 'datetime',
+        'kalab_approved_at'    => 'datetime',
+        'admin_approved_at'    => 'datetime',
         'tanggal_dikembalikan' => 'datetime',
 
         'reminder_h1_sent'   => 'boolean',
@@ -76,6 +82,22 @@ class Peminjaman extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Kepala Lab yang menyetujui
+     */
+    public function kalabApprover()
+    {
+        return $this->belongsTo(User::class, 'kalab_approved_by');
+    }
+
+    /**
+     * Admin yang menyetujui
+     */
+    public function adminApprover()
+    {
+        return $this->belongsTo(User::class, 'admin_approved_by');
     }
 
     // ===================================================
@@ -238,7 +260,7 @@ class Peminjaman extends Model
 
             'pending' => [
                 'color' => 'bg-amber-100 text-amber-700',
-                'icon'  => 'fa-clock',
+                'icon'  => 'fa-hourglass-start',
             ],
 
             'dipinjam' => [

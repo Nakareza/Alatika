@@ -51,6 +51,28 @@ class TelegramWebhookController extends Controller
     {
         $chatId = (string) $message['chat']['id'];
         $text = trim($message['text'] ?? $message['caption'] ?? '');
+        if ($text === '📊 Status') {
+            $this->commandStatus($chatId);
+            return;
+        }
+
+        if ($text === '📋 Pending') {
+            $this->commandPending($chatId);
+            return;
+        }
+
+        if ($text === 'ℹ️ Bantuan') {
+            $this->commandHelp($chatId);
+            return;
+        }
+
+        if ($text === '🔗 Hubungkan Akun') {
+            $this->telegram->sendMessage(
+                $chatId,
+                'Gunakan perintah /link KODE'
+            );
+            return;
+        }
         $firstName = $message['from']['first_name'] ?? 'User';
 
         // Get highest resolution photo if exists
@@ -99,11 +121,15 @@ class TelegramWebhookController extends Controller
         $user = User::where('telegram_chat_id', $chatId)->first();
 
         if ($user) {
+            // Set commands based on role
+            $this->telegram->setCommandsByRole($chatId, $user->role);
+            
             $roleLabel = $this->getRoleLabel($user->role);
             $this->telegram->sendMessage($chatId,
                 "Selamat datang kembali, <b>{$user->name}</b>! 👋\n\n"
                 . "Akun Anda sudah terhubung sebagai <b>{$roleLabel}</b>.\n\n"
-                . "Ketik /help untuk melihat perintah yang tersedia."
+                . "Ketik /help untuk melihat perintah yang tersedia.",
+                $this->telegram->getMainKeyboard()
             );
             return;
         }
@@ -165,6 +191,9 @@ class TelegramWebhookController extends Controller
         // Delete all link codes for this user
         TelegramLinkCode::where('user_id', $user->id)->delete();
 
+        // Set commands based on role
+        $this->telegram->setCommandsByRole($chatId, $user->role);
+
         $roleLabel = $this->getRoleLabel($user->role);
         $this->telegram->sendMessage($chatId,
             "✅ <b>Berhasil terhubung!</b>\n\n"
@@ -191,6 +220,9 @@ class TelegramWebhookController extends Controller
         }
 
         $user->update(['telegram_chat_id' => null]);
+
+        // Reset commands to guest/default
+        $this->telegram->setCommandsForGuest($chatId);
 
         $this->telegram->sendMessage($chatId,
             "🔓 <b>Koneksi diputus!</b>\n\n"
@@ -397,7 +429,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman = \App\Models\Peminjaman::where('kode_peminjaman', strtoupper($kode))->first();
+        $peminjaman = \App\Models\Peminjaman::with('alat')->where('kode_peminjaman', strtoupper($kode))->first();
         if (!$peminjaman) {
             $this->telegram->sendMessage($chatId, "❌ Peminjaman tidak ditemukan.");
             return;
@@ -418,11 +450,28 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman->update([
-            'status' => 'dipinjam',
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
+        // Check stock availability before approving
+        $alat = $peminjaman->alat;
+        if ($alat->stok_tersedia < $peminjaman->jumlah) {
+            $this->telegram->sendMessage($chatId,
+                "⚠️ Stok alat \"{$alat->nama}\" tidak mencukupi (tersedia: {$alat->stok_tersedia}, diminta: {$peminjaman->jumlah})."
+            );
+            return;
+        }
+
+        // Decrement stock upon approval
+        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+
+        // Use role-specific approver fields (matching web controllers)
+        $updateData = ['status' => 'dipinjam'];
+        if ($user->role === 'admin') {
+            $updateData['admin_approved_by'] = $user->id;
+            $updateData['admin_approved_at'] = now();
+        } else {
+            $updateData['kalab_approved_by'] = $user->id;
+            $updateData['kalab_approved_at'] = now();
+        }
+        $peminjaman->update($updateData);
 
         $this->telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
@@ -490,12 +539,19 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman->update([
+        // Use role-specific approver fields (matching web controllers)
+        $updateData = [
             'status' => 'ditolak',
             'rejected_reason' => $alasan,
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
+        ];
+        if ($user->role === 'admin') {
+            $updateData['admin_approved_by'] = $user->id;
+            $updateData['admin_approved_at'] = now();
+        } else {
+            $updateData['kalab_approved_by'] = $user->id;
+            $updateData['kalab_approved_at'] = now();
+        }
+        $peminjaman->update($updateData);
 
         $this->telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,

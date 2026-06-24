@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Alat;
+use App\Models\Keranjang;
 use App\Models\Peminjaman;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
@@ -22,49 +24,108 @@ class PeminjamanController extends Controller
 
     public function ajukan()
     {
-        $alat = Alat::where('status', 'tersedia')->where('stok_tersedia', '>', 0)->get();
-        return view('dosen.peminjaman.ajukan', compact('alat'));
+        // Baca dari tabel Keranjang
+        $keranjang = Keranjang::with('alat')
+            ->where('user_id', auth()->id())
+            ->get();
+        
+        // Format data sesuai dengan yang diharapkan view
+        $pengajuan = $keranjang->map(function($item) {
+            return [
+                'alat_id' => $item->alat_id,
+                'nama' => $item->alat->nama,
+                'kode' => $item->alat->kode,
+                'jumlah' => $item->jumlah,
+                'stok_max' => $item->alat->stok_tersedia,
+            ];
+        })->values()->all();
+
+        // Ambil semua alat untuk dropdown (jika user ingin menambah lagi)
+        $alat = Alat::all();
+        
+        // Kelompokkan alat by kategori
+        $kategori = $alat->groupBy('kategori')->keys();
+
+        // Load keperluan options from config
+        $keperluanOptions = static::getKeperluanOptions();
+
+        return view('dosen.peminjaman.ajukan', compact('pengajuan', 'alat', 'kategori', 'keperluanOptions'));
     }
 
     public function store(Request $request, TelegramService $telegram)
     {
         $request->validate([
-            'alat_id' => 'required|exists:alat,id',
-            'jumlah' => 'required|integer|min:1',
+            'items' => 'required|array|min:1',
             'tanggal_pinjam' => 'required|date|after_or_equal:today',
             'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
-            'keperluan' => 'required|string|max:500'
+            'keperluan' => 'required|string|max:500',
         ]);
 
-        $alat = Alat::findOrFail($request->alat_id);
+        foreach ($request->items as $item) {
 
-        if ($alat->stok_tersedia < $request->jumlah) {
-            return back()->with('error', 'Stok alat tidak mencukupi.');
-        }
+            $alat = Alat::findOrFail($item['alat_id']);
 
-        $peminjaman = Peminjaman::create([
-            'kode_peminjaman' => Peminjaman::generateKode(),
-            'user_id' => auth()->id(),
-            'alat_id' => $alat->id,
-            'jumlah' => $request->jumlah,
-            'tanggal_pinjam' => $request->tanggal_pinjam,
-            'tanggal_kembali' => $request->tanggal_kembali,
-            'keperluan' => $request->keperluan,
-            'status' => 'pending'
-        ]);
+            if ($alat->stok_tersedia < $item['jumlah']) {
 
-        // Notify Kalab
-        $kalabs = User::where('role', 'kalab')->whereNotNull('telegram_chat_id')->get();
-        foreach ($kalabs as $kalab) {
-            $telegram->notifyNewRequest($kalab, [
-                'peminjam_nama' => auth()->user()->name,
-                'peminjam_role' => 'dosen',
-                'alat' => $alat->nama,
-                'jumlah' => $peminjaman->jumlah,
-                'kode' => $peminjaman->kode_peminjaman,
+                return back()->with(
+                    'error',
+                    "Stok {$alat->nama} tidak mencukupi."
+                );
+            }
+
+            $peminjaman = Peminjaman::create([
+                'kode_peminjaman' => Peminjaman::generateKode(),
+                'user_id' => auth()->id(),
+                'alat_id' => $alat->id,
+                'jumlah' => $item['jumlah'],
+                'tanggal_pinjam' => $request->tanggal_pinjam,
+                'tanggal_kembali' => $request->tanggal_kembali,
+                'keperluan' => $request->keperluan,
+                'status' => 'pending'
             ]);
+
+            // notif teknisi
+            $teknisi = User::where('role', 'teknisi')
+                ->whereNotNull('telegram_chat_id')
+                ->get();
+
+            foreach ($teknisi as $user) {
+
+                $telegram->notifyNewRequest($user, [
+                    'peminjam_nama' => Auth::user()->name,
+                    'peminjam_role' => 'dosen',
+                    'alat' => $alat->nama,
+                    'jumlah' => $item['jumlah'],
+                    'kode' => $peminjaman->kode_peminjaman,
+                ]);
+            }
+
+            // notif kalab
+            $kalabs = User::where('role', 'kalab')
+                ->whereNotNull('telegram_chat_id')
+                ->get();
+
+            foreach ($kalabs as $kalab) {
+
+                $telegram->notifyNewRequest($kalab, [
+                    'peminjam_nama' => auth()->user()->name,
+                    'peminjam_role' => 'dosen',
+                    'alat' => $alat->nama,
+                    'jumlah' => $item['jumlah'],
+                    'kode' => $peminjaman->kode_peminjaman,
+                ]);
+            }
         }
 
-        return redirect()->route('dosen.riwayat')->with('success', 'Peminjaman berhasil diajukan dan sedang menunggu persetujuan Kepala Laboratorium.');
+        // Kosongkan keranjang setelah sukses
+        Keranjang::where('user_id', auth()->id())->delete();
+
+        return redirect()
+            ->route('dosen.riwayat')
+            ->with(
+                'success',
+                'Pengajuan berhasil dikirim ke Teknisi dan Kepala Laboratorium.'
+            );
     }
+
 }

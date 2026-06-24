@@ -263,20 +263,13 @@
 
                     </button>
 
-                    <form action="{{ route('logout') }}"
-                          method="POST"
-                          class="flex-1">
+                    <button type="button"
+                            @click="document.getElementById('logoutFormKalab').submit()"
+                            class="btn flex justify-center w-full bg-red-600 text-white hover:bg-red-700 flex-1">
 
-                        @csrf
+                        Logout
 
-                        <button type="submit"
-                                class="btn flex justify-center w-full bg-red-600 text-white hover:bg-red-700">
-
-                            Logout
-
-                        </button>
-
-                    </form>
+                    </button>
 
                 </div>
 
@@ -287,5 +280,10 @@
     </div>
 
 </div>
+
+{{-- Hidden Logout Form --}}
+<form action="{{ route('logout') }}" method="POST" id="logoutFormKalab" style="display: none;">
+    @csrf
+</form>
 
 @endsection

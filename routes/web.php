@@ -9,14 +9,10 @@ use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisContr
 use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
-use App\Http\Controllers\Kalab\DashboardController as KalabDashboardController;
-use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
-use App\Http\Controllers\Auth\Auth\ForgotPasswordController;
+use App\Http\Controllers\ProfilController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
-
-
+use App\Services\TelegramService;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -41,7 +37,7 @@ Route::get('/login', function () {
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Telegram Webhook (no CSRF, public endpoint for Telegram API)
 Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])
@@ -54,6 +50,14 @@ Route::middleware('auth')->prefix('telegram')->name('telegram.')->group(function
     Route::post('/disconnect', [TelegramController::class, 'disconnect'])->name('disconnect');
     Route::get('/status', [TelegramController::class, 'status'])->name('status');
     Route::post('/test', [TelegramController::class, 'testNotification'])->name('test');
+});
+
+Route::get('/telegram/setup-menu', function (TelegramService $telegram) {
+
+    $telegram->setCommands();
+    $telegram->setMenuButton();
+
+    return 'Menu Telegram berhasil dibuat';
 });
 
 // API routes for Real-Time Sync (Dashboard Polling)
@@ -72,6 +76,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::post('/peminjaman/{id}/reject', [\App\Http\Controllers\Admin\PeminjamanController::class, 'reject'])->name('peminjaman.reject');
     Route::post('/peminjaman/{id}/dipinjam', [\App\Http\Controllers\Admin\PeminjamanController::class, 'markAsBorrowed'])->name('peminjaman.dipinjam');
     
+    // Kelola Keperluan
+    Route::post('/peminjaman/keperluan/add', [\App\Http\Controllers\Admin\PeminjamanController::class, 'addKeperluan'])->name('peminjaman.keperluan.add');
+    Route::post('/peminjaman/keperluan/remove', [\App\Http\Controllers\Admin\PeminjamanController::class, 'removeKeperluan'])->name('peminjaman.keperluan.remove');
+    
     // Kelola Pengembalian Routes
     Route::get('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'index'])->name('pengembalian');
     Route::post('/pengembalian/{id}/verify', [\App\Http\Controllers\Admin\PengembalianController::class, 'verify'])->name('pengembalian.verify');
@@ -86,8 +94,24 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     [PeminjamanController::class, 'rejectReturn']
     )->name('peminjaman.rejectReturn');
 
-    // Data Alat Routes
-    Route::get('/alat', [AdminInventarisController::class, 'index'])->name('alat');
+    // Data Inventaris
+    Route::get('/alat', [AdminInventarisController::class, 'index'])
+        ->name('alat');
+
+    Route::get('/alat/create', [AdminInventarisController::class, 'create'])
+        ->name('alat.create');
+
+    Route::post('/alat', [AdminInventarisController::class, 'store'])
+        ->name('alat.store');
+
+    Route::get('/alat/{alat}/edit', [AdminInventarisController::class, 'edit'])
+        ->name('alat.edit');
+
+    Route::put('/alat/{alat}', [AdminInventarisController::class, 'update'])
+        ->name('alat.update');
+
+    Route::delete('/alat/{alat}', [AdminInventarisController::class, 'destroy'])
+        ->name('alat.destroy');
     
     // Data Mahasiswa Routes
     Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index'])->name('mahasiswa');
@@ -97,7 +121,63 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     
     // Laporan Routes
     Route::get('/laporan', function () {
-        return view('admin.laporan.index');
+        $mhs = \App\Models\Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
+
+        $stats = [
+            'total_peminjaman' => (clone $mhs)->count(),
+            'total_dipinjam'   => (clone $mhs)->where('status', 'dipinjam')->sum('jumlah'),
+            'total_selesai'    => (clone $mhs)->where('status', 'selesai')->count(),
+            'total_ditolak'    => (clone $mhs)->where('status', 'ditolak')->count(),
+            'total_pending'    => (clone $mhs)->where('status', 'pending')->count(),
+            'overdue'          => (clone $mhs)->where('status', 'dipinjam')
+                ->where('tanggal_kembali', '<', now()->toDateString())
+                ->count(),
+        ];
+
+        $alatStats = [
+            'total_alat'    => \App\Models\Alat::count(),
+            'total_stok'    => \App\Models\Alat::sum('stok_total'),
+            'total_tersedia' => \App\Models\Alat::sum('stok_tersedia'),
+            'maintenance'   => \App\Models\Alat::where('status', 'maintenance')->count(),
+        ];
+
+        $mahasiswaAktif = \App\Models\User::where('role', 'mahasiswa')
+            ->whereHas('peminjaman')
+            ->count();
+
+        $topAlat = \App\Models\Peminjaman::with('alat')
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
+            ->selectRaw('alat_id, count(*) as total_pinjam')
+            ->groupBy('alat_id')
+            ->orderByDesc('total_pinjam')
+            ->take(5)
+            ->get();
+
+        $ringkasanBulanan = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $start = now()->subMonths($i)->startOfMonth();
+            $end = now()->subMonths($i)->endOfMonth();
+            $bulanan = \App\Models\Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
+                ->whereBetween('created_at', [$start, $end]);
+            $ringkasanBulanan[] = [
+                'bulan'     => \Carbon\Carbon::parse($start)->translatedFormat('F Y'),
+                'pengajuan' => (clone $bulanan)->count(),
+                'disetujui' => (clone $bulanan)->whereIn('status', ['dipinjam', 'selesai'])->count(),
+                'ditolak'   => (clone $bulanan)->where('status', 'ditolak')->count(),
+                'selesai'   => (clone $bulanan)->where('status', 'selesai')->count(),
+            ];
+        }
+
+        $kategoriDistribusi = \App\Models\Alat::selectRaw('kategori, count(*) as jumlah')
+            ->whereNotNull('kategori')
+            ->where('kategori', '!=', '')
+            ->groupBy('kategori')
+            ->orderByDesc('jumlah')
+            ->get();
+
+        return view('admin.laporan.index', compact(
+            'stats', 'alatStats', 'mahasiswaAktif', 'topAlat', 'ringkasanBulanan', 'kategoriDistribusi'
+        ));
     })->name('laporan');
     
     // Profil Admin Routes
@@ -121,7 +201,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
     Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'store'])->name('peminjaman.store');
     Route::get('/peminjaman/riwayat', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'riwayat'])->name('peminjaman.riwayat');
-    
+    Route::post('/pengajuan/tambah/{id}',[\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'tambahPengajuan'])->name('pengajuan.tambah');
     // Alat Routes
     Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
     Route::post('/alat/{id}/waitlist', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'waitlist'])->name('alat.waitlist');
@@ -136,6 +216,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::get('/profil', function () {
         return view('mahasiswa.profil');
     })->name('profil');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
 });
 
 // KA Lab Routes (requires authentication + kalab role)
@@ -147,19 +228,15 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::post('/persetujuan/bulk-approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'bulkApprove'])->name('persetujuan.bulk-approve');
     Route::post('/persetujuan/{id}/approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'approve'])->name('persetujuan.approve');
     Route::post('/persetujuan/{id}/reject', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'reject'])->name('persetujuan.reject');
-    
-    // Data Alat - Use Admin Controller since Kalab might just want to view it exactly like admin
-    Route::get('/alat', function () {
-        return view('kalab.alat.index');
-    })->name('alat');
-    
+    Route::get('/peminjaman/{id}',[\App\Http\Controllers\Kalab\PeminjamanController::class, 'show'])->name('peminjaman.show');
+    // Data Alat
+    Route::get('/alat', [\App\Http\Controllers\Kalab\AlatController::class, 'index'])->name('alat');
+    Route::put('/alat/{alat}', [\App\Http\Controllers\Kalab\AlatController::class, 'update'])->name('alat.update');
     // Riwayat Peminjaman
     Route::get('/riwayat', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'riwayat'])->name('riwayat');
     
     // Laporan
-    Route::get('/laporan', function () {
-        return view('kalab.laporan.index');
-    })->name('laporan');
+    Route::get('/laporan', [\App\Http\Controllers\Kalab\LaporanController::class, 'index'])->name('laporan');
     
     // Profil
     Route::get('/profil', function () {
@@ -191,4 +268,5 @@ Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->grou
     Route::get('/profil', function () {
         return view('dosen.profil');
     })->name('profil');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
 });

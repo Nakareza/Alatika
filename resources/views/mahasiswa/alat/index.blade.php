@@ -20,51 +20,113 @@
     <div x-data="cartModal()">
 
         <!-- Top bar -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 
-            <!-- Kiri: Search + Filter -->
-            <div class="flex items-center gap-3 flex-wrap">
-                <div class="relative">
-                    <input type="text"
-                           x-model="search"
-                           placeholder="Cari nama alat..."
-                           class="inp pl-9 pr-4 py-2.5 w-52">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:#A0BBCC;"></i>
+    {{-- Filter Card --}}
+    <div class="card p-6 mb-6">
+
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+
+            {{-- Search & Filter --}}
+            <div class="flex flex-1 flex-col md:flex-row gap-4">
+
+                {{-- Search --}}
+                <div class="flex-1 relative">
+
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+
+                    <input
+                        type="text"
+                        x-model="search"
+                        placeholder="Cari nama alat..."
+                        class="inp pl-11 w-full">
+
                 </div>
 
-                <select x-model="filterKategori"
-                        class="inp py-2.5 px-4 pr-8 cursor-pointer appearance-none"
-                        style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;background-size:14px;">
-                    <option value="">Semua Kategori</option>
+                {{-- Filter Kategori --}}
+                <select
+                    x-model="filterKategori"
+                    class="inp md:w-56">
+
+                    <option value="">
+                        Semua Kategori
+                    </option>
+
                     @foreach($alat->pluck('kategori')->unique()->filter()->sort()->values() as $kat)
-                        <option value="{{ $kat }}">{{ $kat }}</option>
+
+                        <option value="{{ $kat }}">
+                            {{ $kat }}
+                        </option>
+
                     @endforeach
+
                 </select>
 
-                <select x-model="filterStok"
-                        class="inp py-2.5 px-4 pr-8 cursor-pointer appearance-none"
-                        style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;background-size:14px;">
-                    <option value="">Semua Stok</option>
-                    <option value="tersedia">Tersedia</option>
-                    <option value="habis">Habis</option>
+                {{-- Filter Stok --}}
+                <select
+                    x-model="filterStok"
+                    class="inp md:w-44">
+
+                    <option value="">
+                        Semua Stok
+                    </option>
+
+                    <option value="tersedia">
+                        Tersedia
+                    </option>
+
+                    <option value="habis">
+                        Habis
+                    </option>
+
                 </select>
+
+                {{-- Reset --}}
+                <button
+                    type="button"
+                    @click="
+                        search='';
+                        filterKategori='';
+                        filterStok='';
+                    "
+                    class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+
+                    <i class="fas fa-rotate-left"></i>
+
+                </button>
+
             </div>
 
-            <!-- Kanan: Action buttons -->
-            <div class="flex items-center gap-2">
-                <a href="{{ route('mahasiswa.keranjang') }}" class="btn btn-primary relative">
-                    <i class="fas fa-shopping-cart"></i>
-                    Keranjang
-                    @if($cartCount > 0)
-                    <span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-xs font-black rounded-full flex items-center justify-center">{{ $cartCount }}</span>
-                    @endif
-                </a>
-                <a href="{{ route('mahasiswa.peminjaman.ajukan') }}" class="btn btn-secondary">
-                    <i class="fas fa-plus"></i>
-                    Pinjam Langsung
-                </a>
-            </div>
+        {{-- Action --}}
+        <div class="flex items-center">
+
+            <a
+                href="{{ route('mahasiswa.peminjaman.ajukan') }}"
+                class="btn btn-primary relative whitespace-nowrap">
+
+                <i class="fas fa-shopping-cart"></i>
+
+                Pengajuan Peminjaman
+
+                @if($cartCount > 0)
+
+                    <span
+                        class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+
+                        {{ $cartCount }}
+
+                    </span>
+
+                @endif
+
+            </a>
+
         </div>
+
+    </div>
+
+</div>
+
+
 
         <!-- Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -110,7 +172,7 @@
                     @if($item->stok_tersedia > 0)
                         <button @click="openModal({{ $item->id }}, '{{ addslashes($item->nama) }}', {{ $item->stok_tersedia }})"
                             class="btn btn-primary w-full justify-center">
-                            <i class="fas fa-cart-plus"></i> Tambah ke Keranjang
+                            <i class="fas fa-cart-plus"></i> Tambah ke Pengajuan
                         </button>
                     @else
                         <form action="{{ route('mahasiswa.alat.waitlist', $item->id) }}" method="POST">
@@ -152,7 +214,7 @@
         </div>
 
         <!-- Modal Keranjang -->
-        <x-modal name="keranjang" title="Tambah ke Keranjang" type="default" size="md">
+        <x-modal name="keranjang" title="Tambah ke Pengajuan" type="default" size="md">
             <p class="text-sm text-center mb-1" style="color:#64748b;">
                 Stok tersedia: <span class="font-semibold" style="color:#10b981;" x-text="selectedItem.stok + ' unit'"></span>
             </p>

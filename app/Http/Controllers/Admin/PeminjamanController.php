@@ -4,98 +4,129 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
+use App\Models\Alat;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 
 class PeminjamanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Load real data from db
-        $peminjaman = Peminjaman::with(['user', 'alat'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
+        // Admin hanya menangani peminjaman MAHASISWA
+        $query = Peminjaman::with(['user', 'alat'])
+            ->whereHas('user', function ($q) {
+                $q->where('role', 'mahasiswa');
+            });
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($user) use ($search) {
+                    $user->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('alat', function ($alat) use ($search) {
+                    $alat->where('nama', 'like', "%{$search}%");
+                })
+                ->orWhere('kode_peminjaman', 'like', "%{$search}%");
+            });
+        }
+
+        $peminjaman = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Stats hanya untuk mahasiswa
+        $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
         $stats = [
-            'total' => Peminjaman::count(),
-            'pending' => Peminjaman::where('status', 'pending')->count(),
-            'aktif' => Peminjaman::where('status', 'dipinjam')->count(),
-            'ditolak' => Peminjaman::where('status', 'ditolak')->count(),
+            'total'   => (clone $mhs)->count(),
+            'pending' => (clone $mhs)->where('status', 'pending')->count(),
+            'aktif'   => (clone $mhs)->where('status', 'dipinjam')->count(),
+            'ditolak' => (clone $mhs)->where('status', 'ditolak')->count(),
         ];
-            
-        return view('admin.peminjaman.index', compact('peminjaman', 'stats'));
+
+        $keperluanOptions = $this->getKeperluanOptions();
+
+        return view('admin.peminjaman.index', compact('peminjaman', 'stats', 'keperluanOptions'));
     }
 
     public function approve($id, TelegramService $telegram)
     {
-        $peminjaman = Peminjaman::findOrFail($id);
-        
+        $peminjaman = Peminjaman::with(['user', 'alat'])->findOrFail($id);
+
+        // Guard: admin hanya approve mahasiswa
+        if ($peminjaman->user->role !== 'mahasiswa') {
+            return redirect()->back()->with('error', 'Admin hanya dapat menyetujui peminjaman mahasiswa.');
+        }
+
+        // Check stock availability before approving
+        $alat = $peminjaman->alat;
+        if ($alat->stok_tersedia < $peminjaman->jumlah) {
+            return redirect()->back()->with('error', 'Stok alat "' . $alat->nama . '" tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
+        }
+
+        // Decrement stock upon approval
+        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+
+        // Admin langsung setujui (sole approver untuk mahasiswa)
         $peminjaman->update([
+            'admin_approved_by' => Auth::id(),
+            'admin_approved_at' => now(),
             'status' => 'dipinjam',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
         ]);
 
-        // Send notif
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
             'alat' => $peminjaman->alat->nama,
             'jumlah' => $peminjaman->jumlah,
             'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
-            'approver_role' => Auth::user()->role === 'kalab' ? 'Kepala Lab' : 'Admin',
+            'approver_role' => 'Admin',
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman disetujui');
+        return redirect()->back()->with('success', 'Peminjaman Mahasiswa disetujui. Status: Dipinjam.');
     }
 
     public function reject(Request $request, $id, TelegramService $telegram)
     {
         $request->validate(['alasan' => 'required|string']);
 
-        $peminjaman = Peminjaman::findOrFail($id);
-        
+        $peminjaman = Peminjaman::with('user')->findOrFail($id);
+
+        // Guard: admin hanya reject mahasiswa
+        if ($peminjaman->user->role !== 'mahasiswa') {
+            return redirect()->back()->with('error', 'Admin hanya dapat menolak peminjaman mahasiswa.');
+        }
+
         $peminjaman->update([
             'status' => 'ditolak',
             'rejected_reason' => $request->alasan,
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'admin_approved_by' => Auth::id(),
+            'admin_approved_at' => now(),
         ]);
 
-        // Restore stok (if logic was deducting early, usually done on approve, but we'll assume it's just rejected)
-        
-        // Send notif
         $telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
             'alat' => $peminjaman->alat->nama,
             'alasan' => $request->alasan,
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman ditolak');
+        return redirect()->back()->with('success', 'Peminjaman Mahasiswa ditolak.');
     }
 
     public function markAsBorrowed($id)
     {
-        $peminjaman = Peminjaman::findOrFail($id);
+        $peminjaman = Peminjaman::with('alat')->findOrFail($id);
         
         if ($peminjaman->status !== 'dipinjam') {
             return redirect()->back()->with('error', 'Peminjaman harus disetujui dahulu.');
         }
 
-        // Check stock
-        if (!$peminjaman->alat->isAvailable($peminjaman->jumlah)) {
-            return redirect()->back()->with('error', 'Stok alat tidak mencukupi saat ini.');
-        }
-
-        // Deduct stock
-        $alat = $peminjaman->alat;
-        $alat->stok_tersedia -= $peminjaman->jumlah;
-        $alat->save();
-
-        $peminjaman->update([
-            'status' => 'dipinjam',
-        ]);
-
-        return redirect()->back()->with('success', 'Status diubah menjadi DIPINJAM. Stok alat dikurangi.');
+        // Stock is already decremented when admin approves.
+        // This method is kept as a fallback confirmation.
+        return redirect()->back()->with('success', 'Status peminjaman sudah DIPINJAM.');
     }
 
     public function approveReturn($id)
@@ -144,5 +175,44 @@ public function rejectReturn($id)
         ->back()
         ->with('success', 'Pengembalian ditolak.');
 }
+
+    // ===================================================
+    // KELOLA KEPERLUAN
+    // ===================================================
+
+    public function addKeperluan(Request $request)
+    {
+        $request->validate([
+            'keperluan' => 'required|string|max:100',
+        ]);
+
+        $options = static::getKeperluanOptions();
+        $newOption = trim($request->keperluan);
+        $sameDay = $request->boolean('same_day');
+
+        // Prevent duplicates
+        if (in_array($newOption, array_column($options, 'name'))) {
+            return redirect()->back()->with('error', 'Keperluan "' . $newOption . '" sudah ada.');
+        }
+
+        $options[] = ['name' => $newOption, 'same_day' => $sameDay];
+        static::saveKeperluanOptions($options);
+
+        $label = $sameDay ? ' (wajib kembali 1 hari)' : '';
+        return redirect()->back()->with('success', 'Keperluan "' . $newOption . '"' . $label . ' berhasil ditambahkan.');
+    }
+
+    public function removeKeperluan(Request $request)
+    {
+        $request->validate([
+            'keperluan' => 'required|string',
+        ]);
+
+        $options = static::getKeperluanOptions();
+        $options = array_values(array_filter($options, fn($o) => $o['name'] !== $request->keperluan));
+        static::saveKeperluanOptions($options);
+
+        return redirect()->back()->with('success', 'Keperluan berhasil dihapus.');
+    }
 
 }

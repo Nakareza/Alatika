@@ -17,6 +17,7 @@ class Alat extends Model
         'lokasi',
         'deskripsi',
         'status',
+        'kondisi',
     ];
 
     /**

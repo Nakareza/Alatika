@@ -50,6 +50,12 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // Flash post-login reminders
+        $request->session()->flash('show_post_login_reminder', true);
+        if ($user->isUsingDefaultPassword()) {
+            $request->session()->flash('using_default_password', true);
+        }
+
         // Redirect based on role
         return $this->redirectBasedOnRole($user);
     }
@@ -85,6 +91,12 @@ class AuthController extends Controller
         // Login the user
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Flash post-login reminders
+        $request->session()->flash('show_post_login_reminder', true);
+        if ($user->isUsingDefaultPassword()) {
+            $request->session()->flash('using_default_password', true);
+        }
 
         // Redirect based on role
         return $this->redirectBasedOnRole($user);

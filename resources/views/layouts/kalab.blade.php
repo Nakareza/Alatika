@@ -229,6 +229,8 @@
 
         </main>
 
+        @stack('modals')
+
         {{-- Footer --}}
         <footer class="bg-white border-t py-5 px-6 lg:px-8 mt-8"
                 style="border-color:#EBF3FD;">
@@ -315,6 +317,8 @@
     <script defer
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
+
+    @include('components.post-login-reminder')
 
     @stack('scripts')
 

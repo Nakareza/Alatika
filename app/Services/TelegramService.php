@@ -39,6 +39,7 @@ class TelegramService
     )->json();
 }
 
+    
     /**
      * Send message with inline keyboard buttons
      */
@@ -99,6 +100,148 @@ class TelegramService
         ]);
     }
 
+    public function setCommandsForChat(
+        string $chatId,
+        array $commands
+    ): array {
+
+        return $this->request('setMyCommands', [
+            'scope' => json_encode([
+                'type' => 'chat',
+                'chat_id' => $chatId,
+            ]),
+            'commands' => json_encode($commands),
+        ]);
+    }
+
+    /**
+     * Set bot commands for guest users (not linked)
+     */
+    public function setCommandsForGuest(string $chatId): array
+    {
+        $commands = [
+            ['command' => 'start', 'description' => 'Mulai bot'],
+            ['command' => 'help', 'description' => 'Bantuan'],
+            ['command' => 'link', 'description' => 'Hubungkan akun'],
+            ['command' => 'myid', 'description' => 'Lihat Chat ID'],
+        ];
+
+        return $this->request('setMyCommands', [
+            'scope' => json_encode([
+                'type' => 'chat',
+                'chat_id' => $chatId,
+            ]),
+            'commands' => json_encode($commands),
+            'language_code' => 'id',
+        ]);
+    }
+
+    /**
+ * Set bot commands menu based on user role
+ */
+public function setCommandsByRole(string $chatId, string $role): array
+{
+    $commands = [];
+
+    if ($role === 'admin') {
+        // Admin commands
+        $commands = [
+            ['command' => 'start', 'description' => 'Mulai bot'],
+            ['command' => 'help', 'description' => 'Bantuan'],
+            ['command' => 'status', 'description' => 'Cek status peminjaman'],
+            ['command' => 'pending', 'description' => 'Lihat pengajuan pending'],
+            ['command' => 'approve', 'description' => 'Setujui peminjaman'],
+            ['command' => 'reject', 'description' => 'Tolak peminjaman'],
+            ['command' => 'kembali', 'description' => 'Ajukan pengembalian'],
+            ['command' => 'link', 'description' => 'Hubungkan akun'],
+            ['command' => 'unlink', 'description' => 'Putuskan akun'],
+            ['command' => 'myid', 'description' => 'Lihat Chat ID'],
+        ];
+    } else {
+        // Mahasiswa/Dosen commands (limited)
+        $commands = [
+            ['command' => 'start', 'description' => 'Mulai bot'],
+            ['command' => 'help', 'description' => 'Bantuan'],
+            ['command' => 'status', 'description' => 'Cek status peminjaman'],
+            ['command' => 'kembali', 'description' => 'Ajukan pengembalian'],
+            ['command' => 'link', 'description' => 'Hubungkan akun'],
+            ['command' => 'unlink', 'description' => 'Putuskan akun'],
+            ['command' => 'myid', 'description' => 'Lihat Chat ID'],
+        ];
+    }
+
+    return $this->request('setMyCommands', [
+        'scope' => json_encode([
+            'type' => 'chat',
+            'chat_id' => $chatId,
+        ]),
+        'commands' => json_encode($commands),
+        'language_code' => 'id',
+    ]);
+}
+
+/**
+ * Set bot commands menu
+ */
+public function setCommands(): array
+{
+    return $this->request('setMyCommands', [
+        'commands' => json_encode([
+            [
+                'command' => 'start',
+                'description' => 'Mulai bot'
+            ],
+            [
+                'command' => 'help',
+                'description' => 'Bantuan'
+            ],
+            [
+                'command' => 'status',
+                'description' => 'Cek status peminjaman'
+            ],
+            [
+                'command' => 'pending',
+                'description' => 'Lihat pengajuan pending'
+            ],
+            [
+                'command' => 'approve',
+                'description' => 'Setujui peminjaman'
+            ],
+            [
+                'command' => 'reject',
+                'description' => 'Tolak peminjaman'
+            ],
+            [
+                'command' => 'kembali',
+                'description' => 'Ajukan pengembalian'
+            ],
+            [
+                'command' => 'link',
+                'description' => 'Hubungkan akun'
+            ],
+            [
+                'command' => 'unlink',
+                'description' => 'Putuskan akun'
+            ],
+            [
+                'command' => 'myid',
+                'description' => 'Lihat Chat ID'
+            ]
+        ])
+    ]);
+}
+
+/**
+ * Tampilkan tombol Menu di Telegram
+ */
+public function setMenuButton(): array
+{
+    return $this->request('setChatMenuButton', [
+        'menu_button' => json_encode([
+            'type' => 'commands'
+        ])
+    ]);
+}
     // ===================================================
     // NOTIFICATION METHODS (Web → Telegram)
     // ===================================================
@@ -352,6 +495,25 @@ class TelegramService
             Log::error("Telegram download error", ['message' => $e->getMessage()]);
             return null;
         }
+    }
+
+
+    public function getMainKeyboard(): array
+    {
+        return [
+            'keyboard' => [
+                [
+                    ['text' => '📊 Status'],
+                    ['text' => '📋 Pending']
+                ],
+                [
+                    ['text' => 'ℹ️ Bantuan'],
+                    ['text' => '🔗 Hubungkan Akun']
+                ]
+            ],
+            'resize_keyboard' => true,
+            'persistent' => true,
+        ];
     }
 
     // ===================================================

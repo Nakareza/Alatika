@@ -129,40 +129,7 @@
             </span>
         </a>
 
-        <!-- Keranjang -->
-        @php $cartCount = \App\Models\Keranjang::where('user_id', auth()->id())->count(); @endphp
 
-        <a href="{{ route('dosen.keranjang') }}"
-           class="group relative flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
-           style="{{ request()->routeIs('dosen.keranjang*') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
-           x-bind:class="collapsed ? 'justify-center' : ''"
-
-           @if(!request()->routeIs('dosen.keranjang*'))
-           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
-           onmouseout="this.style.background='';this.style.color='#64748b';"
-           @endif>
-
-            <i class="fas fa-shopping-cart w-5 text-center"></i>
-
-            <span x-show="!collapsed"
-                  class="text-sm whitespace-nowrap flex-1"
-                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">
-                Keranjang
-            </span>
-
-            @if($cartCount > 0)
-            <span x-show="!collapsed"
-                  class="text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
-                  style="background:#ef4444;">
-                {{ $cartCount }}
-            </span>
-            @endif
-        </a>
-
-        <div x-show="!collapsed"
-             class="my-2"
-             style="border-top:1px solid #EBF3FD;">
-        </div>
 
         <!-- Profil -->
         <a href="{{ route('dosen.profil') }}"
