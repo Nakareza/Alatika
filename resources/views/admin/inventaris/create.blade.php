@@ -119,19 +119,7 @@
                         @enderror
                     </div>
 
-                    {{-- Lokasi --}}
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">
-                            Lokasi Penyimpanan <span class="text-red-500">*</span>
-                        </label>
-
-                        <input
-                            type="text"
-                            name="lokasi"
-                            value="{{ old('lokasi') }}"
-                            placeholder="Rak A1"
-                            class="inp w-full">
-                    </div>
+                    
 
                     {{-- Stok --}}
                     <div>

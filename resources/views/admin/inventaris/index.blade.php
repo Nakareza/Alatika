@@ -83,7 +83,7 @@
                         type="text"
                         name="search"
                         value="{{ request('search') }}"
-                        placeholder="Cari nama alat, kode, lokasi..."
+                        placeholder="Cari nama alat, kode..."
                         class="inp pl-11 w-full">
                 </div>
 
@@ -144,153 +144,184 @@
 
     </div>
 
-    <div class="card overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-[#F5F8FF]">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">No</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Nama Alat</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Kategori</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Kode Barang</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Stok</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Lokasi</th>
-                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                        <th class="text-right px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @forelse($alat as $index => $item)
+    <x-table title="Data Inventaris Alat">
 
-                <tr class="hover:bg-[#F8FBFF] transition">
-                    
-                    <td class="px-6 py-4 text-sm text-slate-500">
-                        {{ $alat->firstItem() + $index }}
-                    </td>
+    <thead class="bg-[#F5F8FF]">
 
-                    <td class="px-6 py-4">
-                        <div class="text-sm font-semibold text-[#1E2B4A]">
-                            {{ $item->nama }}
-                        </div>
-                    </td>
+        <tr>
 
-                    <td class="px-6 py-4 text-sm text-slate-700">
-                        {{ $item->kategori }}
-                    </td>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-500">
+                No
+            </th>
 
-                    <td class="px-6 py-4 text-sm text-slate-700">
-                        {{ $item->kode }}
-                    </td>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                Nama Alat
+            </th>
 
-                    <td class="px-6 py-4">
-                        <div class="flex flex-col">
-                            <span class="font-semibold text-[#1E2B4A]">
-                                {{ $item->stok_tersedia }}/{{ $item->stok_total }}
-                            </span>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                Kategori
+            </th>
 
-                            <span class="text-xs text-slate-400">
-                                tersedia / total
-                            </span>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                Kode Barang
+            </th>
 
-                            @php
-                                $dipinjamCount = $item->stok_total - $item->stok_tersedia;
-                                $borrowers = $activePeminjaman[$item->id] ?? collect();
-                            @endphp
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                Stok
+            </th>
 
-                            @if($dipinjamCount > 0)
-                                <span class="text-xs font-semibold mt-1" style="color:#6366f1;">
-                                    <i class="fas fa-hand-holding text-[10px]"></i>
-                                    {{ $dipinjamCount }} dipinjam
-                                </span>
-                            @endif
-                        </div>
-                    </td>
+            
 
-                    <td class="px-6 py-4 text-sm text-slate-700">
-                        {{ $item->lokasi ?? '-' }}
-                    </td>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
+                Status
+            </th>
 
-                    <td class="px-6 py-4">
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-slate-500">
+                Aksi
+            </th>
 
-                        @if($item->status === 'tersedia')
+        </tr>
 
-                            <span class="badge badge-success">
-                                Tersedia
-                            </span>
+    </thead>
 
-                        @elseif($item->status === 'maintenance')
+    <tbody class="divide-y divide-[#EBF3FD]">
 
-                            <span class="badge badge-warning">
-                                Maintenance
-                            </span>
+        @forelse($alat as $index => $item)
 
-                        @else
+        <tr class="hover:bg-[#F8FBFF] transition">
 
-                            <span class="badge badge-info">
-                                {{ ucfirst($item->status) }}
-                            </span>
+            <td class="px-6 py-5 text-sm text-slate-500">
+                {{ $alat->firstItem() + $index }}
+            </td>
 
-                        @endif
+            <td class="px-6 py-5">
 
-                        {{-- Show borrowing info --}}
-                        @php
-                            $borrowers = $activePeminjaman[$item->id] ?? collect();
-                        @endphp
-                        @if($borrowers->isNotEmpty())
-                            <div class="mt-2">
-                                <button
-                                    type="button"
-                                    onclick="window.dispatchEvent(new CustomEvent('open-modal-borrowers-{{ $item->id }}'))"
-                                    class="text-xs font-semibold px-2 py-1 rounded-lg transition"
-                                    style="background:#eef2ff;color:#6366f1;"
-                                    onmouseover="this.style.background='#e0e7ff'"
-                                    onmouseout="this.style.background='#eef2ff'">
-                                    <i class="fas fa-users text-[10px]"></i>
-                                    {{ $borrowers->count() }} peminjam
-                                </button>
-                            </div>
-                        @endif
+                <div class="font-semibold text-[#1E2B4A]">
+                    {{ $item->nama }}
+                </div>
 
-                    </td>
+            </td>
 
-                    <td class="px-6 py-4 text-right">
+            <td class="px-6 py-5 text-sm text-slate-700">
+                {{ $item->kategori }}
+            </td>
 
-                        <div class="flex justify-end gap-2">
+            <td class="px-6 py-5 text-sm text-slate-700">
+                {{ $item->kode }}
+            </td>
 
-                            <button
-                                type="button"
-                                onclick="window.dispatchEvent(new CustomEvent('open-modal-alat-{{ $item->id }}'))"
-                                class="w-10 h-10 rounded-xl bg-[#EBF3FD] text-[#185FA5] hover:bg-[#DDEEFF] transition flex items-center justify-center">
+            <td class="px-6 py-5">
 
-                                <i class="fas fa-eye"></i>
-                            </button>
+                <div class="flex flex-col">
 
-                            <a href="{{ route('admin.alat.edit', $item->id) }}"
-                            class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center justify-center">
+                    <span class="font-semibold text-[#1E2B4A]">
+                        {{ $item->stok_tersedia }}/{{ $item->stok_total }}
+                    </span>
 
-                                <i class="fas fa-pen"></i>
-                            </a>
+                    <span class="text-xs text-slate-400">
+                        tersedia / total
+                    </span>
 
-                        </div>
+                </div>
 
-                    </td>
+            </td>
 
-                </tr>
+            
 
-                @empty
+            <td class="px-6 py-5">
 
-                <tr>
-                    <td colspan="8" class="text-center py-10 text-slate-500">
+                @if($item->status === 'tersedia')
+
+                    <span class="badge badge-success">
+                        Tersedia
+                    </span>
+
+                @elseif($item->status === 'maintenance')
+
+                    <span class="badge badge-warning">
+                        Maintenance
+                    </span>
+
+                @else
+
+                    <span class="badge badge-info">
+                        {{ ucfirst($item->status) }}
+                    </span>
+
+                @endif
+
+            </td>
+
+            <td class="px-6 py-5">
+
+                <div class="flex justify-end gap-2">
+
+                    <button
+                        type="button"
+                        onclick="window.dispatchEvent(new CustomEvent('open-modal-alat-{{ $item->id }}'))"
+                        class="w-10 h-10 rounded-xl bg-[#EBF3FD] text-[#185FA5] hover:bg-[#DDEEFF] transition flex items-center justify-center">
+
+                        <i class="fas fa-eye"></i>
+
+                    </button>
+
+                    <a
+                        href="{{ route('admin.alat.edit', $item->id) }}"
+                        class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center justify-center">
+
+                        <i class="fas fa-pen"></i>
+
+                    </a>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+        @empty
+
+        <tr>
+
+            <td colspan="8" class="py-12 text-center">
+
+                <div class="flex flex-col items-center gap-2">
+
+                    <div class="w-14 h-14 rounded-full bg-[#EBF3FD] flex items-center justify-center">
+
+                        <i class="fas fa-box-open text-2xl text-[#378ADD]"></i>
+
+                    </div>
+
+                    <p class="font-semibold text-[#1E2B4A]">
                         Tidak ada data alat
-                    </td>
-                </tr>
+                    </p>
 
-                @endforelse
+                    <p class="text-sm text-slate-500">
+                        Belum ada inventaris yang tersedia.
+                    </p>
 
-                </tbody>
-            </table>
-        </div>
+                </div>
+
+            </td>
+
+        </tr>
+
+        @endforelse
+
+    </tbody>
+
+</x-table>
+
+@if($alat->hasPages())
+
+    <div class="mt-6">
+
+        <x-pagination :data="$alat" />
+
     </div>
+
+@endif
 
     <div x-show="viewMode === 'grid'" x-transition class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         @forelse($alat as $item)
@@ -368,9 +399,6 @@
     @endforelse
     </div>
 
-    <div class="pt-2">
-        {{ $alat->links() }}
-    </div>
 
 </div>
 
@@ -400,10 +428,7 @@
                 <p>{{ $item->kategori }}</p>
             </div>
 
-            <div>
-                <p class="text-xs text-slate-500">Lokasi</p>
-                <p>{{ $item->lokasi ?? '-' }}</p>
-            </div>
+            
 
             <div>
                 <p class="text-xs text-slate-500">Stok Tersedia</p>

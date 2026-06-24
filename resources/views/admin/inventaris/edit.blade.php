@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Alat')
+@section('title', 'Edit Inventaris')
 
 @section('content')
 
@@ -9,11 +9,11 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h2 class="text-2xl font-bold text-[#1E2B4A]">
-                Edit Alat
+                Edit Inventaris
             </h2>
 
             <p class="text-slate-500 mt-1">
-                Tambahkan data alat laboratorium baru
+                Perbarui data alat laboratorium
             </p>
         </div>
 
@@ -65,17 +65,7 @@
                         class="inp w-full">
                 </div>
 
-                <div>
-                    <label class="block text-sm mb-2">
-                        Lokasi
-                    </label>
-
-                    <input
-                        type="text"
-                        name="lokasi"
-                        value="{{ old('lokasi', $alat->lokasi) }}"
-                        class="inp w-full">
-                </div>
+                
 
                 <div>
                     <label class="block text-sm mb-2">
