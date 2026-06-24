@@ -47,7 +47,7 @@ class PeminjamanController extends Controller
         $kategori = $alat->groupBy('kategori')->keys();
 
         // Load keperluan options from config
-        $keperluanOptions = $this->getKeperluanOptions();
+        $keperluanOptions = static::getKeperluanOptions();
 
         return view('dosen.peminjaman.ajukan', compact('pengajuan', 'alat', 'kategori', 'keperluanOptions'));
     }
@@ -128,13 +128,4 @@ class PeminjamanController extends Controller
             );
     }
 
-    private function getKeperluanOptions(): array
-    {
-        $path = storage_path('app/keperluan.json');
-        if (!file_exists($path)) {
-            return ['Penelitian', 'Tugas Harian', 'Pengabdian', 'Praktikum', 'Perkuliahan'];
-        }
-        $data = json_decode(file_get_contents($path), true);
-        return is_array($data) ? $data : [];
-    }
 }

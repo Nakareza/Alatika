@@ -178,9 +178,13 @@
                                     style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
                                 <option value="">-- Pilih Keperluan --</option>
                                 @foreach($keperluanOptions as $option)
-                                    <option value="{{ $option }}">{{ $option }}</option>
+                                    <option value="{{ $option['name'] }}" data-same-day="{{ $option['same_day'] ? '1' : '0' }}">{{ $option['name'] }}</option>
                                 @endforeach
                             </select>
+                            <p x-show="isSameDay" x-cloak class="text-xs mt-1.5 flex items-center gap-1" style="color:#92400E;">
+                                <i class="fas fa-clock text-[10px]"></i>
+                                <span>Keperluan ini wajib dikembalikan dalam 1 hari (hari yang sama).</span>
+                            </p>
                         </div>
 
                         <div>
@@ -189,9 +193,9 @@
                                    min="{{ date('Y-m-d') }}" class="inp" required>
                         </div>
 
-                        <div x-show="keperluan && keperluan !== 'Tugas Harian'" x-transition>
+                        <div x-show="!isSameDay" x-transition>
                             <label class="form-label">Tanggal Kembali <span class="text-red-500">*</span></label>
-                            <input type="date" x-model="tanggalKembali" :min="tanggalPinjam" class="inp" :required="keperluan && keperluan !== 'Tugas Harian'">
+                            <input type="date" x-model="tanggalKembali" :min="tanggalPinjam" class="inp" :required="!isSameDay">
                         </div>
                     </div>
                 </div>
@@ -280,6 +284,11 @@
             tanggalKembali: '{{ date('Y-m-d') }}',
             keperluan: '',
             errorMsg: '',
+            keperluanMap: @json(collect($keperluanOptions)->mapWithKeys(fn($o) => [$o['name'] => $o['same_day']])),
+
+            get isSameDay() {
+                return this.keperluanMap[this.keperluan] === true;
+            },
 
             get totalUnit() {
                 return this.barangList.reduce((sum, i) => sum + i.jumlah, 0);
@@ -309,8 +318,7 @@
                     e.target.value = '';
                 } else {
                     this.errorMsg = '';
-                    // Jika Tugas Harian, otomatis samakan tanggal kembali dengan tanggal pinjam
-                    if (this.keperluan === 'Tugas Harian') {
+                    if (this.isSameDay) {
                         this.tanggalKembali = this.tanggalPinjam;
                     }
                 }
@@ -318,8 +326,7 @@
 
             onKeperluanChange() {
                 this.errorMsg = '';
-                // Jika user ganti ke Tugas Harian, otomatis set tanggal kembali = tanggal pinjam
-                if (this.keperluan === 'Tugas Harian') {
+                if (this.isSameDay) {
                     this.tanggalKembali = this.tanggalPinjam;
                 }
             },
@@ -351,9 +358,8 @@
                 if (!this.tanggalPinjam) { this.errorMsg = 'Tanggal pinjam harus diisi.'; return; }
                 if (!this.keperluan) { this.errorMsg = 'Keperluan harus diisi.'; return; }
 
-                // LOGIKA VALIDASI
-                if (this.keperluan === 'Tugas Harian') {
-                    this.tanggalKembali = this.tanggalPinjam; // Memastikan dipinjam hanya sehari
+                if (this.isSameDay) {
+                    this.tanggalKembali = this.tanggalPinjam;
                 } else {
                     if (!this.tanggalKembali) { this.errorMsg = 'Tanggal kembali harus diisi.'; return; }
                     if (new Date(this.tanggalKembali) < new Date(this.tanggalPinjam)) {

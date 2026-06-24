@@ -80,7 +80,7 @@ class PeminjamanController extends Controller
                 $q->where('role', 'dosen');
             })
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
             
         return view('kalab.riwayat.index', compact('peminjaman'));
     }
@@ -130,7 +130,7 @@ class PeminjamanController extends Controller
             $updateData['keperluan'] = $newKeperluan;
 
             // Add new keperluan to the global list if it doesn't exist
-            $this->addKeperluanIfNew($newKeperluan);
+            static::addKeperluanIfNew($newKeperluan);
         }
 
         $peminjaman->update($updateData);
@@ -228,23 +228,4 @@ class PeminjamanController extends Controller
         return redirect()->back()->with($failedMessages ? 'error' : 'success', $message);
     }
 
-    /**
-     * Add a new keperluan to the global JSON list if it doesn't already exist.
-     */
-    private function addKeperluanIfNew(string $keperluan): void
-    {
-        $path = storage_path('app/keperluan.json');
-        $list = [];
-
-        if (file_exists($path)) {
-            $list = json_decode(file_get_contents($path), true) ?? [];
-        }
-
-        $normalized = trim($keperluan);
-
-        if ($normalized !== '' && !in_array($normalized, $list, true)) {
-            $list[] = $normalized;
-            file_put_contents($path, json_encode($list, JSON_UNESCAPED_UNICODE));
-        }
-    }
 }

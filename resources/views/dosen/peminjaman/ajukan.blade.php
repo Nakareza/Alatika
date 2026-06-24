@@ -181,10 +181,14 @@
                                    autocomplete="off">
                             <datalist id="keperluan-list">
                                 @foreach($keperluanOptions as $option)
-                                    <option value="{{ $option }}">{{ $option }}</option>
+                                    <option value="{{ $option['name'] }}">{{ $option['name'] }}</option>
                                 @endforeach
                             </datalist>
-                            <p class="text-xs mt-1.5" style="color:#94a3b8;">
+                            <p x-show="isSameDay" x-cloak class="text-xs mt-1.5 flex items-center gap-1" style="color:#92400E;">
+                                <i class="fas fa-clock text-[10px]"></i>
+                                <span>Keperluan ini wajib dikembalikan dalam 1 hari (hari yang sama).</span>
+                            </p>
+                            <p x-show="!isSameDay" class="text-xs mt-1.5" style="color:#94a3b8;">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 Ketik keperluan baru atau pilih dari saran di atas. Keperluan akan ditinjau oleh Kepala Lab.
                             </p>
@@ -205,7 +209,7 @@
                                 required>
                         </div>
 
-                        <div>
+                        <div x-show="!isSameDay" x-transition>
                             <label class="form-label">
                                 Tanggal Kembali
                                 <span class="text-red-500">*</span>
@@ -216,7 +220,7 @@
                                 x-model="tanggalKembali"
                                 :min="tanggalPinjam"
                                 class="inp"
-                                required>
+                                :required="!isSameDay">
                         </div>
                     </div>
                 </div>
@@ -305,6 +309,11 @@
             tanggalKembali: '{{ date('Y-m-d') }}',
             keperluan: '',
             errorMsg: '',
+            keperluanMap: @json(collect($keperluanOptions)->mapWithKeys(fn($o) => [$o['name'] => $o['same_day']])),
+
+            get isSameDay() {
+                return this.keperluanMap[this.keperluan] === true;
+            },
 
             get totalUnit() {
                 return this.barangList.reduce((sum, i) => sum + i.jumlah, 0);
@@ -324,27 +333,29 @@
                 this.pilihan.jumlah   = 1;
             },
 
-            filterWeekend(e)
-            {
+            filterWeekend(e) {
                 const date = new Date(e.target.value);
                 const day = date.getUTCDay();
 
-                if(day === 0 || day === 6)
-                {
+                if (day === 0 || day === 6) {
                     this.errorMsg =
                         'Peminjaman tidak tersedia di hari Sabtu dan Minggu.';
 
                     this.tanggalPinjam = '';
                     e.target.value = '';
-                }
-                else
-                {
+                } else {
                     this.errorMsg = '';
+                    if (this.isSameDay) {
+                        this.tanggalKembali = this.tanggalPinjam;
+                    }
                 }
             },
 
             onKeperluanChange() {
                 this.errorMsg = '';
+                if (this.isSameDay) {
+                    this.tanggalKembali = this.tanggalPinjam;
+                }
             },
 
             tambahBarang() {
@@ -374,22 +385,19 @@
                 if (!this.tanggalPinjam) { this.errorMsg = 'Tanggal pinjam harus diisi.'; return; }
                 if (!this.keperluan) { this.errorMsg = 'Keperluan harus diisi.'; return; }
 
-                if(!this.tanggalKembali)
-                {
-                    this.errorMsg =
-                        'Tanggal kembali harus diisi.';
-                    return;
-                }
+                if (this.isSameDay) {
+                    this.tanggalKembali = this.tanggalPinjam;
+                } else {
+                    if (!this.tanggalKembali) {
+                        this.errorMsg = 'Tanggal kembali harus diisi.';
+                        return;
+                    }
 
-                if(
-                    new Date(this.tanggalKembali)
-                    <
-                    new Date(this.tanggalPinjam)
-                )
-                {
-                    this.errorMsg =
-                        'Tanggal kembali tidak boleh kurang dari tanggal pinjam.';
-                    return;
+                    if (new Date(this.tanggalKembali) < new Date(this.tanggalPinjam)) {
+                        this.errorMsg =
+                            'Tanggal kembali tidak boleh kurang dari tanggal pinjam.';
+                        return;
+                    }
                 }
 
                 const container = document.getElementById('hiddenInputs');

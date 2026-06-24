@@ -69,10 +69,15 @@
             @forelse($keperluanOptions as $option)
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
                  style="background:#EBF3FD;color:#185FA5;">
-                <span>{{ $option }}</span>
-                <form action="{{ route('admin.peminjaman.keperluan.remove') }}" method="POST" class="inline" onsubmit="return confirm('Hapus keperluan \"{{ $option }}\"?')">
+                <span>{{ $option['name'] }}</span>
+                @if($option['same_day'])
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:#FEF3C7;color:#92400E;">
+                    <i class="fas fa-clock text-[9px]"></i> 1 Hari
+                </span>
+                @endif
+                <form action="{{ route('admin.peminjaman.keperluan.remove') }}" method="POST" class="inline" onsubmit="return confirm('Hapus keperluan \"{{ $option['name'] }}\"?')">
                     @csrf
-                    <input type="hidden" name="keperluan" value="{{ $option }}">
+                    <input type="hidden" name="keperluan" value="{{ $option['name'] }}">
                     <button type="submit" class="text-red-400 hover:text-red-600 transition">
                         <i class="fas fa-times text-[10px]"></i>
                     </button>
@@ -84,17 +89,24 @@
         </div>
 
         {{-- Add New Option --}}
-        <form action="{{ route('admin.peminjaman.keperluan.add') }}" method="POST" class="flex gap-2">
+        <form action="{{ route('admin.peminjaman.keperluan.add') }}" method="POST" class="flex flex-col gap-2">
             @csrf
-            <input type="text" name="keperluan" placeholder="Tambah keperluan baru..."
-                   class="inp flex-1" maxlength="100" required>
-            <button type="submit"
-                    class="px-4 py-2 rounded-xl text-white text-sm font-semibold transition"
-                    style="background:#185FA5;"
-                    onmouseover="this.style.background='#1E2B4A'"
-                    onmouseout="this.style.background='#185FA5'">
-                <i class="fas fa-plus mr-1"></i> Tambah
-            </button>
+            <div class="flex gap-2">
+                <input type="text" name="keperluan" placeholder="Tambah keperluan baru..."
+                       class="inp flex-1" maxlength="100" required>
+                <button type="submit"
+                        class="px-4 py-2 rounded-xl text-white text-sm font-semibold transition"
+                        style="background:#185FA5;"
+                        onmouseover="this.style.background='#1E2B4A'"
+                        onmouseout="this.style.background='#185FA5'">
+                    <i class="fas fa-plus mr-1"></i> Tambah
+                </button>
+            </div>
+            <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:#64748b;">
+                <input type="checkbox" name="same_day" value="1"
+                       class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                <span>Wajib kembali dalam 1 hari (contoh: Praktikum, Tugas Harian, Perkuliahan)</span>
+            </label>
         </form>
     </div>
 
