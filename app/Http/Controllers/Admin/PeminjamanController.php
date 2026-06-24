@@ -37,7 +37,7 @@ class PeminjamanController extends Controller
             });
         }
 
-        $peminjaman = $query->orderBy('created_at', 'desc')->get();
+        $peminjaman = $query->orderBy('created_at', 'desc')->paginate(10);
 
         // Stats hanya untuk mahasiswa
         $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
@@ -180,39 +180,26 @@ public function rejectReturn($id)
     // KELOLA KEPERLUAN
     // ===================================================
 
-    private function getKeperluanOptions(): array
-    {
-        $path = storage_path('app/keperluan.json');
-
-        if (!file_exists($path)) {
-            $default = ['Penelitian', 'Tugas Harian', 'Pengabdian', 'Praktikum', 'Perkuliahan'];
-            file_put_contents($path, json_encode($default));
-            return $default;
-        }
-
-        $data = json_decode(file_get_contents($path), true);
-
-        return is_array($data) ? $data : [];
-    }
-
     public function addKeperluan(Request $request)
     {
         $request->validate([
             'keperluan' => 'required|string|max:100',
         ]);
 
-        $options = $this->getKeperluanOptions();
+        $options = static::getKeperluanOptions();
         $newOption = trim($request->keperluan);
+        $sameDay = $request->boolean('same_day');
 
         // Prevent duplicates
-        if (in_array($newOption, $options)) {
+        if (in_array($newOption, array_column($options, 'name'))) {
             return redirect()->back()->with('error', 'Keperluan "' . $newOption . '" sudah ada.');
         }
 
-        $options[] = $newOption;
-        file_put_contents(storage_path('app/keperluan.json'), json_encode($options));
+        $options[] = ['name' => $newOption, 'same_day' => $sameDay];
+        static::saveKeperluanOptions($options);
 
-        return redirect()->back()->with('success', 'Keperluan "' . $newOption . '" berhasil ditambahkan.');
+        $label = $sameDay ? ' (wajib kembali 1 hari)' : '';
+        return redirect()->back()->with('success', 'Keperluan "' . $newOption . '"' . $label . ' berhasil ditambahkan.');
     }
 
     public function removeKeperluan(Request $request)
@@ -221,9 +208,9 @@ public function rejectReturn($id)
             'keperluan' => 'required|string',
         ]);
 
-        $options = $this->getKeperluanOptions();
-        $options = array_values(array_filter($options, fn($o) => $o !== $request->keperluan));
-        file_put_contents(storage_path('app/keperluan.json'), json_encode($options));
+        $options = static::getKeperluanOptions();
+        $options = array_values(array_filter($options, fn($o) => $o['name'] !== $request->keperluan));
+        static::saveKeperluanOptions($options);
 
         return redirect()->back()->with('success', 'Keperluan berhasil dihapus.');
     }
