@@ -10,7 +10,8 @@ class AlatController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Alat::query();
+        // Hanya menampilkan alat Prodi D3 TI / D4 TRK
+        $query = Alat::where('program_studi', 'D3 TI / D4 TRK');
 
         // Filter kategori
         if ($request->filled('kategori')) {
@@ -41,24 +42,23 @@ class AlatController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Statistik
+        // Statistik (hanya alat Prodi TI/TRK)
+        $prodiQuery = Alat::where('program_studi', 'D3 TI / D4 TRK');
+        $totalStok = (clone $prodiQuery)->sum('stok_total');
+        $totalTersedia = (clone $prodiQuery)->sum('stok_tersedia');
+        $totalMaintenance = (clone $prodiQuery)->sum('stok_maintenance');
+        $totalDipinjam = max(0, $totalStok - $totalTersedia - $totalMaintenance);
+
         $stats = [
-            'total' => Alat::count(),
-
-            'tersedia' => Alat::where('stok_tersedia', '>', 0)
-                ->where('status', 'tersedia')
-                ->count(),
-
-            'dipinjam' => \App\Models\Peminjaman::where('status', 'dipinjam')
-                ->whereHas('user', fn($q) => $q->where('role', 'dosen'))
-                ->sum('jumlah'),
-
-            'maintenance' => Alat::where('status', 'maintenance')
-                ->count(),
+            'total' => $totalStok,
+            'tersedia' => $totalTersedia,
+            'dipinjam' => $totalDipinjam,
+            'maintenance' => $totalMaintenance,
         ];
 
-        // Ambil list kategori unik untuk dropdown
+        // Ambil list kategori unik untuk dropdown (hanya dari Prodi TI/TRK)
         $kategoriOptions = Alat::query()
+            ->where('program_studi', 'D3 TI / D4 TRK')
             ->whereNotNull('kategori')
             ->distinct()
             ->pluck('kategori')
@@ -67,6 +67,37 @@ class AlatController extends Controller
         return view(
             'kalab.alat.index',
             compact('alat', 'stats', 'kategoriOptions')
+        );
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kode' => 'required|string|max:100|unique:alat,kode',
+            'kategori' => 'required|string|max:100',
+            'tahun_pengadaan' => 'nullable|integer|min:1900|max:' . (date('Y') + 5),
+            'stok_total' => 'required|integer|min:1',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        Alat::create([
+            'nama' => $request->nama,
+            'kode' => $request->kode,
+            'kategori' => $request->kategori,
+            'tahun_pengadaan' => $request->tahun_pengadaan,
+            'stok_total' => $request->stok_total,
+            'stok_tersedia' => $request->stok_total,
+            'stok_maintenance' => 0,
+            'status' => 'tersedia',
+            'deskripsi' => $request->deskripsi,
+            'kondisi' => 'baik',
+            'program_studi' => 'D3 TI / D4 TRK', // Automatically set to special tools
+        ]);
+
+        return back()->with(
+            'success',
+            'Data inventaris alat khusus berhasil ditambahkan.'
         );
     }
 
@@ -92,5 +123,25 @@ class AlatController extends Controller
             'success',
             'Data inventaris berhasil diperbarui.'
         );
+    }
+
+    public function destroy(Alat $alat)
+    {
+        // Prevent deletion if alat has active (dipinjam) peminjaman
+        $activeCount = \App\Models\Peminjaman::where('alat_id', $alat->id)
+            ->where('status', 'dipinjam')
+            ->count();
+
+        if ($activeCount > 0) {
+            return back()->with('error', 'Alat tidak dapat dihapus karena sedang dipinjam (' . $activeCount . ' peminjaman aktif).');
+        }
+
+        // Clean up waitlists
+        \App\Models\Waitlist::where('alat_id', $alat->id)->delete();
+
+        // Delete the alat
+        $alat->delete();
+
+        return back()->with('success', 'Alat "' . $alat->nama . '" berhasil dihapus.');
     }
 }

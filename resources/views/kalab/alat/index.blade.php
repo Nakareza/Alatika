@@ -4,7 +4,54 @@
 
 @section('content')
 
-        {{-- Alert --}}
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold mb-1" style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;">
+                Data Alat Khusus
+            </h2>
+            <p class="text-sm mt-1 text-slate-500">
+                Kelola data alat khusus yang dapat dipinjam oleh mahasiswa prodi D3 TI / D4 TRK
+            </p>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button type="button"
+                    onclick="window.dispatchEvent(new CustomEvent('open-modal-create-alat'))"
+                    class="btn btn-primary flex items-center justify-center gap-2 flex-1 sm:flex-none">
+                <i class="fas fa-plus-circle text-xs"></i>
+                <span>Tambah Alat Khusus</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Error Alert --}}
+    @if($errors->any())
+        <div class="mb-6 card p-4 border-l-4 border-red-500">
+            <div class="flex flex-col gap-1">
+                @foreach($errors->all() as $error)
+                    <div class="flex items-center gap-2 text-red-600 text-sm">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>{{ $error }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="mb-6 card p-4 border-l-4 border-red-500">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-exclamation-circle text-red-600"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-red-700 text-sm">Error</h4>
+                    <p class="text-sm text-red-600">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Alert --}}
     @if(session('success'))
 
         <div class="mb-6 card p-4 border-l-4 border-green-500">
@@ -311,6 +358,18 @@
 
                         </button>
 
+                        {{-- Hapus --}}
+                        <form action="{{ route('kalab.alat.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus alat ini?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="submit"
+                                class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition flex items-center justify-center"
+                                title="Hapus Alat">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+
                     </div>
 
                 </td>
@@ -591,5 +650,114 @@
 @endpush
 @endforeach
 
+@push('modals')
+<x-modal
+    name="create-alat"
+    title="Tambah Alat Khusus"
+    size="lg">
+
+    <form
+        action="{{ route('kalab.alat.store') }}"
+        method="POST"
+        id="form-create-alat"
+        class="space-y-4">
+
+        @csrf
+
+        <div>
+            <label class="text-sm font-medium">
+                Nama Alat <span class="text-red-500">*</span>
+            </label>
+            <input
+                type="text"
+                name="nama"
+                required
+                placeholder="Contoh: Arduino Uno R3"
+                class="inp w-full">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-sm font-medium">
+                    Kode Barang <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    name="kode"
+                    required
+                    placeholder="Contoh: ARD-001"
+                    class="inp w-full">
+            </div>
+
+            <div>
+                <label class="text-sm font-medium">
+                    Kategori <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    name="kategori"
+                    required
+                    placeholder="Contoh: Mikrokontroler"
+                    class="inp w-full">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-sm font-medium">
+                    Stok Total <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="number"
+                    name="stok_total"
+                    required
+                    min="1"
+                    value="1"
+                    class="inp w-full">
+            </div>
+
+            <div>
+                <label class="text-sm font-medium">
+                    Tahun Pengadaan
+                </label>
+                <input
+                    type="number"
+                    name="tahun_pengadaan"
+                    placeholder="Contoh: {{ date('Y') }}"
+                    class="inp w-full">
+            </div>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">
+                Deskripsi
+            </label>
+            <textarea
+                name="deskripsi"
+                rows="3"
+                placeholder="Deskripsi singkat alat..."
+                class="inp w-full"></textarea>
+        </div>
+
+        <x-slot:footer>
+            <button
+                type="button"
+                onclick="window.dispatchEvent(new CustomEvent('close-modal-create-alat'))"
+                class="flex-1 py-3 rounded-xl bg-slate-100">
+                Batal
+            </button>
+
+            <button
+                type="submit"
+                form="form-create-alat"
+                class="flex-1 btn btn-primary">
+                Tambah Alat
+            </button>
+        </x-slot>
+
+    </form>
+
+</x-modal>
+@endpush
 
 @endsection

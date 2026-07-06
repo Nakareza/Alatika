@@ -12,11 +12,10 @@ class AlatController extends Controller
 {
     public function index()
     {
-        // TODO: Untuk sementara data alat dosen dikosongkan karena belum ada
-        // data dari dosen pembimbing. Data alat saat ini masih menggunakan
-        // data admin (shared pool). Nantinya akan diisi dengan alat yang
-        // spesifik dimiliki/dikelola oleh dosen yang bersangkutan.
-        $alat = collect();
+        // Menampilkan alat Prodi D3 TI / D4 TRK yang dapat dipinjam oleh Dosen
+        $alat = Alat::where('program_studi', 'D3 TI / D4 TRK')
+            ->orderBy('nama', 'asc')
+            ->get();
         
         $cartCount = Keranjang::where('user_id', auth()->id())->count();
             

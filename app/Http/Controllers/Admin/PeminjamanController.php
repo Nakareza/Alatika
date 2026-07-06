@@ -68,15 +68,50 @@ class PeminjamanController extends Controller
             return redirect()->back()->with('error', 'Stok alat "' . $alat->nama . '" tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
         }
 
-        // Decrement stock upon approval
-        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
-
-        // Admin langsung setujui (sole approver untuk mahasiswa)
-        $peminjaman->update([
+        $updateData = [
             'admin_approved_by' => Auth::id(),
             'admin_approved_at' => now(),
-            'status' => 'dipinjam',
-        ]);
+        ];
+
+        // Double approval for student special tools (program_studi !== null)
+        if ($alat->program_studi !== null) {
+            $peminjaman->update($updateData);
+
+            if ($peminjaman->kalab_approved_by !== null) {
+                // Decrement stock upon final approval
+                $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+                $peminjaman->update(['status' => 'dipinjam']);
+
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $peminjaman->alat->nama,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => 'Admin dan Kepala Lab',
+                ]);
+
+                return redirect()->back()->with('success', 'Peminjaman Mahasiswa disetujui. Status: Dipinjam (Disetujui oleh Admin & Kepala Lab).');
+            } else {
+                // Notify Kalab
+                $kalabs = User::where('role', 'kalab')->whereNotNull('telegram_chat_id')->get();
+                foreach ($kalabs as $kalab) {
+                    $telegram->notifyNewRequest($kalab, [
+                        'peminjam_nama' => $peminjaman->user->name,
+                        'peminjam_role' => 'mahasiswa',
+                        'alat' => $alat->nama . ' (Alat Khusus - Butuh Kalab)',
+                        'jumlah' => $peminjaman->jumlah,
+                        'kode' => $peminjaman->kode_peminjaman,
+                    ]);
+                }
+                return redirect()->back()->with('success', 'Peminjaman disetujui oleh Admin. Menunggu persetujuan Kepala Lab.');
+            }
+        }
+
+        // Standard single approval (decrements stock immediately)
+        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+
+        $updateData['status'] = 'dipinjam';
+        $peminjaman->update($updateData);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,

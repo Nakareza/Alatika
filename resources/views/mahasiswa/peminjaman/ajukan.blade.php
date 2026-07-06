@@ -12,7 +12,19 @@
     </div>
     @endif
 
-    <form action="{{ route('mahasiswa.peminjaman.store') }}" method="POST" @submit.prevent="submitForm">
+    @if($errors->any())
+    <div class="mb-6 rounded-xl p-4 text-sm space-y-1"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        @foreach($errors->all() as $error)
+            <div class="flex items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ $error }}</span>
+            </div>
+        @endforeach
+    </div>
+    @endif
+
+    <form action="{{ route('mahasiswa.peminjaman.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm">
         @csrf
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="peminjamanForm()">
@@ -47,10 +59,10 @@
                                 <template x-for="item in alatOptions" :key="item.id">
                                     <option :value="item.id"
                                             :data-nama="item.nama"
-                                            :data-stok="item.stok_tersedia"
+                                            :data-stok="getDynamicStok(item)"
                                             :data-kode="item.kode"
-                                            :disabled="item.stok_tersedia < 1"
-                                            x-text="`${item.nama} — Stok: ${item.stok_tersedia}`">
+                                            :disabled="getDynamicStok(item) < 1"
+                                            x-text="`${item.nama} — Stok: ${getDynamicStok(item)}`">
                                     </option>
                                 </template>
                             </select>
@@ -197,6 +209,16 @@
                             <label class="form-label">Tanggal Kembali <span class="text-red-500">*</span></label>
                             <input type="date" x-model="tanggalKembali" :min="tanggalPinjam" class="inp" :required="!isSameDay">
                         </div>
+
+                        {{-- Surat Keterangan (Only shown and required for special tools / Alat Khusus) --}}
+                        <div x-show="hasKhususItem" x-transition x-cloak>
+                            <label class="form-label">Surat Keterangan <span class="text-red-500">*</span></label>
+                            <input type="file" name="surat_keterangan" id="suratKeteranganInput" class="inp w-full" :required="hasKhususItem" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <p class="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
+                                <i class="fas fa-exclamation-triangle text-[10px]"></i>
+                                <span>Pengajuan memuat Alat Khusus. Wajib melampirkan Surat Keterangan (PDF/JPG/PNG).</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -268,10 +290,11 @@
         const alatData = @json($alat);
         const alatByKategori = {};
         alatData.forEach(item => {
-            if (!alatByKategori[item.kategori]) {
-                alatByKategori[item.kategori] = [];
+            const kat = item.program_studi !== null ? 'Alat Khusus' : item.kategori;
+            if (!alatByKategori[kat]) {
+                alatByKategori[kat] = [];
             }
-            alatByKategori[item.kategori].push(item);
+            alatByKategori[kat].push(item);
         });
 
         return {
@@ -290,8 +313,22 @@
                 return this.keperluanMap[this.keperluan] === true;
             },
 
+            get hasKhususItem() {
+                return this.barangList.some(item => {
+                    const matchedAlat = alatData.find(a => a.id == item.alat_id);
+                    return matchedAlat && matchedAlat.program_studi !== null;
+                });
+            },
+
             get totalUnit() {
                 return this.barangList.reduce((sum, i) => sum + i.jumlah, 0);
+            },
+
+            getDynamicStok(item) {
+                const addedQty = this.barangList
+                    .filter(i => i.nama === item.nama)
+                    .reduce((sum, i) => sum + i.jumlah, 0);
+                return Math.max(0, item.stok_tersedia - addedQty);
             },
 
             onKategoriChange() {
@@ -304,7 +341,8 @@
                 if (!opt || !opt.value) return;
                 this.pilihan.nama     = opt.dataset.nama;
                 this.pilihan.kode     = opt.dataset.kode;
-                this.pilihan.stok_max = parseInt(opt.dataset.stok) || 1;
+                const matchedItem = this.alatOptions.find(i => i.id == opt.value);
+                this.pilihan.stok_max = matchedItem ? this.getDynamicStok(matchedItem) : 0;
                 this.pilihan.jumlah   = 1;
             },
 
@@ -333,7 +371,7 @@
 
             tambahBarang() {
                 if (!this.pilihan.alat_id) return;
-                const existing = this.barangList.find(i => i.alat_id === this.pilihan.alat_id);
+                const existing = this.barangList.find(i => i.alat_id == this.pilihan.alat_id);
                 if (existing) {
                     existing.jumlah = Math.min(existing.stok_max, existing.jumlah + this.pilihan.jumlah);
                 } else {
@@ -364,6 +402,14 @@
                     if (!this.tanggalKembali) { this.errorMsg = 'Tanggal kembali harus diisi.'; return; }
                     if (new Date(this.tanggalKembali) < new Date(this.tanggalPinjam)) {
                         this.errorMsg = 'Tanggal kembali tidak boleh kurang dari tanggal pinjam.';
+                        return;
+                    }
+                }
+
+                if (this.hasKhususItem) {
+                    const fileInput = document.getElementById('suratKeteranganInput');
+                    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                        this.errorMsg = 'Wajib mengunggah Surat Keterangan untuk meminjam Alat Khusus.';
                         return;
                     }
                 }

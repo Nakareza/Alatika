@@ -110,6 +110,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::put('/alat/{alat}', [AdminInventarisController::class, 'update'])
         ->name('alat.update');
 
+    Route::post('/alat/{id}/status', [AdminInventarisController::class, 'updateStatus'])
+        ->name('alat.status');
+
     Route::delete('/alat/{alat}', [AdminInventarisController::class, 'destroy'])
         ->name('alat.destroy');
     
@@ -201,6 +204,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
     Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'store'])->name('peminjaman.store');
     Route::get('/peminjaman/riwayat', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'riwayat'])->name('peminjaman.riwayat');
+    Route::post('/peminjaman/{id}/kembalikan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
     Route::post('/pengajuan/tambah/{id}',[\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'tambahPengajuan'])->name('pengajuan.tambah');
     // Alat Routes
     Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
@@ -231,16 +235,38 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::get('/peminjaman/{id}',[\App\Http\Controllers\Kalab\PeminjamanController::class, 'show'])->name('peminjaman.show');
     // Data Alat
     Route::get('/alat', [\App\Http\Controllers\Kalab\AlatController::class, 'index'])->name('alat');
+    Route::post('/alat', [\App\Http\Controllers\Kalab\AlatController::class, 'store'])->name('alat.store');
     Route::put('/alat/{alat}', [\App\Http\Controllers\Kalab\AlatController::class, 'update'])->name('alat.update');
+    Route::delete('/alat/{alat}', [\App\Http\Controllers\Kalab\AlatController::class, 'destroy'])->name('alat.destroy');
     // Riwayat Peminjaman
     Route::get('/riwayat', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'riwayat'])->name('riwayat');
     
     // Laporan
     Route::get('/laporan', [\App\Http\Controllers\Kalab\LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/export-csv', [\App\Http\Controllers\Kalab\LaporanController::class, 'exportCsv'])->name('laporan.export-csv');
     
     // Profil
     Route::get('/profil', function () {
         return view('kalab.profil');
+    })->name('profil');
+});
+
+// KA Prodi Routes (requires authentication + kaprodi role)
+Route::prefix('kaprodi')->middleware(['auth', 'role:kaprodi'])->name('kaprodi.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Kaprodi\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Persetujuan Peminjaman
+    Route::get('/persetujuan', [\App\Http\Controllers\Kaprodi\PeminjamanController::class, 'persetujuan'])->name('persetujuan');
+    Route::post('/persetujuan/bulk-approve', [\App\Http\Controllers\Kaprodi\PeminjamanController::class, 'bulkApprove'])->name('persetujuan.bulk-approve');
+    Route::post('/persetujuan/{id}/approve', [\App\Http\Controllers\Kaprodi\PeminjamanController::class, 'approve'])->name('persetujuan.approve');
+    Route::post('/persetujuan/{id}/reject', [\App\Http\Controllers\Kaprodi\PeminjamanController::class, 'reject'])->name('persetujuan.reject');
+    
+    // Riwayat Peminjaman
+    Route::get('/riwayat', [\App\Http\Controllers\Kaprodi\PeminjamanController::class, 'riwayat'])->name('riwayat');
+    
+    // Profil
+    Route::get('/profil', function () {
+        return view('kaprodi.profil');
     })->name('profil');
 });
 

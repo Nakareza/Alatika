@@ -24,7 +24,10 @@ class Peminjaman extends Model
         'kalab_approved_at',
         'admin_approved_by',
         'admin_approved_at',
+        'kaprodi_approved_by',
+        'kaprodi_approved_at',
         'rejected_reason',
+        'surat_keterangan',
         'foto_bukti_kembali',
         'telegram_photo_file_id',
         'tanggal_dikembalikan',
@@ -47,6 +50,7 @@ class Peminjaman extends Model
         'approved_at'          => 'datetime',
         'kalab_approved_at'    => 'datetime',
         'admin_approved_at'    => 'datetime',
+        'kaprodi_approved_at'  => 'datetime',
         'tanggal_dikembalikan' => 'datetime',
 
         'reminder_h1_sent'   => 'boolean',
@@ -98,6 +102,14 @@ class Peminjaman extends Model
     public function adminApprover()
     {
         return $this->belongsTo(User::class, 'admin_approved_by');
+    }
+
+    /**
+     * Kaprodi yang menyetujui
+     */
+    public function kaprodiApprover()
+    {
+        return $this->belongsTo(User::class, 'kaprodi_approved_by');
     }
 
     // ===================================================

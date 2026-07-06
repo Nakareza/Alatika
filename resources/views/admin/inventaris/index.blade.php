@@ -23,6 +23,22 @@
 
 <div x-data="{ viewMode: 'table' }" class="mb-6 space-y-6">
 
+    @if(session('success'))
+    <div class="rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
     <div class="flex items-center justify-between flex-wrap gap-4">
 
         <div>
@@ -166,9 +182,16 @@
                 Kode Barang
             </th>
 
-            <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">
-                Stok
-            </th>
+                            @if($item->stok_maintenance > 0)
+                            <span class="text-xs text-rose-600 font-medium mt-0.5">
+                                {{ $item->stok_maintenance }} maintenance
+                            </span>
+                            @endif
+
+                            @php
+                                $dipinjamCount = $item->stok_total - $item->stok_tersedia - $item->stok_maintenance;
+                                $borrowers = $activePeminjaman[$item->id] ?? collect();
+                            @endphp
 
             
 
@@ -176,25 +199,20 @@
                 Status
             </th>
 
-            <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-slate-500">
-                Aksi
-            </th>
-
-        </tr>
-
-    </thead>
-
-    <tbody class="divide-y divide-[#EBF3FD]">
-
-        @forelse($alat as $index => $item)
-
-        <tr class="hover:bg-[#F8FBFF] transition">
-
-            <td class="px-6 py-5 text-sm text-slate-500">
-                {{ $alat->firstItem() + $index }}
-            </td>
-
-            <td class="px-6 py-5">
+                    <td class="px-6 py-4">
+                        @if($item->status === 'maintenance')
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
+                                Maintenance
+                            </span>
+                        @elseif($item->stok_tersedia === 0 && $item->stok_total > 0)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                Dipinjam
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                Tersedia
+                            </span>
+                        @endif
 
                 <div class="font-semibold text-[#1E2B4A]">
                     {{ $item->nama }}
@@ -210,7 +228,27 @@
                 {{ $item->kode }}
             </td>
 
-            <td class="px-6 py-5">
+                            @php
+                                $borrowers = $activePeminjaman[$item->id] ?? collect();
+                                $isBorrowed = $borrowers->isNotEmpty();
+                            @endphp
+                            <form action="{{ route('admin.alat.status', $item->id) }}" method="POST" id="status-form-{{ $item->id }}" style="display: none;">
+                                @csrf
+                                <input type="hidden" name="status" id="status-val-{{ $item->id }}" value="">
+                            </form>
+
+                            <button
+                                type="button"
+                                onclick="confirmStatusChange({{ $item->id }}, '{{ $item->status }}', {{ $isBorrowed ? 'true' : 'false' }})"
+                                class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition flex items-center justify-center"
+                                title="Ubah Status">
+                                <i class="fas fa-wrench"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                onclick="window.dispatchEvent(new CustomEvent('open-modal-alat-{{ $item->id }}'))"
+                                class="w-10 h-10 rounded-xl bg-[#EBF3FD] text-[#185FA5] hover:bg-[#DDEEFF] transition flex items-center justify-center">
 
                 <div class="flex flex-col">
 
@@ -436,6 +474,11 @@
             </div>
 
             <div>
+                <p class="text-xs text-slate-500">Stok Maintenance</p>
+                <p>{{ $item->stok_maintenance }}</p>
+            </div>
+
+            <div>
                 <p class="text-xs text-slate-500">Stok Total</p>
                 <p>{{ $item->stok_total }}</p>
             </div>
@@ -549,5 +592,27 @@
     </x-modal>
     @endif
 @endforeach
+
+@push('scripts')
+<script>
+function confirmStatusChange(id, currentStatus, isBorrowed) {
+    if (currentStatus === 'tersedia') {
+        if (isBorrowed) {
+            alert('Alat sedang dipinjam sehingga status tidak dapat diubah menjadi Maintenance.');
+            return;
+        }
+        if (confirm('Apakah Anda yakin ingin mengubah status alat ini menjadi Maintenance?')) {
+            document.getElementById('status-val-' + id).value = 'maintenance';
+            document.getElementById('status-form-' + id).submit();
+        }
+    } else {
+        if (confirm('Apakah Anda yakin ingin mengubah status alat ini menjadi Tersedia?')) {
+            document.getElementById('status-val-' + id).value = 'tersedia';
+            document.getElementById('status-form-' + id).submit();
+        }
+    }
+}
+</script>
+@endpush
 
 @endsection

@@ -115,6 +115,10 @@ class AuthController extends Controller
             return redirect()->route('kalab.dashboard')->with('success', 'Welcome Kepala Laboratorium!');
         }
 
+        if ($user->role === 'kaprodi') {
+            return redirect()->route('kaprodi.dashboard')->with('success', 'Welcome Kepala Program Studi!');
+        }
+
         if ($user->role === 'dosen') {
             return redirect()->route('dosen.dashboard')->with('success', 'Welcome Dosen!');
         }

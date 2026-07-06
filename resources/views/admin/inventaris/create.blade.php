@@ -140,6 +140,22 @@
                         </p>
                     </div>
 
+                    {{-- Program Studi / Kepemilikan --}}
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">
+                            Kepemilikan / Program Studi
+                        </label>
+
+                        <select name="program_studi" class="inp">
+                            <option value="">Umum (Bisa dipinjam Mahasiswa & Dosen)</option>
+                            <option value="D3 TI / D4 TRK" {{ old('program_studi') === 'D3 TI / D4 TRK' ? 'selected' : '' }}>Prodi (D3 TI / D4 TRK - Alat Khusus Mahasiswa)</option>
+                        </select>
+
+                        <p class="text-xs text-slate-400 mt-1.5">
+                            Pilih "Prodi" jika alat milik laboratorium/program studi tertentu.
+                        </p>
+                    </div>
+
                 </div>
 
                 {{-- Deskripsi --}}

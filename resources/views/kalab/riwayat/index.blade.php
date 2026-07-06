@@ -133,7 +133,7 @@
                         No
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Kode
                     </th>
 
@@ -145,23 +145,23 @@
                         Alat
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Jumlah
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Tanggal Pinjam
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Tanggal Kembali
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Status
                     </th>
 
-                    <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                    <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
                         Kondisi Alat
                     </th>
 
@@ -185,122 +185,78 @@
 
                     </td>
 
-                    <td class="px-6 py-5">
-
-                        <span class="badge badge-info">
-
+                    <td class="px-6 py-5 text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                             {{ $p->kode_peminjaman }}
-
                         </span>
-
                     </td>
 
                     <td class="px-6 py-5">
-
                         <div class="flex items-center gap-3">
-
                             <div class="w-10 h-10 rounded-full bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm">
-
                                 {{ strtoupper(substr($p->user->name,0,2)) }}
-
                             </div>
-
                             <div>
-
                                 <p class="font-semibold text-[#1E2B4A]">
-
                                     {{ $p->user->name }}
-
                                 </p>
-
                                 <p class="text-xs text-slate-500">
-
                                     {{ ucfirst($p->user->role) }}
-
                                 </p>
-
                             </div>
-
                         </div>
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-slate-700 font-medium">
                         {{ $p->alat->nama }}
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-center font-semibold text-[#1E2B4A]">
                         {{ $p->jumlah }} Unit
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-center text-slate-600">
                         {{ \Carbon\Carbon::parse($p->tanggal_pinjam)->format('d M Y') }}
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-center text-slate-600">
                         {{ \Carbon\Carbon::parse($p->tanggal_kembali)->format('d M Y') }}
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-center">
                         @if($p->status == 'pending')
-
-                            <span class="badge badge-warning">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                                 Pending
                             </span>
-
                         @elseif($p->status == 'dipinjam')
-
-                            <span class="badge badge-info">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
                                 Sedang Dipinjam
                             </span>
-
                         @elseif($p->status == 'selesai')
-
-                            <span class="badge badge-success">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                                 Dikembalikan
                             </span>
-
                         @elseif($p->status == 'ditolak')
-
-                            <span class="badge badge-danger">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
                                 Ditolak
                             </span>
-
                         @endif
-
                     </td>
 
-                    <td class="px-6 py-5">
-
+                    <td class="px-6 py-5 text-center">
                         @if($p->alat->kondisi == 'baik')
-
-                            <span class="badge badge-success">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                                 Baik
                             </span>
-
                         @elseif($p->alat->kondisi == 'perlu_pengecekan')
-
-                            <span class="badge badge-warning">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                                 Perlu Pengecekan
                             </span>
-
                         @elseif($p->alat->kondisi == 'rusak')
-
-                            <span class="badge badge-danger">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
                                 Rusak
                             </span>
-
                         @endif
-
                     </td>
 
                     <td class="px-6 py-5 text-center">

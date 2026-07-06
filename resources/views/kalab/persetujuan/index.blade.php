@@ -237,6 +237,14 @@
                                 {{ $p->alat->kode }}
                             </p>
 
+                            @if($p->surat_keterangan)
+                                <div class="mt-1.5">
+                                    <a href="{{ asset('storage/' . $p->surat_keterangan) }}" target="_blank" class="inline-flex items-center gap-1 text-xs text-blue-600 font-semibold hover:underline bg-blue-50 px-2 py-1 rounded-lg">
+                                        <i class="fas fa-file-alt"></i> Surat Keterangan
+                                    </a>
+                                </div>
+                            @endif
+
                         </td>
 
                         {{-- Jumlah --}}
@@ -301,12 +309,31 @@
 
                                     <button
                                         type="button"
+                                        onclick="showDetail(
+                                            '{{ $p->kode_peminjaman }}',
+                                            '{{ $p->user->name }}',
+                                            '{{ $p->alat->nama }}',
+                                            '{{ $p->jumlah }}',
+                                            '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                            '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                            '{{ $p->status }}',
+                                            '{{ addslashes($p->keperluan) }}',
+                                            '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}'
+                                        )"
+                                        class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                                        title="Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <button
+                                        type="button"
                                         onclick="showApproveModal(
                                             {{ $p->id }},
                                             '{{ addslashes($p->keperluan ?? '') }}',
                                             '{{ addslashes($p->user->name) }}',
                                             '{{ addslashes($p->alat->nama) }}',
-                                            {{ $p->jumlah }}
+                                            {{ $p->jumlah }},
+                                            '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}'
                                         )"
                                         class="w-9 h-9 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"
                                         title="Setujui">
@@ -339,7 +366,8 @@
                                         '{{ $p->tanggal_pinjam->format('d M Y') }}',
                                         '{{ $p->tanggal_kembali->format('d M Y') }}',
                                         '{{ $p->status }}',
-                                        '{{ addslashes($p->keperluan) }}'
+                                        '{{ addslashes($p->keperluan) }}',
+                                        '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}'
                                     )"
                                     class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">
 
@@ -483,6 +511,13 @@
             <p id="detail_keperluan"></p>
         </div>
 
+        <div class="col-span-2" id="detail_surat_container">
+            <p class="text-slate-500">Surat Keterangan</p>
+            <a id="detail_surat_link" href="#" target="_blank" class="text-blue-600 font-semibold hover:underline flex items-center gap-1.5 mt-0.5">
+                <i class="fas fa-file-download"></i> Lihat Lampiran Surat Keterangan
+            </a>
+        </div>
+
     </div>
 
     <x-slot:footer>
@@ -512,7 +547,8 @@ function showDetail(
     pinjam,
     kembali,
     status,
-    keperluan
+    keperluan,
+    suratKeterangan
 ){
 
     document.getElementById('detail_kode').innerText = kode;
@@ -523,6 +559,15 @@ function showDetail(
     document.getElementById('detail_kembali').innerText = kembali;
     document.getElementById('detail_status').innerText = status;
     document.getElementById('detail_keperluan').innerText = keperluan;
+
+    const docContainer = document.getElementById('detail_surat_container');
+    const docLink = document.getElementById('detail_surat_link');
+    if (suratKeterangan) {
+        docContainer.classList.remove('hidden');
+        docLink.href = suratKeterangan;
+    } else {
+        docContainer.classList.add('hidden');
+    }
 
     window.dispatchEvent(
         new CustomEvent('open-modal-detail-peminjaman')
@@ -547,6 +592,13 @@ function showDetail(
             <p id="approve-user" class="text-sm font-semibold text-[#1E2B4A]"></p>
             <p class="text-xs text-slate-500 mt-2 mb-1">Alat & Jumlah</p>
             <p id="approve-alat" class="text-sm font-semibold text-[#1E2B4A]"></p>
+        </div>
+
+        <div class="mb-4 hidden" id="approve-surat-container">
+            <p class="text-xs text-slate-500 mb-1">Surat Keterangan</p>
+            <a id="approve-surat-link" href="#" target="_blank" class="text-blue-600 font-semibold text-xs hover:underline flex items-center gap-1">
+                <i class="fas fa-file-download"></i> Lihat Lampiran Surat Keterangan
+            </a>
         </div>
 
         <div class="mb-6">
@@ -575,11 +627,21 @@ function showDetail(
 <script>
 let approvePeminjamanId = null;
 
-function showApproveModal(id, keperluan, user, alat, jumlah) {
+function showApproveModal(id, keperluan, user, alat, jumlah, suratKeterangan) {
     approvePeminjamanId = id;
     document.getElementById('approve-user').innerText = user;
     document.getElementById('approve-alat').innerText = alat + ' — ' + jumlah + ' Unit';
     document.getElementById('approve-keperluan-input').value = keperluan;
+
+    const approveSuratContainer = document.getElementById('approve-surat-container');
+    const approveSuratLink = document.getElementById('approve-surat-link');
+    if (suratKeterangan) {
+        approveSuratContainer.classList.remove('hidden');
+        approveSuratLink.href = suratKeterangan;
+    } else {
+        approveSuratContainer.classList.add('hidden');
+    }
+
     document.getElementById('approve-modal').classList.remove('hidden');
 }
 
