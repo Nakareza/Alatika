@@ -30,49 +30,30 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div class="card p-6">
-            <div class="flex items-center justify-between">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-100">
-                    <i class="fas fa-chalkboard-teacher text-amber-600"></i>
-                </div>
-                <span class="badge badge-warning">Total</span>
-            </div>
-            <h2 class="mt-5 text-3xl font-bold text-slate-800">{{ number_format($stats['total'] ?? 0) }}</h2>
-            <p class="mt-1 text-sm text-slate-500">Total Dosen</p>
-        </div>
+       
+        <x-card-stats
+            title="Total Dosen"
+            :value="$stats['total']"
+            icon="fas fa-chalkboard-teacher"
+            color="blue" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-100">
-                    <i class="fas fa-link text-emerald-600"></i>
-                </div>
-                <span class="badge badge-success">Telegram</span>
-            </div>
-            <h2 class="mt-5 text-3xl font-bold text-slate-800">{{ number_format($stats['linked_telegram'] ?? 0) }}</h2>
-            <p class="mt-1 text-sm text-slate-500">Sudah Tertaut</p>
-        </div>
+        <x-card-stats
+            title="Sudah Tertaut"
+            :value="$stats['linked_telegram']"
+            icon="fas fa-link"
+            color="green" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-100">
-                    <i class="fas fa-unlink text-amber-600"></i>
-                </div>
-                <span class="badge badge-warning">Belum</span>
-            </div>
-            <h2 class="mt-5 text-3xl font-bold text-slate-800">{{ number_format($stats['unlinked_telegram'] ?? 0) }}</h2>
-            <p class="mt-1 text-sm text-slate-500">Belum Tertaut</p>
-        </div>
+        <x-card-stats
+            title="Belum Tertaut"
+            :value="$stats['unlinked_telegram']"
+            icon="fas fa-unlink"
+            color="yellow" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-100">
-                    <i class="fas fa-calendar-plus text-indigo-600"></i>
-                </div>
-                <span class="badge bg-indigo-100 text-indigo-700">Bulan Ini</span>
-            </div>
-            <h2 class="mt-5 text-3xl font-bold text-slate-800">{{ number_format($stats['registered_this_month'] ?? 0) }}</h2>
-            <p class="mt-1 text-sm text-slate-500">Registrasi Bulan Ini</p>
-        </div>
+        <x-card-stats
+            title="Registrasi Bulan Ini"
+            :value="$stats['registered_this_month']"
+            icon="fas fa-calendar-plus"
+            color="indigo" />
     </div>
 
     <div class="card p-6">

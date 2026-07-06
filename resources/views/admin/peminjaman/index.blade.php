@@ -273,11 +273,10 @@
 
                 </td>
 
-                {{-- Aksi --}}
                 <td class="px-6 py-5">
                     <div class="flex justify-center items-center gap-2">
 
-                        {{-- Detail Button --}}
+                        {{-- Detail --}}
                         <button
                             type="button"
                             class="w-9 h-9 rounded-lg text-blue-600 hover:bg-blue-50 transition"
@@ -296,7 +295,7 @@
                             <i class="fas fa-eye"></i>
                         </button>
 
-                        {{-- Pending: Admin langsung approve/reject --}}
+                        {{-- Pending --}}
                         @if($p->status === 'pending')
                             <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
                                 method="POST" style="display:inline;">
@@ -314,18 +313,6 @@
                                 onclick="showRejectModal({{ $p->id }})">
                                 <i class="fas fa-times"></i>
                             </button>
-                        @endif
-
-                        @if($p->status === 'dipinjam')
-                            <span class="text-indigo-600 text-sm font-medium">Sedang Dipinjam</span>
-                        @endif
-
-                        @if($p->status === 'selesai')
-                            <span class="text-emerald-600 text-sm font-medium">Selesai</span>
-                        @endif
-
-                        @if($p->status === 'ditolak')
-                            <span class="text-red-600 text-sm font-medium">Ditolak</span>
                         @endif
 
                     </div>

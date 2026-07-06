@@ -21,49 +21,30 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-user-graduate text-blue-600 text-lg"></i>
-                </div>
-                <span class="badge badge-info">Total</span>
-            </div>
-            <h3 class="text-3xl font-bold text-slate-800">{{ number_format($stats['total'] ?? 0) }}</h3>
-            <p class="text-sm text-slate-500 mt-1">Total Mahasiswa</p>
-        </div>
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                    <i class="fas fa-link text-emerald-600 text-lg"></i>
-                </div>
-                <span class="badge badge-success">Telegram</span>
-            </div>
-            <h3 class="text-3xl font-bold text-slate-800">{{ number_format($stats['linked_telegram'] ?? 0) }}</h3>
-            <p class="text-sm text-slate-500 mt-1">Sudah Tertaut</p>
-        </div>
+        <x-card-stats
+            title="Total Mahasiswa"
+            :value="$stats['total']"
+            icon="fas fa-user-graduate"
+            color="blue" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center">
-                    <i class="fas fa-unlink text-amber-600 text-lg"></i>
-                </div>
-                <span class="badge badge-warning">Belum</span>
-            </div>
-            <h3 class="text-3xl font-bold text-slate-800">{{ number_format($stats['unlinked_telegram'] ?? 0) }}</h3>
-            <p class="text-sm text-slate-500 mt-1">Belum Tertaut</p>
-        </div>
+        <x-card-stats
+            title="Sudah Tertaut Telegram"
+            :value="$stats['linked_telegram']"
+            icon="fas fa-link"
+            color="green" />
 
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center">
-                    <i class="fas fa-calendar-plus text-sky-600 text-lg"></i>
-                </div>
-                <span class="badge bg-sky-100 text-sky-700">Bulan Ini</span>
-            </div>
-            <h3 class="text-3xl font-bold text-slate-800">{{ number_format($stats['registered_this_month'] ?? 0) }}</h3>
-            <p class="text-sm text-slate-500 mt-1">Registrasi Bulan Ini</p>
-        </div>
+        <x-card-stats
+            title="Belum Tertaut Telegram"
+            :value="$stats['unlinked_telegram']"
+            icon="fas fa-unlink"
+            color="amber" />
+
+        <x-card-stats
+            title="Registrasi Bulan Ini"
+            :value="$stats['registered_this_month']"
+            icon="fas fa-calendar-plus" 
+            color="sky" />
     </div>
 
     <div class="card p-6">
