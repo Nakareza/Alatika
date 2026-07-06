@@ -109,7 +109,12 @@ class InventarisAdminController extends Controller
     }
     public function edit(Alat $alat)
     {
-        return view('admin.inventaris.edit', compact('alat'));
+        // Get active peminjaman count for this specific record
+        $activeBorrowedCount = \App\Models\Peminjaman::where('alat_id', $alat->id)
+            ->where('status', 'dipinjam')
+            ->sum('jumlah');
+
+        return view('admin.inventaris.edit', compact('alat', 'activeBorrowedCount'));
     }
     public function store(Request $request)
     {
@@ -118,8 +123,9 @@ class InventarisAdminController extends Controller
             'kode' => 'required|string|max:100|unique:alat,kode',
             'kategori' => 'required|string|max:100',
             'kategori_baru' => 'nullable|string|max:100',
-            'lokasi' => 'required|string|max:255',
+            'lokasi' => 'nullable|string|max:255',
             'stok_total' => 'required|integer|min:0',
+            'program_studi' => 'nullable|string|max:255',
         ]);
 
         // If user chose "new category", use kategori_baru value
@@ -138,8 +144,10 @@ class InventarisAdminController extends Controller
             'lokasi' => $request->lokasi,
             'stok_total' => $request->stok_total,
             'stok_tersedia' => $request->stok_total,
+            'stok_maintenance' => 0,
             'status' => 'tersedia',
             'deskripsi' => $request->deskripsi,
+            'program_studi' => $request->program_studi ?: null,
         ]);
 
         return redirect()
@@ -148,32 +156,86 @@ class InventarisAdminController extends Controller
     }
     public function update(Request $request, Alat $alat)
     {
-        $validated = $request->validate([
+        $activeBorrowedCount = Peminjaman::where('alat_id', $alat->id)
+            ->where('status', 'dipinjam')
+            ->sum('jumlah');
+
+        $maxMaintenance = $alat->stok_total - $activeBorrowedCount;
+
+        $request->validate([
             'nama' => 'required|string|max:255',
             'kode' => "required|string|max:100|unique:alat,kode,{$alat->id}",
             'kategori' => 'required|string|max:100',
-            'lokasi' => 'required|string|max:255',
-            'stok_total' => 'required|integer|min:1',
+            'lokasi' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
-            'status' => 'required|string|in:tersedia,maintenance',
+            'program_studi' => 'nullable|string|max:255',
+            'stok_maintenance' => "required|integer|min:0|max:{$maxMaintenance}",
+        ], [
+            'stok_maintenance.max' => "Jumlah alat di-maintenance tidak boleh melebihi stok yang tersedia (maksimal: {$maxMaintenance} karena {$activeBorrowedCount} sedang dipinjam).",
         ]);
 
-        // Adjust stok_tersedia when stok_total changes
-        $oldStokTotal = $alat->stok_total;
-        $newStokTotal = (int) $validated['stok_total'];
-        $diff = $newStokTotal - $oldStokTotal;
+        $stokMaint = (int) $request->stok_maintenance;
 
-        if ($diff != 0) {
-            $newTersedia = $alat->stok_tersedia + $diff;
-            // Never let stok_tersedia go below 0 or above stok_total
-            $validated['stok_tersedia'] = max(0, min($newStokTotal, $newTersedia));
-        }
+        // Calculate new stok_tersedia
+        $newTersedia = $alat->stok_total - $activeBorrowedCount - $stokMaint;
 
-        $alat->update($validated);
+        // Set status to 'maintenance' if ALL units are under maintenance, else 'tersedia'
+        $status = ($stokMaint === $alat->stok_total) ? 'maintenance' : 'tersedia';
+
+        // Ensure empty string program_studi is saved as null
+        $programStudi = $request->program_studi ?: null;
+
+        $alat->update([
+            'nama' => $request->nama,
+            'kode' => $request->kode,
+            'kategori' => $request->kategori,
+            'lokasi' => $request->lokasi,
+            'deskripsi' => $request->deskripsi,
+            'program_studi' => $programStudi,
+            'stok_maintenance' => $stokMaint,
+            'stok_tersedia' => $newTersedia,
+            'status' => $status,
+        ]);
 
         return redirect()
             ->route('admin.alat')
             ->with('success', 'Alat berhasil diperbarui.');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $alat = Alat::findOrFail($id);
+
+        $request->validate([
+            'status' => 'required|string|in:tersedia,maintenance',
+        ]);
+
+        $newStatus = $request->status;
+
+        // Find currently active borrowed count
+        $borrowedCount = Peminjaman::where('alat_id', $alat->id)
+            ->where('status', 'dipinjam')
+            ->sum('jumlah');
+
+        if ($newStatus === 'maintenance') {
+            if ($borrowedCount === $alat->stok_total) {
+                return redirect()->back()->with('error', 'Alat sedang dipinjam sehingga status tidak dapat diubah menjadi Maintenance.');
+            }
+
+            // Put all remaining available units to maintenance
+            $alat->stok_maintenance = $alat->stok_total - $borrowedCount;
+            $alat->stok_tersedia = 0;
+            $alat->status = ($alat->stok_maintenance === $alat->stok_total) ? 'maintenance' : 'tersedia';
+            $alat->save();
+        } else {
+            // Put all units back to tersedia
+            $alat->stok_maintenance = 0;
+            $alat->stok_tersedia = $alat->stok_total - $borrowedCount;
+            $alat->status = 'tersedia';
+            $alat->save();
+        }
+
+        return redirect()->back()->with('success', 'Status alat berhasil diperbarui.');
     }
     public function destroy(Alat $alat)
     {

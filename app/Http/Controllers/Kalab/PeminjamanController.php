@@ -13,8 +13,16 @@ class PeminjamanController extends Controller
     public function persetujuan(Request $request)
     {
         $query = Peminjaman::with(['user', 'alat'])
-            ->whereHas('user', function ($q) {
-                $q->where('role', 'dosen');
+            ->where(function ($q) {
+                $q->whereHas('user', function ($u) {
+                    $u->where('role', 'dosen');
+                })->orWhere(function ($sub) {
+                    $sub->whereHas('user', function ($u) {
+                        $u->where('role', 'mahasiswa');
+                    })->whereHas('alat', function ($a) {
+                        $a->whereNotNull('program_studi');
+                    });
+                });
             });
 
         // Search
@@ -58,12 +66,23 @@ class PeminjamanController extends Controller
             ->withQueryString();
 
         // Statistik
-        $dsn = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'dosen'));
+        $statsQuery = Peminjaman::where(function ($q) {
+            $q->whereHas('user', function ($u) {
+                $u->where('role', 'dosen');
+            })->orWhere(function ($sub) {
+                $sub->whereHas('user', function ($u) {
+                    $u->where('role', 'mahasiswa');
+                })->whereHas('alat', function ($a) {
+                    $a->whereNotNull('program_studi');
+                });
+            });
+        });
+
         $stats = [
-            'pending' => (clone $dsn)->where('status', 'pending')->count(),
-            'dipinjam' => (clone $dsn)->where('status', 'dipinjam')->count(),
-            'selesai' => (clone $dsn)->where('status', 'selesai')->count(),
-            'total_pengajuan' => (clone $dsn)->count(),
+            'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
+            'dipinjam' => (clone $statsQuery)->where('status', 'dipinjam')->count(),
+            'selesai' => (clone $statsQuery)->where('status', 'selesai')->count(),
+            'total_pengajuan' => (clone $statsQuery)->count(),
         ];
 
         return view(
@@ -74,10 +93,18 @@ class PeminjamanController extends Controller
 
     public function riwayat(Request $request)
     {
-        // Ka Lab hanya melihat riwayat peminjaman DOSEN
+        // Ka Lab melihat riwayat peminjaman DOSEN dan MAHASISWA alat khusus
         $peminjaman = Peminjaman::with(['user', 'alat'])
-            ->whereHas('user', function ($q) {
-                $q->where('role', 'dosen');
+            ->where(function ($q) {
+                $q->whereHas('user', function ($u) {
+                    $u->where('role', 'dosen');
+                })->orWhere(function ($sub) {
+                    $sub->whereHas('user', function ($u) {
+                        $u->where('role', 'mahasiswa');
+                    })->whereHas('alat', function ($a) {
+                        $a->whereNotNull('program_studi');
+                    });
+                });
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -90,22 +117,18 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::with([
             'user',
             'alat',
-            'approvedBy'
         ])->findOrFail($id);
 
-        return view(
-            'kalab.peminjaman.show',
-            compact('peminjaman')
-        );
+        return view('kalab.persetujuan.show', compact('peminjaman'));
     }
 
     public function approve(Request $request, $id, TelegramService $telegram)
     {
         $peminjaman = Peminjaman::with(['user', 'alat'])->findOrFail($id);
 
-        // Guard: kalab hanya approve dosen
-        if ($peminjaman->user->role !== 'dosen') {
-            return redirect()->back()->with('error', 'Kalab hanya dapat menyetujui peminjaman dosen.');
+        // Guard: kalab hanya approve dosen ATAU mahasiswa dengan alat khusus
+        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $peminjaman->alat->program_studi !== null)) {
+            return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menyetujui peminjaman ini.');
         }
 
         // Check stock availability before approving
@@ -114,15 +137,10 @@ class PeminjamanController extends Controller
             return redirect()->back()->with('error', 'Stok alat "' . $alat->nama . '" tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
         }
 
-        // Decrement stock upon approval
-        $alat->stok_tersedia -= $peminjaman->jumlah;
-        $alat->save();
-
         // Update keperluan if Kalab modified it
         $updateData = [
             'kalab_approved_by' => Auth::id(),
             'kalab_approved_at' => now(),
-            'status' => 'dipinjam',
         ];
 
         if ($request->filled('keperluan')) {
@@ -133,6 +151,72 @@ class PeminjamanController extends Controller
             static::addKeperluanIfNew($newKeperluan);
         }
 
+        // Case 1: Student borrowing a special tool (double approval: Admin + Kalab)
+        if ($peminjaman->user->role === 'mahasiswa') {
+            $peminjaman->update($updateData);
+
+            if ($peminjaman->admin_approved_by !== null) {
+                // Finalize approval: decrement stock, set status to dipinjam
+                $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+                $peminjaman->update(['status' => 'dipinjam']);
+
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $peminjaman->alat->nama,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => 'Admin dan Kepala Lab',
+                ]);
+
+                return redirect()->back()->with('success', 'Peminjaman Mahasiswa disetujui. Status: Dipinjam (Disetujui oleh Admin & Kepala Lab).');
+            } else {
+                return redirect()->back()->with('success', 'Peminjaman disetujui oleh Kepala Lab. Menunggu persetujuan dari Admin.');
+            }
+        }
+
+        // Case 2: Dosen borrowing a prodi tool (double approval: Kalab + Kaprodi)
+        if ($alat->program_studi !== null) {
+            $peminjaman->update($updateData);
+
+            // If kaprodi has already approved, finalize approval
+            if ($peminjaman->kaprodi_approved_by !== null) {
+                // Decrement stock upon approval
+                $alat->stok_tersedia -= $peminjaman->jumlah;
+                $alat->save();
+
+                $peminjaman->update(['status' => 'dipinjam']);
+
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $peminjaman->alat->nama,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => 'Kepala Lab dan Kaprodi',
+                ]);
+
+                return redirect()->back()->with('success', 'Peminjaman Dosen disetujui. Status: Dipinjam (Disetujui oleh Kepala Lab dan Kaprodi).');
+            } else {
+                // Notify Kaprodi to approve
+                $kaprodis = User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                foreach ($kaprodis as $kaprodi) {
+                    $telegram->notifyNewRequest($kaprodi, [
+                        'peminjam_nama' => $peminjaman->user->name,
+                        'peminjam_role' => 'dosen',
+                        'alat' => $alat->nama,
+                        'jumlah' => $peminjaman->jumlah,
+                        'kode' => $peminjaman->kode_peminjaman,
+                    ]);
+                }
+
+                return redirect()->back()->with('success', 'Peminjaman disetujui oleh Kepala Lab. Menunggu persetujuan dari Kepala Program Studi.');
+            }
+        }
+
+        // Standard single approval (decrements stock immediately)
+        $alat->stok_tersedia -= $peminjaman->jumlah;
+        $alat->save();
+
+        $updateData['status'] = 'dipinjam';
         $peminjaman->update($updateData);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
@@ -152,9 +236,9 @@ class PeminjamanController extends Controller
 
         $peminjaman = Peminjaman::with('user')->findOrFail($id);
 
-        // Guard: kalab hanya reject dosen
-        if ($peminjaman->user->role !== 'dosen') {
-            return redirect()->back()->with('error', 'Kalab hanya dapat menolak peminjaman dosen.');
+        // Guard: kalab hanya reject dosen atau mahasiswa alat khusus
+        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $peminjaman->alat->program_studi !== null)) {
+            return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menolak peminjaman ini.');
         }
 
         $peminjaman->update([
@@ -170,7 +254,8 @@ class PeminjamanController extends Controller
             'alasan' => $request->alasan,
         ]);
 
-        return redirect()->back()->with('success', 'Peminjaman Dosen ditolak.');
+        $roleLabel = $peminjaman->user->role === 'dosen' ? 'Dosen' : 'Mahasiswa';
+        return redirect()->back()->with('success', "Peminjaman {$roleLabel} ditolak.");
     }
 
     public function bulkApprove(Request $request, TelegramService $telegram)
@@ -184,7 +269,13 @@ class PeminjamanController extends Controller
         $peminjamans = Peminjaman::with(['user', 'alat'])
             ->whereIn('id', $ids)
             ->where('status', 'pending')
-            ->whereHas('user', fn($q) => $q->where('role', 'dosen'))
+            ->where(function ($q) {
+                $q->whereHas('user', fn($u) => $u->where('role', 'dosen'))
+                  ->orWhere(function ($sub) {
+                      $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
+                          ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'));
+                  });
+            })
             ->get();
 
         $approvedCount = 0;
@@ -199,28 +290,88 @@ class PeminjamanController extends Controller
                 continue;
             }
 
-            // Decrement stock upon approval
-            $alat->stok_tersedia -= $peminjaman->jumlah;
-            $alat->save();
-
-            $peminjaman->update([
+            $updateData = [
                 'kalab_approved_by' => Auth::id(),
                 'kalab_approved_at' => now(),
-                'status' => 'dipinjam',
-            ]);
+            ];
 
-            $telegram->notifyPeminjamanApproved($peminjaman->user, [
-                'kode' => $peminjaman->kode_peminjaman,
-                'alat' => $peminjaman->alat->nama,
-                'jumlah' => $peminjaman->jumlah,
-                'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
-                'approver_role' => 'Kepala Lab',
-            ]);
+            // Case 1: Student borrowing special tool (Admin + Kalab)
+            if ($peminjaman->user->role === 'mahasiswa') {
+                $peminjaman->update($updateData);
 
-            $approvedCount++;
+                if ($peminjaman->admin_approved_by !== null) {
+                    $alat->stok_tersedia -= $peminjaman->jumlah;
+                    $alat->save();
+
+                    $peminjaman->update(['status' => 'dipinjam']);
+
+                    $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                        'kode' => $peminjaman->kode_peminjaman,
+                        'alat' => $peminjaman->alat->nama,
+                        'jumlah' => $peminjaman->jumlah,
+                        'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                        'approver_role' => 'Admin dan Kepala Lab',
+                    ]);
+
+                    $approvedCount++;
+                }
+                continue;
+            }
+
+            // Case 2: Dosen borrowing prodi tool (Kalab + Kaprodi)
+            if ($alat->program_studi !== null) {
+                $peminjaman->update($updateData);
+
+                // If kaprodi has already approved, finalize approval
+                if ($peminjaman->kaprodi_approved_by !== null) {
+                    $alat->stok_tersedia -= $peminjaman->jumlah;
+                    $alat->save();
+
+                    $peminjaman->update(['status' => 'dipinjam']);
+
+                    $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                        'kode' => $peminjaman->kode_peminjaman,
+                        'alat' => $peminjaman->alat->nama,
+                        'jumlah' => $peminjaman->jumlah,
+                        'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                        'approver_role' => 'Kepala Lab dan Kaprodi',
+                    ]);
+
+                    $approvedCount++;
+                } else {
+                    // Notify Kaprodi to approve
+                    $kaprodis = User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                    foreach ($kaprodis as $kaprodi) {
+                        $telegram->notifyNewRequest($kaprodi, [
+                            'peminjam_nama' => $peminjaman->user->name,
+                            'peminjam_role' => 'dosen',
+                            'alat' => $alat->nama,
+                            'jumlah' => $peminjaman->jumlah,
+                            'kode' => $peminjaman->kode_peminjaman,
+                        ]);
+                    }
+                }
+            } else {
+                // Decrement stock upon approval
+                $alat->stok_tersedia -= $peminjaman->jumlah;
+                $alat->save();
+
+                $updateData['status'] = 'dipinjam';
+                $peminjaman->update($updateData);
+
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $peminjaman->alat->nama,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => 'Kepala Lab',
+                ]);
+
+                $approvedCount++;
+            }
         }
 
-        $message = "$approvedCount Peminjaman Dosen berhasil disetujui. Status: Dipinjam.";
+        $message = "$approvedCount Peminjaman berhasil disetujui secara final. Status: Dipinjam.";
         if (!empty($failedMessages)) {
             $message .= ' Gagal: ' . implode(', ', $failedMessages) . '.';
         }

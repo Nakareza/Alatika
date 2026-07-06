@@ -56,5 +56,16 @@ class UserSeeder extends Seeder
                 'role'     => 'mahasiswa',
             ]
         );
+
+        // Kepala Program Studi (Kaprodi)
+        User::updateOrCreate(
+            ['email' => 'kaprodi@alatika.com'],
+            [
+                'name'     => 'Prof. Hermawan, Ph.D.',
+                'nip'      => '197012011995031001',
+                'password' => Hash::make('password'),
+                'role'     => 'kaprodi',
+            ]
+        );
     }
 }

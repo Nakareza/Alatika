@@ -27,18 +27,18 @@
 
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 no-print">
 
-            <a href="#"
+            <button onclick="window.print()"
                class="btn btn-secondary">
 
                 <i class="fas fa-file-pdf"></i>
 
                 Export PDF
 
-            </a>
+            </button>
 
-            <a href="#"
+            <a href="{{ route('kalab.laporan.export-csv') }}"
                class="btn btn-primary">
 
                 <i class="fas fa-file-excel"></i>
@@ -435,3 +435,22 @@
 
 @endsection
 
+@push('styles')
+<style>
+@media print {
+    aside, nav, header, .no-print, .btn, .sidebar, #sidebar, .header-action, .border-t {
+        display: none !important;
+    }
+    main, .content, body {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+}
+</style>
+@endpush

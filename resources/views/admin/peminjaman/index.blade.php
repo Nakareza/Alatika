@@ -172,8 +172,12 @@
 
             <tr>
 
-                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500" style="width: 80px;">
                     No
+                </th>
+
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500" style="width: 160px;">
+                    Kode Peminjaman
                 </th>
 
                 <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
@@ -184,19 +188,19 @@
                     Alat
                 </th>
 
-                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500" style="width: 140px;">
                     Tanggal Pinjam
                 </th>
 
-                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500" style="width: 140px;">
                     Deadline
                 </th>
 
-                <th class="py-4 px-6 text-left text-xs font-bold uppercase text-slate-500">
+                <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500" style="width: 220px;">
                     Status
                 </th>
 
-                <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500">
+                <th class="py-4 px-6 text-center text-xs font-bold uppercase text-slate-500" style="width: 120px;">
                     Aksi
                 </th>
 
@@ -213,13 +217,17 @@
                 {{-- No --}}
                 <td class="px-6 py-5">
                     <p class="text-sm font-semibold text-slate-500">{{ $index + 1 }}</p>
-                    <p class="text-xs text-slate-400">{{ $p->kode_peminjaman }}</p>
                     @if($p->status === 'pending')
                         <span class="text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium {{ $p->alat->stok_tersedia >= $p->jumlah ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
                             <i class="fas fa-box text-[9px]"></i>
                             Stok: {{ $p->alat->stok_tersedia }}/{{ $p->alat->stok_total }}
                         </span>
                     @endif
+                </td>
+
+                {{-- Kode Peminjaman --}}
+                <td class="px-6 py-5">
+                    <span class="text-sm font-semibold text-[#1E2B4A]">{{ $p->kode_peminjaman }}</span>
                 </td>
 
                 {{-- Mahasiswa --}}
@@ -230,22 +238,15 @@
                         </div>
                         <div>
                             <p class="font-semibold text-[#1E2B4A]">{{ $p->user->name }}</p>
-                            <p class="text-xs text-slate-500">{{ $p->user->nim ?? '-' }}</p>
                         </div>
                     </div>
                 </td>
 
                 {{-- Alat --}}
                 <td class="px-6 py-5">
-
                     <p class="font-semibold text-[#1E2B4A]">
                         {{ $p->alat->nama }}
                     </p>
-
-                    <p class="text-xs text-slate-500">
-                        {{ $p->kode_peminjaman }}
-                    </p>
-
                 </td>
 
                 {{-- Tanggal --}}
@@ -263,14 +264,12 @@
                 </td>
 
                 {{-- Status --}}
-                <td class="px-6 py-5">
-
-                    <span class="badge {{ $p->status_config['color'] }}">
-
-                        {{ $p->status_label }}
-
-                    </span>
-
+                <td class="px-6 py-5 text-center align-middle">
+                    <div class="flex justify-center items-center w-full h-full">
+                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full min-w-[140px] text-center {{ $p->status_config['color'] }}" style="height: 28px;">
+                            {{ $p->status_label }}
+                        </span>
+                    </div>
                 </td>
 
                 {{-- Aksi --}}
@@ -280,7 +279,7 @@
                         {{-- Detail Button --}}
                         <button
                             type="button"
-                            class="w-9 h-9 rounded-lg text-blue-600 hover:bg-blue-50 transition"
+                            class="w-9 h-9 rounded-xl text-blue-600 hover:bg-blue-50 transition flex items-center justify-center"
                             title="Detail"
                             onclick="showDetail(
                                 '{{ $p->kode_peminjaman }}',
@@ -291,9 +290,10 @@
                                 '{{ $p->tanggal_pinjam->format('d M Y') }}',
                                 '{{ $p->tanggal_kembali->format('d M Y') }}',
                                 '{{ $p->status_label }}',
-                                '{{ $p->keperluan ?? '-' }}'
+                                '{{ $p->keperluan ?? '-' }}',
+                                '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}'
                             )">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
 
                         {{-- Pending: Admin langsung approve/reject --}}
@@ -316,17 +316,6 @@
                             </button>
                         @endif
 
-                        @if($p->status === 'dipinjam')
-                            <span class="text-indigo-600 text-sm font-medium">Sedang Dipinjam</span>
-                        @endif
-
-                        @if($p->status === 'selesai')
-                            <span class="text-emerald-600 text-sm font-medium">Selesai</span>
-                        @endif
-
-                        @if($p->status === 'ditolak')
-                            <span class="text-red-600 text-sm font-medium">Ditolak</span>
-                        @endif
 
                     </div>
                 </td>
@@ -337,7 +326,7 @@
 
             <tr>
 
-                <td colspan="7" class="py-16 text-center">
+                <td colspan="8" class="py-16 text-center">
 
                     <div class="flex flex-col items-center">
 
@@ -429,6 +418,13 @@
             <p id="detail_keperluan" class="font-semibold text-[#1E2B4A]"></p>
         </div>
 
+        <div class="col-span-2" id="detail_surat_container">
+            <p class="text-slate-500">Surat Keterangan</p>
+            <a id="detail_surat_link" href="#" target="_blank" class="text-blue-600 font-semibold hover:underline flex items-center gap-1.5 mt-0.5">
+                <i class="fas fa-file-download"></i> Lihat Lampiran Surat Keterangan
+            </a>
+        </div>
+
     </div>
 
     <x-slot:footer>
@@ -482,7 +478,7 @@
 </div>
 
 <script>
-function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, keperluan) {
+function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, keperluan, suratKeterangan) {
     document.getElementById('detail_kode').innerText = kode;
     document.getElementById('detail_user').innerText = user;
     document.getElementById('detail_nim').innerText = nim;
@@ -492,6 +488,15 @@ function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, kepe
     document.getElementById('detail_kembali').innerText = kembali;
     document.getElementById('detail_status').innerText = status;
     document.getElementById('detail_keperluan').innerText = keperluan;
+
+    const docContainer = document.getElementById('detail_surat_container');
+    const docLink = document.getElementById('detail_surat_link');
+    if (suratKeterangan) {
+        docContainer.classList.remove('hidden');
+        docLink.href = suratKeterangan;
+    } else {
+        docContainer.classList.add('hidden');
+    }
 
     window.dispatchEvent(
         new CustomEvent('open-modal-detail-peminjaman')

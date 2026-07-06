@@ -55,10 +55,10 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'role'     => 'required|in:admin,dosen,kalab,mahasiswa',
+            'role'     => 'required|in:admin,dosen,kalab,kaprodi,mahasiswa',
         ];
 
-        // NIM required for mahasiswa, NIP for dosen/kalab/admin
+        // NIM required for mahasiswa, NIP for dosen/kalab/admin/kaprodi
         if ($request->role === 'mahasiswa') {
             $rules['nim'] = 'required|string|max:20|unique:users,nim';
         } else {
@@ -90,7 +90,7 @@ class UserController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|in:admin,dosen,kalab,mahasiswa',
+            'role' => 'required|in:admin,dosen,kalab,kaprodi,mahasiswa',
         ]);
 
         $user->update(['role' => $request->role]);

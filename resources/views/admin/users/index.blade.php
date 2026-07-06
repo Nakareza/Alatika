@@ -107,6 +107,10 @@
                     KA Lab
                 </option>
 
+                <option value="kaprodi" {{ request('role') === 'kaprodi' ? 'selected' : '' }}>
+                    KA Prodi
+                </option>
+
                 <option value="dosen" {{ request('role') === 'dosen' ? 'selected' : '' }}>
                     Dosen
                 </option>
@@ -150,6 +154,7 @@
                             $roleColors = [
                                 'admin' => 'badge-info',
                                 'kalab' => 'badge-success',
+                                'kaprodi' => 'bg-purple-100 text-purple-700',
                                 'dosen' => 'badge-warning',
                                 'mahasiswa' => 'bg-sky-100 text-sky-700',
                             ];
@@ -157,6 +162,7 @@
                             $roleLabels = [
                                 'admin' => 'Admin',
                                 'kalab' => 'KA Lab',
+                                'kaprodi' => 'KA Prodi',
                                 'dosen' => 'Dosen',
                                 'mahasiswa' => 'Mahasiswa',
                             ];
@@ -176,6 +182,8 @@
                                             bg-gradient-to-br from-blue-500 to-blue-700
                                         @elseif($user->role === 'kalab')
                                             bg-gradient-to-br from-emerald-500 to-teal-600
+                                        @elseif($user->role === 'kaprodi')
+                                            bg-gradient-to-br from-purple-500 to-indigo-600
                                         @elseif($user->role === 'dosen')
                                             bg-gradient-to-br from-amber-500 to-orange-600
                                         @else
@@ -304,6 +312,58 @@
         </div>
         @endif
 
+    </div>
+
+    {{-- Delete Modal --}}
+    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div class="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8" @click.away="showDeleteModal = false">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-5">
+                    <i class="fas fa-trash-alt text-3xl text-red-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1E2B4A] mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Konfirmasi Hapus</h3>
+                <p class="text-sm text-slate-500 mb-8">Apakah Anda yakin ingin menghapus user <span class="font-semibold text-red-600" x-text="deleteUserName"></span>?</p>
+                <div class="flex items-center gap-3 w-full">
+                    <button @click="showDeleteModal = false" class="btn btn-secondary flex-1 justify-center">Batal</button>
+                    <form :action="'/admin/users/' + deleteUserId" method="POST" class="flex-1">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn flex justify-center w-full bg-red-600 text-white hover:bg-red-700">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Edit Role Modal --}}
+    <div x-show="showRoleModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div class="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8" @click.away="showRoleModal = false">
+            <div class="flex flex-col items-center">
+                <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mb-5">
+                    <i class="fas fa-user-shield text-3xl text-indigo-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1E2B4A] mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Ubah Role</h3>
+                <p class="text-sm text-slate-500 mb-6 text-center">Ubah role untuk user <span class="font-semibold text-indigo-600" x-text="roleUserName"></span></p>
+                <form :action="'/admin/users/' + roleUserId + '/role'" method="POST" class="w-full space-y-6">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="form-label">Role Baru</label>
+                        <select name="role" x-model="roleValue" class="inp">
+                            <option value="admin">Admin / Teknisi</option>
+                            <option value="kalab">Kepala Lab</option>
+                            <option value="kaprodi">Kepala Program Studi</option>
+                            <option value="dosen">Dosen</option>
+                            <option value="mahasiswa">Mahasiswa</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 w-full pt-2">
+                        <button type="button" @click="showRoleModal = false" class="btn btn-secondary flex-1 justify-center">Batal</button>
+                        <button type="submit" class="btn flex justify-center bg-indigo-600 text-white hover:bg-indigo-700 flex-1">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
 </div>

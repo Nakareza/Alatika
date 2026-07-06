@@ -107,6 +107,28 @@ class KeranjangController extends Controller
                 ]);
             }
 
+            // Check if any of the checked out tools require Kaprodi approval
+            $hasKaprodiApprovalItem = false;
+            foreach ($keranjangItems as $item) {
+                if ($item->alat->program_studi !== null) {
+                    $hasKaprodiApprovalItem = true;
+                    break;
+                }
+            }
+
+            if ($hasKaprodiApprovalItem) {
+                $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                foreach ($kaprodis as $kaprodi) {
+                    $telegram->notifyNewRequest($kaprodi, [
+                        'peminjam_nama'  => auth()->user()->name,
+                        'peminjam_role'  => 'dosen',
+                        'alat'           => implode(', ', $alatNames),
+                        'jumlah'         => count($alatNames),
+                        'kode'           => $kode,
+                    ]);
+                }
+            }
+
             return redirect()->route('dosen.riwayat')
                 ->with('success', "Peminjaman berganda berhasil diajukan! Kode: {$kode}");
 

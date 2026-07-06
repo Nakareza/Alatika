@@ -21,23 +21,28 @@ class TelegramService
      * Send a text message to a Telegram chat
      */
     public function sendMessage($chatId, $text, $replyMarkup = null)
-{
-    $payload = [
-        'chat_id' => $chatId,
-        'text' => $text,
-        'parse_mode' => 'HTML',
-    ];
+    {
+        $payload = [
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'HTML',
+        ];
 
-    // tambahan tombol
-    if ($replyMarkup) {
-        $payload['reply_markup'] = json_encode($replyMarkup);
+        // tambahan tombol
+        if ($replyMarkup) {
+            $payload['reply_markup'] = json_encode($replyMarkup);
+        }
+
+        try {
+            return Http::timeout(5)->post(
+                $this->apiUrl . '/sendMessage',
+                $payload
+            )->json() ?: ['ok' => false];
+        } catch (\Exception $e) {
+            Log::warning("Telegram API sendMessage exception: " . $e->getMessage());
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
     }
-
-    return Http::post(
-        $this->apiUrl . '/sendMessage',
-        $payload
-    )->json();
-}
 
     
     /**
@@ -143,8 +148,8 @@ public function setCommandsByRole(string $chatId, string $role): array
 {
     $commands = [];
 
-    if ($role === 'admin') {
-        // Admin commands
+    if (in_array($role, ['admin', 'kalab', 'kaprodi'])) {
+        // Admin, Kalab, and Kaprodi commands
         $commands = [
             ['command' => 'start', 'description' => 'Mulai bot'],
             ['command' => 'help', 'description' => 'Bantuan'],
@@ -436,24 +441,29 @@ public function setMenuButton(): array
      * Send a photo to a Telegram chat
      */
     public function sendPhoto($chatId, $photo, $caption = null, $replyMarkup = null)
-{
-    $payload = [
-        'chat_id' => $chatId,
-        'photo' => $photo,
-        'caption' => $caption,
-        'parse_mode' => 'HTML',
-    ];
+    {
+        $payload = [
+            'chat_id' => $chatId,
+            'photo' => $photo,
+            'caption' => $caption,
+            'parse_mode' => 'HTML',
+        ];
 
-    // tambahan tombol
-    if ($replyMarkup) {
-        $payload['reply_markup'] = json_encode($replyMarkup);
+        // tambahan tombol
+        if ($replyMarkup) {
+            $payload['reply_markup'] = json_encode($replyMarkup);
+        }
+
+        try {
+            return Http::timeout(5)->post(
+                $this->apiUrl . '/sendPhoto',
+                $payload
+            )->json() ?: ['ok' => false];
+        } catch (\Exception $e) {
+            Log::warning("Telegram API sendPhoto exception: " . $e->getMessage());
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
     }
-
-    return Http::post(
-        $this->apiUrl . '/sendPhoto',
-        $payload
-    )->json();
-}
 
     /**
      * Notify user that the item in their waitlist is available

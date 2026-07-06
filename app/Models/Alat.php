@@ -12,9 +12,12 @@ class Alat extends Model
         'nama',
         'kode',
         'kategori',
+        'program_studi',
         'stok_total',
         'stok_tersedia',
+        'stok_maintenance',
         'lokasi',
+        'tahun_pengadaan',
         'deskripsi',
         'status',
         'kondisi',
@@ -38,7 +41,7 @@ class Alat extends Model
      */
     public function getStokDipinjamAttribute(): int
     {
-        return $this->stok_total - $this->stok_tersedia;
+        return $this->stok_total - $this->stok_tersedia - $this->stok_maintenance;
     }
 
     /**

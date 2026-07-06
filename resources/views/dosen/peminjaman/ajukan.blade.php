@@ -12,7 +12,7 @@
     </div>
     @endif
 
-    <form action="{{ route('dosen.peminjaman.store') }}" method="POST" @submit.prevent="submitForm">
+    <form action="{{ route('dosen.peminjaman.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm">
         @csrf
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="peminjamanForm()">
@@ -49,10 +49,10 @@
                                 <template x-for="item in alatOptions" :key="item.id">
                                     <option :value="item.id"
                                             :data-nama="item.nama"
-                                            :data-stok="item.stok_tersedia"
+                                            :data-stok="getDynamicStok(item)"
                                             :data-kode="item.kode"
-                                            :disabled="item.stok_tersedia < 1"
-                                            x-text="`${item.nama} — Stok: ${item.stok_tersedia}`">
+                                            :disabled="getDynamicStok(item) < 1"
+                                            x-text="`${item.nama} — Stok: ${getDynamicStok(item)}`">
                                     </option>
                                 </template>
                             </select>
@@ -222,6 +222,15 @@
                                 class="inp"
                                 :required="!isSameDay">
                         </div>
+
+                        {{-- Surat Keterangan (Optional for Dosen) --}}
+                        <div>
+                            <label class="form-label">Surat Keterangan <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                            <input type="file" name="surat_keterangan" class="inp w-full" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <p class="text-xs text-slate-400 mt-1.5">
+                                Unggah Surat Keterangan jika diperlukan (PDF/JPG/PNG).
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -319,6 +328,13 @@
                 return this.barangList.reduce((sum, i) => sum + i.jumlah, 0);
             },
 
+            getDynamicStok(item) {
+                const addedQty = this.barangList
+                    .filter(i => i.nama === item.nama)
+                    .reduce((sum, i) => sum + i.jumlah, 0);
+                return Math.max(0, item.stok_tersedia - addedQty);
+            },
+
             onKategoriChange() {
                 this.alatOptions = this.alatByKategori[this.selectedKategori] || [];
                 this.pilihan = { alat_id: '', nama: '', kode: '', jumlah: 1, stok_max: 99 };
@@ -329,7 +345,8 @@
                 if (!opt || !opt.value) return;
                 this.pilihan.nama     = opt.dataset.nama;
                 this.pilihan.kode     = opt.dataset.kode;
-                this.pilihan.stok_max = parseInt(opt.dataset.stok) || 1;
+                const matchedItem = this.alatOptions.find(i => i.id == opt.value);
+                this.pilihan.stok_max = matchedItem ? this.getDynamicStok(matchedItem) : 0;
                 this.pilihan.jumlah   = 1;
             },
 
@@ -360,7 +377,7 @@
 
             tambahBarang() {
                 if (!this.pilihan.alat_id) return;
-                const existing = this.barangList.find(i => i.alat_id === this.pilihan.alat_id);
+                const existing = this.barangList.find(i => i.alat_id == this.pilihan.alat_id);
                 if (existing) {
                     existing.jumlah = Math.min(existing.stok_max, existing.jumlah + this.pilihan.jumlah);
                 } else {

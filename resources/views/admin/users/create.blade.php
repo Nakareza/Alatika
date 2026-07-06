@@ -62,7 +62,7 @@
                     {{-- Role Selection --}}
                     <div class="p-6 border-b border-slate-100">
                         <label class="block text-sm font-semibold text-slate-700 mb-3">Pilih Role User</label>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="role" value="admin" x-model="selectedRole" class="hidden peer">
                                 <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all text-center">
@@ -81,6 +81,16 @@
                                     </div>
                                     <p class="text-sm font-semibold text-slate-700">KA Lab</p>
                                     <p class="text-xs text-slate-500">Kepala Lab</p>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="role" value="kaprodi" x-model="selectedRole" class="hidden peer">
+                                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center">
+                                    <div class="w-10 h-10 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-graduation-cap text-purple-600"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">Kaprodi</p>
+                                    <p class="text-xs text-slate-500">KA Prodi</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">

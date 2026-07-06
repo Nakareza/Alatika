@@ -51,7 +51,11 @@
                         Semua Kategori
                     </option>
 
-                    @foreach($alat->pluck('kategori')->unique()->filter()->sort()->values() as $kat)
+                    <option value="Alat Khusus">
+                        Alat Khusus (Butuh Kalab & Surat Ket.)
+                    </option>
+
+                    @foreach($alat->whereNull('program_studi')->pluck('kategori')->unique()->filter()->sort()->values() as $kat)
 
                         <option value="{{ $kat }}">
                             {{ $kat }}
@@ -134,7 +138,7 @@
             <div class="card overflow-hidden"
                  x-show="
                     (search === '' || '{{ strtolower($item->nama) }}'.includes(search.toLowerCase())) &&
-                    (filterKategori === '' || filterKategori === '{{ $item->kategori }}') &&
+                    (filterKategori === '' || (filterKategori === 'Alat Khusus' ? {{ $item->program_studi ? 'true' : 'false' }} : filterKategori === '{{ $item->kategori }}' && {{ $item->program_studi ? 'false' : 'true' }})) &&
                     (filterStok === '' || (filterStok === 'tersedia' && {{ $item->stok_tersedia }} > 0) || (filterStok === 'habis' && {{ $item->stok_tersedia }} === 0))
                  "
                  x-cloak>
@@ -147,7 +151,7 @@
 
                 <div class="p-5">
                     <div class="flex items-start justify-between gap-2 mb-1">
-                        <span class="text-xs font-bold tracking-wider uppercase" style="color:#185FA5;">{{ $item->kategori }}</span>
+                        <span class="text-xs font-bold tracking-wider uppercase" style="color:#185FA5;">{{ $item->program_studi ? 'Alat Khusus' : $item->kategori }}</span>
                         @if($item->stok_tersedia > 0)
                             <span class="badge badge-success">Tersedia</span>
                         @else

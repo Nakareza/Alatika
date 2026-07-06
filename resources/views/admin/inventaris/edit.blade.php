@@ -20,12 +20,41 @@
         
     </div>
 
+    @if($errors->any())
+    <div class="mb-6 rounded-xl p-4 text-sm flex flex-col gap-2"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        @foreach($errors->all() as $error)
+            <div class="flex items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ $error }}</span>
+            </div>
+        @endforeach
+    </div>
+    @endif
+
+    @if(session('success'))
+    <div class="mb-6 rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="mb-6 rounded-xl p-4 text-sm flex items-center gap-2"
+         style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
     <div class="card p-6">
 
         <form action="{{ route('admin.alat.update', $alat->id) }}"
               method="POST">
 
             @csrf
+            @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -78,7 +107,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm mb-2">
+                    <label class="block text-sm mb-2 font-semibold text-slate-700">
                         Stok Total
                     </label>
 
@@ -86,26 +115,40 @@
                         type="number"
                         name="stok_total"
                         value="{{ old('stok_total', $alat->stok_total) }}"
-                        class="inp w-full">
+                        class="inp w-full bg-slate-100 cursor-not-allowed"
+                        readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm mb-2">
-                        Status
+                    <label class="block text-sm mb-2 font-semibold text-slate-700">
+                        Jumlah Alat di-Maintenance
                     </label>
 
-                    <select name="status" class="inp w-full">
-                        <option value="tersedia" {{ old('status', $alat->status) == 'tersedia' ? 'selected' : '' }}>
-                            Tersedia
-                        </option>
-                        <option value="maintenance" {{ old('status', $alat->status) == 'maintenance' ? 'selected' : '' }}>
-                            Maintenance
-                        </option>
-                    </select>
-
-                    @error('status')
+                    <input
+                        type="number"
+                        name="stok_maintenance"
+                        value="{{ old('stok_maintenance', $alat->stok_maintenance) }}"
+                        min="0"
+                        max="{{ $alat->stok_total - $activeBorrowedCount }}"
+                        class="inp w-full">
+                    <p class="text-xs text-slate-400 mt-1">
+                        Maksimal: {{ $alat->stok_total - $activeBorrowedCount }} unit ({{ $activeBorrowedCount }} sedang dipinjam).
+                    </p>
+                    @error('stok_maintenance')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                {{-- Program Studi / Kepemilikan --}}
+                <div>
+                    <label class="block text-sm mb-2">
+                        Kepemilikan / Program Studi
+                    </label>
+
+                    <select name="program_studi" class="inp w-full">
+                        <option value="">Umum (Bisa dipinjam Mahasiswa & Dosen)</option>
+                        <option value="D3 TI / D4 TRK" {{ old('program_studi', $alat->program_studi) === 'D3 TI / D4 TRK' ? 'selected' : '' }}>Prodi (D3 TI / D4 TRK - Alat Khusus Mahasiswa)</option>
+                    </select>
                 </div>
 
             </div>
