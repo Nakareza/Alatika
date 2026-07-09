@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use App\Models\Alat;
+use App\Models\ToolSet;
+use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 
@@ -13,7 +16,7 @@ class PeminjamanController extends Controller
     public function index(Request $request)
     {
         // Admin hanya menangani peminjaman MAHASISWA
-        $query = Peminjaman::with(['user', 'alat'])
+        $query = Peminjaman::with(['user', 'borrowable'])
             ->whereHas('user', function ($q) {
                 $q->where('role', 'mahasiswa');
             });
@@ -30,8 +33,18 @@ class PeminjamanController extends Controller
                 $q->whereHas('user', function ($user) use ($search) {
                     $user->where('name', 'like', "%{$search}%");
                 })
-                ->orWhereHas('alat', function ($alat) use ($search) {
-                    $alat->where('nama', 'like', "%{$search}%");
+                ->orWhere(function ($sub) use ($search) {
+                    $sub->where(function ($q1) use ($search) {
+                        $q1->where('borrowable_type', Alat::class)
+                           ->whereHasMorph('borrowable', [Alat::class], function ($q) use ($search) {
+                               $q->where('nama', 'like', "%{$search}%");
+                           });
+                    })->orWhere(function ($q2) use ($search) {
+                        $q2->where('borrowable_type', ToolSet::class)
+                           ->whereHasMorph('borrowable', [ToolSet::class], function ($q) use ($search) {
+                               $q->where('nama_tool_set', 'like', "%{$search}%");
+                           });
+                    });
                 })
                 ->orWhere('kode_peminjaman', 'like', "%{$search}%");
             });
@@ -55,17 +68,23 @@ class PeminjamanController extends Controller
 
     public function approve($id, TelegramService $telegram)
     {
-        $peminjaman = Peminjaman::with(['user', 'alat'])->findOrFail($id);
+        $peminjaman = Peminjaman::with(['user', 'borrowable'])->findOrFail($id);
 
         // Guard: admin hanya approve mahasiswa
         if ($peminjaman->user->role !== 'mahasiswa') {
             return redirect()->back()->with('error', 'Admin hanya dapat menyetujui peminjaman mahasiswa.');
         }
 
+        $borrowable = $peminjaman->borrowable;
+        if (!$borrowable) {
+            return redirect()->back()->with('error', 'Data inventaris tidak ditemukan.');
+        }
+
+        $itemName = $peminjaman->borrowable_type === ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
+
         // Check stock availability before approving
-        $alat = $peminjaman->alat;
-        if ($alat->stok_tersedia < $peminjaman->jumlah) {
-            return redirect()->back()->with('error', 'Stok alat "' . $alat->nama . '" tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
+        if ($borrowable->stok_tersedia < $peminjaman->jumlah) {
+            return redirect()->back()->with('error', 'Stok "' . $itemName . '" tidak mencukupi (tersedia: ' . $borrowable->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
         }
 
         $updateData = [
@@ -74,17 +93,19 @@ class PeminjamanController extends Controller
         ];
 
         // Double approval for student special tools (program_studi !== null)
-        if ($alat->program_studi !== null) {
+        $isSpecialTool = ($peminjaman->borrowable_type === Alat::class) && ($borrowable->program_studi !== null);
+
+        if ($isSpecialTool) {
             $peminjaman->update($updateData);
 
             if ($peminjaman->kalab_approved_by !== null) {
                 // Decrement stock upon final approval
-                $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+                $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                 $peminjaman->update(['status' => 'dipinjam']);
 
                 $telegram->notifyPeminjamanApproved($peminjaman->user, [
                     'kode' => $peminjaman->kode_peminjaman,
-                    'alat' => $peminjaman->alat->nama,
+                    'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
                     'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                     'approver_role' => 'Admin dan Kepala Lab',
@@ -98,7 +119,7 @@ class PeminjamanController extends Controller
                     $telegram->notifyNewRequest($kalab, [
                         'peminjam_nama' => $peminjaman->user->name,
                         'peminjam_role' => 'mahasiswa',
-                        'alat' => $alat->nama . ' (Alat Khusus - Butuh Kalab)',
+                        'alat' => $itemName . ' (Alat Khusus - Butuh Kalab)',
                         'jumlah' => $peminjaman->jumlah,
                         'kode' => $peminjaman->kode_peminjaman,
                     ]);
@@ -108,14 +129,14 @@ class PeminjamanController extends Controller
         }
 
         // Standard single approval (decrements stock immediately)
-        $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+        $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
 
         $updateData['status'] = 'dipinjam';
         $peminjaman->update($updateData);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $itemName,
             'jumlah' => $peminjaman->jumlah,
             'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
             'approver_role' => 'Admin',
@@ -128,12 +149,15 @@ class PeminjamanController extends Controller
     {
         $request->validate(['alasan' => 'required|string']);
 
-        $peminjaman = Peminjaman::with('user')->findOrFail($id);
+        $peminjaman = Peminjaman::with(['user', 'borrowable'])->findOrFail($id);
 
         // Guard: admin hanya reject mahasiswa
         if ($peminjaman->user->role !== 'mahasiswa') {
             return redirect()->back()->with('error', 'Admin hanya dapat menolak peminjaman mahasiswa.');
         }
+
+        $borrowable = $peminjaman->borrowable;
+        $itemName = $peminjaman->borrowable_type === ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
 
         $peminjaman->update([
             'status' => 'ditolak',
@@ -144,7 +168,7 @@ class PeminjamanController extends Controller
 
         $telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $itemName,
             'alasan' => $request->alasan,
         ]);
 
@@ -153,63 +177,49 @@ class PeminjamanController extends Controller
 
     public function markAsBorrowed($id)
     {
-        $peminjaman = Peminjaman::with('alat')->findOrFail($id);
+        $peminjaman = Peminjaman::findOrFail($id);
         
         if ($peminjaman->status !== 'dipinjam') {
             return redirect()->back()->with('error', 'Peminjaman harus disetujui dahulu.');
         }
 
-        // Stock is already decremented when admin approves.
-        // This method is kept as a fallback confirmation.
         return redirect()->back()->with('success', 'Status peminjaman sudah DIPINJAM.');
     }
 
     public function approveReturn($id)
-{
-    $peminjaman = Peminjaman::findOrFail($id);
+    {
+        $peminjaman = Peminjaman::with('borrowable')->findOrFail($id);
 
-    if ($peminjaman->status !== 'menunggu_verifikasi') {
+        if ($peminjaman->status !== 'menunggu_verifikasi') {
+            return back()->with('error', 'Status tidak valid');
+        }
 
-        return back()->with(
-            'error',
-            'Status tidak valid'
-        );
+        // update status
+        $peminjaman->update([
+            'status' => 'selesai',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        // kembalikan stok
+        $borrowable = $peminjaman->borrowable;
+        if ($borrowable) {
+            $borrowable->increment('stok_tersedia', $peminjaman->jumlah);
+        }
+
+        return back()->with('success', 'Pengembalian berhasil diverifikasi');
     }
 
-    // update status
-    $peminjaman->update([
-        'status' => 'selesai',
-        'approved_by' => Auth::id(),
-        'approved_at' => now(),
-    ]);
+    public function rejectReturn($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
 
-    // kembalikan stok
-    if ($peminjaman->alat) {
+        $peminjaman->update([
+            'status' => 'dipinjam',
+        ]);
 
-        $peminjaman->alat->increment(
-            'stok_tersedia',
-            $peminjaman->jumlah
-        );
+        return redirect()->back()->with('success', 'Pengembalian ditolak.');
     }
-
-    return back()->with(
-        'success',
-        'Pengembalian berhasil diverifikasi'
-    );
-}
-
-public function rejectReturn($id)
-{
-    $peminjaman = Peminjaman::findOrFail($id);
-
-    $peminjaman->update([
-        'status' => 'dipinjam',
-    ]);
-
-    return redirect()
-        ->back()
-        ->with('success', 'Pengembalian ditolak.');
-}
 
     // ===================================================
     // KELOLA KEPERLUAN
@@ -249,5 +259,4 @@ public function rejectReturn($id)
 
         return redirect()->back()->with('success', 'Keperluan berhasil dihapus.');
     }
-
 }

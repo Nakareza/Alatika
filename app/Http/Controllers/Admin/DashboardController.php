@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use App\Models\Alat;
+use App\Models\ToolSet;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -25,15 +26,17 @@ class DashboardController extends Controller
                                ->count(),
         ];
 
-        // Alat inventory stats
+        // Alat & ToolSet inventory stats
         $alatStats = [
-            'total_alat'     => Alat::sum('stok_total'),
-            'tersedia'       => Alat::sum('stok_tersedia'),
-            'total_mahasiswa' => User::where('role', 'mahasiswa')->count(),
+            'total_alat'        => Alat::sum('stok_total'),
+            'tersedia'          => Alat::sum('stok_tersedia'),
+            'total_tool_sets'   => ToolSet::count(),
+            'tool_sets_tersedia' => ToolSet::sum('stok_tersedia'),
+            'total_mahasiswa'   => User::where('role', 'mahasiswa')->count(),
         ];
 
         // 10 peminjaman mahasiswa terbaru
-        $recentPeminjaman = Peminjaman::with(['user', 'alat'])
+        $recentPeminjaman = Peminjaman::with(['user', 'borrowable'])
             ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->latest()
             ->take(10)

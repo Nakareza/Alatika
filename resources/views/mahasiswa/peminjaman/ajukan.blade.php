@@ -32,18 +32,28 @@
             <div class="lg:col-span-2 space-y-5">
 
                 <div class="card p-6">
-                    <h3 class="font-bold text-base mb-5"
-                        style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">
-                        <i class="fas fa-plus-circle mr-2" style="color:#378ADD;"></i>
-                        Tambah Barang
+                    <h3 class="font-bold text-base mb-3 text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                        <i class="fas fa-plus-circle mr-2 text-[#378ADD]"></i>
+                        Tambah Barang Ke Daftar
                     </h3>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Toggle Alat vs ToolSet -->
+                    <div class="flex border-b border-slate-100 mb-4">
+                        <button type="button" @click="activeItemTab = 'alat'" :class="activeItemTab === 'alat' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'" class="pb-2 px-4 font-semibold text-xs transition">
+                            <i class="fas fa-microchip mr-1"></i> Alat Unit
+                        </button>
+                        <button type="button" @click="activeItemTab = 'toolset'" :class="activeItemTab === 'toolset' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'" class="pb-2 px-4 font-semibold text-xs transition">
+                            <i class="fas fa-toolbox mr-1"></i> Tool Set Paket
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Alat Unit -->
+                    <div x-show="activeItemTab === 'alat'" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
-                            <label class="form-label">Pilih Jenis</label>
+                            <label class="form-label">Pilih Kategori</label>
                             <select x-model="selectedKategori" class="inp" @change="onKategoriChange"
                                     style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
-                                <option value="">-- Pilih Jenis --</option>
+                                <option value="">-- Pilih Kategori --</option>
                                 @foreach($kategori as $kat)
                                     <option value="{{ $kat }}">{{ $kat }}</option>
                                 @endforeach
@@ -73,10 +83,7 @@
                             <div class="flex items-center gap-2">
                                 <button type="button"
                                         @click="pilihan.jumlah = Math.max(1, pilihan.jumlah - 1)"
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition shrink-0"
-                                        style="background:#EBF3FD;color:#185FA5;"
-                                        onmouseover="this.style.background='#D4E6F8'"
-                                        onmouseout="this.style.background='#EBF3FD'">
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold bg-[#EBF3FD] text-[#185FA5] hover:bg-[#D4E6F8] transition shrink-0">
                                     <i class="fas fa-minus text-xs"></i>
                                 </button>
                                 <input type="number" x-model.number="pilihan.jumlah" min="1"
@@ -84,88 +91,126 @@
                                        class="inp text-center" style="padding:0.6rem;">
                                 <button type="button"
                                         @click="pilihan.jumlah = Math.min(pilihan.stok_max, pilihan.jumlah + 1)"
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold transition shrink-0"
-                                        style="background:#EBF3FD;color:#185FA5;"
-                                        onmouseover="this.style.background='#D4E6F8'"
-                                        onmouseout="this.style.background='#EBF3FD'">
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold bg-[#EBF3FD] text-[#185FA5] hover:bg-[#D4E6F8] transition shrink-0">
                                     <i class="fas fa-plus text-xs"></i>
                                 </button>
                             </div>
                         </div>
+
+                        <div class="sm:col-span-2 flex items-end">
+                            <button type="button" @click="tambahBarang"
+                                    class="btn btn-accent w-full"
+                                    :disabled="!pilihan.alat_id"
+                                    :class="!pilihan.alat_id ? 'opacity-50 cursor-not-allowed' : ''">
+                                <i class="fas fa-plus"></i> Tambah Alat ke Daftar
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="mt-4">
-                        <button type="button" @click="tambahBarang"
-                                class="btn btn-accent"
-                                :disabled="!pilihan.alat_id"
-                                :class="!pilihan.alat_id ? 'opacity-50 cursor-not-allowed' : ''">
-                            <i class="fas fa-plus"></i> Tambah ke Daftar
-                        </button>
+                    <!-- Tab 2: Tool Set Paket -->
+                    <div x-show="activeItemTab === 'toolset'" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="form-label">Pilih Paket Tool Set</label>
+                            <select x-model="pilihanToolset.id" class="inp" @change="onToolsetChange"
+                                    style="appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;">
+                                <option value="">-- Pilih Paket Tool Set --</option>
+                                <template x-for="item in toolSets" :key="item.id">
+                                    <option :value="item.id"
+                                            :disabled="getDynamicStokToolset(item) < 1"
+                                            x-text="`${item.nama_tool_set} — Stok: ${getDynamicStokToolset(item)} set`">
+                                    </option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Jumlah</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button"
+                                        @click="pilihanToolset.jumlah = Math.max(1, pilihanToolset.jumlah - 1)"
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold bg-[#EBF3FD] text-[#185FA5] hover:bg-[#D4E6F8] transition shrink-0">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <input type="number" x-model.number="pilihanToolset.jumlah" min="1"
+                                       :max="pilihanToolset.stok_max"
+                                       class="inp text-center" style="padding:0.6rem;">
+                                <button type="button"
+                                        @click="pilihanToolset.jumlah = Math.min(pilihanToolset.stok_max, pilihanToolset.jumlah + 1)"
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold bg-[#EBF3FD] text-[#185FA5] hover:bg-[#D4E6F8] transition shrink-0">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3 flex justify-between gap-3 mt-2">
+                            <button type="button" x-show="pilihanToolset.id" @click="openComponentsModal" class="btn btn-secondary px-4 py-2 text-xs flex items-center gap-1">
+                                <i class="fas fa-search-plus"></i> Lihat Daftar Komponen
+                            </button>
+                            <button type="button" @click="tambahToolset"
+                                    class="btn btn-accent flex-1"
+                                    :disabled="!pilihanToolset.id"
+                                    :class="!pilihanToolset.id ? 'opacity-50 cursor-not-allowed' : ''">
+                                <i class="fas fa-plus"></i> Tambah Tool Set ke Daftar
+                            </button>
+                        </div>
                     </div>
                 </div>
 
+                <!-- List of selected items -->
                 <div class="card p-6">
-                    <h3 class="font-bold text-base mb-4"
-                        style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">
-                        <i class="fas fa-list mr-2" style="color:#185FA5;"></i>
-                        Daftar Pengajuan
-                        <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full"
-                              style="background:#EBF3FD;color:#185FA5;"
+                    <h3 class="font-bold text-base mb-4 text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                        <i class="fas fa-list mr-2 text-[#185FA5]"></i>
+                        Daftar Pengajuan Peminjaman
+                        <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#EBF3FD] text-[#185FA5]"
                               x-text="barangList.length + ' item'"></span>
                     </h3>
 
                     <div x-show="barangList.length === 0" class="py-10 text-center">
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                             style="background:#EBF3FD;">
-                            <i class="fas fa-box-open" style="color:#B5D4F4;"></i>
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-[#EBF3FD]">
+                            <i class="fas fa-box-open text-[#B5D4F4]"></i>
                         </div>
-                        <p class="text-sm" style="color:#94a3b8;">Belum ada barang ditambahkan.</p>
-                        <p class="text-xs mt-1" style="color:#B5D4F4;">Pilih alat di atas lalu klik "Tambah ke Daftar".</p>
+                        <p class="text-sm text-slate-400">Belum ada barang ditambahkan.</p>
+                        <p class="text-xs text-[#B5D4F4] mt-1">Pilih jenis alat/toolset di atas lalu klik "Tambah ke Daftar".</p>
                     </div>
 
                     <div class="space-y-3" x-show="barangList.length > 0">
                         <template x-for="(item, index) in barangList" :key="index">
-                            <div class="flex items-center gap-4 p-4 rounded-xl transition"
-                                 style="border:1px solid #EBF3FD;background:#F5F8FF;"
-                                 onmouseover="this.style.borderColor='#B5D4F4';this.style.background='white';"
-                                 onmouseout="this.style.borderColor='#EBF3FD';this.style.background='#F5F8FF';">
+                            <div class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-[#F5F8FF] hover:bg-white hover:border-[#B5D4F4] transition">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                                     style="background:#EBF3FD;color:#185FA5;">
-                                    <i class="fas fa-microchip text-sm"></i>
+                                     :class="item.type === 'toolset' ? 'bg-purple-100 text-purple-700' : 'bg-[#EBF3FD] text-[#185FA5]'">
+                                    <i :class="item.type === 'toolset' ? 'fas fa-toolbox' : 'fas fa-microchip'"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-sm truncate"
-                                       style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
-                                       x-text="item.nama"></p>
-                                    <p class="text-xs mt-0.5" style="color:#94a3b8;"
-                                       x-text="'Kode: ' + item.kode"></p>
+                                    <div class="flex items-center">
+                                        <p class="font-semibold text-sm truncate text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;" x-text="item.nama"></p>
+                                        <template x-if="item.type === 'toolset'">
+                                            <span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold shrink-0">Tool Set</span>
+                                        </template>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-0.5" x-text="'Kode: ' + item.kode"></p>
+                                    
+                                    <!-- Toolset list component link -->
+                                    <template x-if="item.type === 'toolset'">
+                                        <button type="button" @click="viewListComponents(item)" class="text-xs text-purple-600 hover:underline mt-1 flex items-center gap-1 font-semibold">
+                                            <i class="fas fa-search-plus"></i> Detail Komponen (<span x-text="item.components_count"></span>)
+                                        </button>
+                                    </template>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
                                     <button type="button"
                                             @click="item.jumlah = Math.max(1, item.jumlah - 1)"
-                                            class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition"
-                                            style="background:white;border:1px solid #D4E6F8;color:#64748b;"
-                                            onmouseover="this.style.borderColor='#378ADD';this.style.color='#185FA5';"
-                                            onmouseout="this.style.borderColor='#D4E6F8';this.style.color='#64748b';">
+                                            class="w-7 h-7 rounded-lg flex items-center justify-center text-xs bg-white border border-[#D4E6F8] text-slate-500 hover:border-[#378ADD] hover:text-[#185FA5] transition">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <span class="w-8 text-center font-bold text-sm"
-                                          style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
-                                          x-text="item.jumlah"></span>
+                                    <span class="w-8 text-center font-bold text-sm text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;" x-text="item.jumlah"></span>
                                     <button type="button"
                                             @click="item.jumlah = Math.min(item.stok_max, item.jumlah + 1)"
-                                            class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition"
-                                            style="background:white;border:1px solid #D4E6F8;color:#64748b;"
-                                            onmouseover="this.style.borderColor='#378ADD';this.style.color='#185FA5';"
-                                            onmouseout="this.style.borderColor='#D4E6F8';this.style.color='#64748b';">
+                                            class="w-7 h-7 rounded-lg flex items-center justify-center text-xs bg-white border border-[#D4E6F8] text-slate-500 hover:border-[#378ADD] hover:text-[#185FA5] transition">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                                 <button type="button" @click="hapusBarang(index)"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition shrink-0"
-                                        style="color:#cbd5e1;"
-                                        onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444';"
-                                        onmouseout="this.style.background='';this.style.color='#cbd5e1';">
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:bg-rose-50 hover:text-rose-600 transition shrink-0">
                                     <i class="fas fa-trash text-xs"></i>
                                 </button>
                             </div>
@@ -178,9 +223,8 @@
             <div class="space-y-5">
 
                 <div class="card p-6">
-                    <h3 class="font-bold text-base mb-5"
-                        style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">
-                        <i class="fas fa-calendar-alt mr-2" style="color:#185FA5;"></i>
+                    <h3 class="font-bold text-base mb-5 text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                        <i class="fas fa-calendar-alt mr-2 text-[#185FA5]"></i>
                         Detail Peminjaman
                     </h3>
                     <div class="space-y-4">
@@ -193,7 +237,7 @@
                                     <option value="{{ $option['name'] }}" data-same-day="{{ $option['same_day'] ? '1' : '0' }}">{{ $option['name'] }}</option>
                                 @endforeach
                             </select>
-                            <p x-show="isSameDay" x-cloak class="text-xs mt-1.5 flex items-center gap-1" style="color:#92400E;">
+                            <p x-show="isSameDay" x-cloak class="text-xs mt-1.5 flex items-center gap-1 text-amber-800">
                                 <i class="fas fa-clock text-[10px]"></i>
                                 <span>Keperluan ini wajib dikembalikan dalam 1 hari (hari yang sama).</span>
                             </p>
@@ -222,28 +266,22 @@
                     </div>
                 </div>
 
-                <div class="card p-6" style="background:#EBF3FD;border-color:#D4E6F8;">
-                    <h3 class="font-bold text-sm mb-3"
-                        style="font-family:'Plus Jakarta Sans',sans-serif;color:#1E2B4A;">Ringkasan</h3>
+                <div class="card p-6 bg-[#EBF3FD] border-[#D4E6F8]">
+                    <h3 class="font-bold text-sm mb-3 text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;">Ringkasan</h3>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
-                            <span style="color:#64748b;">Jenis barang</span>
-                            <span class="font-semibold"
-                                  style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
-                                  x-text="barangList.length + ' jenis'"></span>
+                            <span class="text-slate-500">Jenis barang</span>
+                            <span class="font-semibold text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;" x-text="barangList.length + ' jenis'"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span style="color:#64748b;">Total unit</span>
-                            <span class="font-semibold"
-                                  style="color:#1E2B4A;font-family:'Plus Jakarta Sans',sans-serif;"
-                                  x-text="totalUnit + ' unit'"></span>
+                            <span class="text-slate-500">Total unit / set</span>
+                            <span class="font-semibold text-[#1E2B4A]" style="font-family:'Plus Jakarta Sans',sans-serif;" x-text="totalUnit + ' item'"></span>
                         </div>
                     </div>
                 </div>
 
                 <div x-show="errorMsg" x-cloak
-                     class="rounded-xl p-4 text-sm flex items-start gap-2"
-                     style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+                     class="rounded-xl p-4 text-sm flex items-start gap-2 bg-rose-50 border border-rose-200 text-rose-700">
                     <i class="fas fa-exclamation-circle mt-0.5 shrink-0"></i>
                     <span x-text="errorMsg"></span>
                 </div>
@@ -266,6 +304,42 @@
         <div id="hiddenInputs"></div>
     </form>
 
+    <!-- Component Detail Modal for ToolSet selection -->
+    <x-modal name="toolset-comp-modal" title="Daftar Komponen Tool Set" size="md">
+        <div class="space-y-4 text-sm">
+            <div>
+                <p class="text-xs text-slate-500">Nama Paket</p>
+                <p class="font-bold text-slate-700" x-text="modalToolset.nama_tool_set"></p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-[#1E2B4A] mb-2">Komponen pendukung:</h4>
+                <div class="overflow-x-auto border border-slate-100 rounded-xl max-h-60 overflow-y-auto">
+                    <table class="w-full text-xs">
+                        <thead class="bg-slate-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-bold text-slate-500 uppercase">Nama Komponen</th>
+                                <th class="px-4 py-2 text-left font-bold text-slate-500 uppercase">Jumlah</th>
+                                <th class="px-4 py-2 text-left font-bold text-slate-500 uppercase">Satuan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="comp in modalToolset.details" :key="comp.id">
+                                <tr>
+                                    <td class="px-4 py-2 font-medium text-slate-700" x-text="comp.nama_komponen"></td>
+                                    <td class="px-4 py-2 text-slate-600" x-text="comp.jumlah"></td>
+                                    <td class="px-4 py-2 text-slate-500" x-text="comp.satuan"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <x-slot name="footer">
+            <button type="button" onclick="window.dispatchEvent(new CustomEvent('close-modal-toolset-comp-modal'))" class="btn btn-secondary px-4 py-2 rounded-xl text-xs">Tutup</button>
+        </x-slot>
+    </x-modal>
+
 @endsection
 
 @push('styles')
@@ -286,9 +360,10 @@
 @push('scripts')
 <script>
     function peminjamanForm() {
-        // Kelompokkan alat by kategori
         const alatData = @json($alat);
+        const toolSetsData = @json($toolSets);
         const alatByKategori = {};
+        
         alatData.forEach(item => {
             const kat = item.program_studi !== null ? 'Alat Khusus' : item.kategori;
             if (!alatByKategori[kat]) {
@@ -298,10 +373,16 @@
         });
 
         return {
+            activeItemTab: 'alat',
             alatByKategori: alatByKategori,
             selectedKategori: '',
             alatOptions: [],
+            toolSets: toolSetsData,
+            
             pilihan: { alat_id: '', nama: '', kode: '', jumlah: 1, stok_max: 99 },
+            pilihanToolset: { id: '', nama: '', kode: '', jumlah: 1, stok_max: 0 },
+            modalToolset: { nama_tool_set: '', details: [] },
+
             barangList: @json($pengajuan),
             tanggalPinjam: '{{ date('Y-m-d') }}',
             tanggalKembali: '{{ date('Y-m-d') }}',
@@ -315,6 +396,7 @@
 
             get hasKhususItem() {
                 return this.barangList.some(item => {
+                    if (item.type !== 'alat') return false;
                     const matchedAlat = alatData.find(a => a.id == item.alat_id);
                     return matchedAlat && matchedAlat.program_studi !== null;
                 });
@@ -326,7 +408,14 @@
 
             getDynamicStok(item) {
                 const addedQty = this.barangList
-                    .filter(i => i.nama === item.nama)
+                    .filter(i => i.type === 'alat' && i.nama === item.nama)
+                    .reduce((sum, i) => sum + i.jumlah, 0);
+                return Math.max(0, item.stok_tersedia - addedQty);
+            },
+
+            getDynamicStokToolset(item) {
+                const addedQty = this.barangList
+                    .filter(i => i.type === 'toolset' && i.alat_id == item.id)
                     .reduce((sum, i) => sum + i.jumlah, 0);
                 return Math.max(0, item.stok_tersedia - addedQty);
             },
@@ -344,6 +433,36 @@
                 const matchedItem = this.alatOptions.find(i => i.id == opt.value);
                 this.pilihan.stok_max = matchedItem ? this.getDynamicStok(matchedItem) : 0;
                 this.pilihan.jumlah   = 1;
+            },
+
+            onToolsetChange(e) {
+                const opt = e.target.selectedOptions[0];
+                if (!opt || !opt.value) return;
+                const matchedSet = this.toolSets.find(i => i.id == opt.value);
+                if (matchedSet) {
+                    this.pilihanToolset.id = matchedSet.id;
+                    this.pilihanToolset.nama = matchedSet.nama_tool_set;
+                    this.pilihanToolset.kode = matchedSet.kode_tool_set;
+                    this.pilihanToolset.stok_max = this.getDynamicStokToolset(matchedSet);
+                    this.pilihanToolset.jumlah = 1;
+                }
+            },
+
+            openComponentsModal() {
+                if (!this.pilihanToolset.id) return;
+                const matchedSet = this.toolSets.find(i => i.id == this.pilihanToolset.id);
+                if (matchedSet) {
+                    this.modalToolset = matchedSet;
+                    window.dispatchEvent(new CustomEvent('open-modal-toolset-comp-modal'));
+                }
+            },
+
+            viewListComponents(item) {
+                const matchedSet = this.toolSets.find(i => i.id == item.alat_id);
+                if (matchedSet) {
+                    this.modalToolset = matchedSet;
+                    window.dispatchEvent(new CustomEvent('open-modal-toolset-comp-modal'));
+                }
             },
 
             filterWeekend(e) {
@@ -371,7 +490,7 @@
 
             tambahBarang() {
                 if (!this.pilihan.alat_id) return;
-                const existing = this.barangList.find(i => i.alat_id == this.pilihan.alat_id);
+                const existing = this.barangList.find(i => i.type === 'alat' && i.alat_id == this.pilihan.alat_id);
                 if (existing) {
                     existing.jumlah = Math.min(existing.stok_max, existing.jumlah + this.pilihan.jumlah);
                 } else {
@@ -381,9 +500,31 @@
                         kode:     this.pilihan.kode,
                         jumlah:   this.pilihan.jumlah,
                         stok_max: this.pilihan.stok_max,
+                        type:     'alat',
+                        components_count: 0
                     });
                 }
                 this.pilihan = { alat_id: '', nama: '', kode: '', jumlah: 1, stok_max: 99 };
+            },
+
+            tambahToolset() {
+                if (!this.pilihanToolset.id) return;
+                const existing = this.barangList.find(i => i.type === 'toolset' && i.alat_id == this.pilihanToolset.id);
+                if (existing) {
+                    existing.jumlah = Math.min(existing.stok_max, existing.jumlah + this.pilihanToolset.jumlah);
+                } else {
+                    const matchedSet = this.toolSets.find(i => i.id == this.pilihanToolset.id);
+                    this.barangList.push({
+                        alat_id:  this.pilihanToolset.id,
+                        nama:     this.pilihanToolset.nama,
+                        kode:     this.pilihanToolset.kode,
+                        jumlah:   this.pilihanToolset.jumlah,
+                        stok_max: this.pilihanToolset.stok_max,
+                        type:     'toolset',
+                        components_count: matchedSet ? matchedSet.details.length : 0
+                    });
+                }
+                this.pilihanToolset = { id: '', nama: '', kode: '', jumlah: 1, stok_max: 0 };
             },
 
             hapusBarang(index) {
@@ -418,6 +559,7 @@
                 container.innerHTML = '';
                 this.barangList.forEach((item, i) => {
                     container.innerHTML += `<input type="hidden" name="items[${i}][alat_id]" value="${item.alat_id}">`;
+                    container.innerHTML += `<input type="hidden" name="items[${i}][type]" value="${item.type}">`;
                     container.innerHTML += `<input type="hidden" name="items[${i}][jumlah]" value="${item.jumlah}">`;
                 });
                 container.innerHTML += `<input type="hidden" name="tanggal_pinjam" value="${this.tanggalPinjam}">`;

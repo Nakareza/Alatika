@@ -17,10 +17,10 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button class="btn btn-secondary" type="button">
+            <a href="{{ route('admin.dosen.export-csv', request()->all()) }}" class="btn btn-secondary">
                 <i class="fas fa-download text-sm"></i>
                 Export
-            </button>
+            </a>
 
             <button class="btn btn-primary" type="button">
                 <i class="fas fa-plus text-sm"></i>

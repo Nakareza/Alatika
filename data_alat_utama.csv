@@ -1,0 +1,380 @@
+NO,KATEGORI,NAMA ALAT,BRAND,KODE ALAT,TAHUN,SPESIFIKASI,KONDISI,KETERANGAN,SUMBER FILE
+  ▌ ACCESS POINT,,,,,,,,,
+1,Access Point,Access Point,TP-Link,WTP/TI-01.21,,TL-MR3420,Baik,,Access_Point__MG_TU__1_.xlsx
+2,Access Point,Access Point,TP-Link,WTP/TI-02.18,,TL-WA901ND,Baik,,Access_Point__MG_TU__1_.xlsx
+3,Access Point,Access Point,TP-Link,WTP/TI-02.21,,TL-MR3420,Baik,,Access_Point__MG_TU__1_.xlsx
+4,Access Point,Access Point,TP-Link,WTP/TI-05.21,,TL-MR3420,Baik,,Access_Point__MG_TU__1_.xlsx
+5,Access Point,Access Point,TP-Link,WAP/TI-01.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+6,Access Point,Access Point,TP-Link,WAP/TI-02.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+7,Access Point,Access Point,TP-Link,WAP/TI-03.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+8,Access Point,Access Point,TP-Link,WAP/TI-04.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+9,Access Point,Access Point,TP-Link,WAP/TI-05.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+10,Access Point,Access Point,TP-Link,WAP/TI-06.22,,TL-WA901N,Baik,,Access_Point__MG_TU__1_.xlsx
+  ▌ ARDUINO / MIKROKONTROLER,,,,,,,,,
+11,Arduino / Mikrokontroler,Arduino,Lition,AR/TI-01.25,2025,,Baik,,Arduino1.xlsx
+12,Arduino / Mikrokontroler,Arduino,Lition,AR/TI-02.25,2025,,Baik,,Arduino1.xlsx
+13,Arduino / Mikrokontroler,Arduino,Samsung,AR/TI-03.25,2025,,Baik,,Arduino1.xlsx
+14,Arduino / Mikrokontroler,Arduino,Samsung,AR/TI-04.25,2025,,Baik,,Arduino1.xlsx
+15,Arduino / Mikrokontroler,Arduino,Samsung,AR/TI-05.25,2025,,Baik,,Arduino1.xlsx
+16,Arduino / Mikrokontroler,Arduino,Samsung,AR/TI-06.25,2025,,Baik,,Arduino1.xlsx
+17,Arduino / Mikrokontroler,Arduino,Samsung,AR/TI-07.25,2025,,Baik,,Arduino1.xlsx
+18,Arduino / Mikrokontroler,Arduino,,AR/TI-08.25,2025,,Baik,,Arduino1.xlsx
+19,Arduino / Mikrokontroler,Arduino,,AR/TI-09.25,2025,,Baik,,Arduino1.xlsx
+20,Arduino / Mikrokontroler,Arduino,,AR/TI-10.25,2025,,Baik,,Arduino1.xlsx
+21,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-27.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+22,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-03.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+23,Arduino / Mikrokontroler,KIT ARDUINO,,TI-17.21,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+24,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-04.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+25,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-14.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+26,Arduino / Mikrokontroler,KIT ARDUINO,,TI-11.21,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+27,Arduino / Mikrokontroler,KIT ARDUINO,,AR/T1-05.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+28,Arduino / Mikrokontroler,KIT ARDUINO,,AZR/TI-31.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+29,Arduino / Mikrokontroler,KIT ARDUINO,,TI/02.21,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+30,Arduino / Mikrokontroler,KIT ARDUINO,,TI/03.21,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+31,Arduino / Mikrokontroler,KIT ARDUINO,,TI/08.21,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+32,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-01.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+33,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-11.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+34,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-10.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+35,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-18.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+36,Arduino / Mikrokontroler,KIT ARDUINO,,AR/TI-20.22,,,Baik (cek komponen),Beberapa komponen tidak ada,Book1_1_.xlsx
+  ▌ CPU / KOMPUTER,,,,,,,,,
+37,CPU / Komputer,CPU,DAC,K/D-01.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+38,CPU / Komputer,CPU,DAC,K/D-02.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+39,CPU / Komputer,CPU,DAC,K/D-03.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+40,CPU / Komputer,CPU,DAC,K/D-04.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+41,CPU / Komputer,CPU,DAC,K/D-05.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+42,CPU / Komputer,CPU,DAC,K/D-06.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+43,CPU / Komputer,CPU,DAC,K/D-07.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+44,CPU / Komputer,CPU,DAC,K/D-08.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+45,CPU / Komputer,CPU,DAC,K/D-09.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+46,CPU / Komputer,CPU,DAC,K/D-10.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+47,CPU / Komputer,CPU,DAC,K/D-11.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+48,CPU / Komputer,CPU,DAC,K/D-12.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Adapter Monitor Rusak,,Data_Lab_SB_II__2026.xlsx
+49,CPU / Komputer,CPU,DAC,K/D-13.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+50,CPU / Komputer,CPU,DAC,K/D-14.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+51,CPU / Komputer,CPU,DAC,K/D-15.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+52,CPU / Komputer,CPU,DAC,K/D-16.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+53,CPU / Komputer,CPU,DAC,K/D-17.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+54,CPU / Komputer,CPU,DAC,K/D-18.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+55,CPU / Komputer,CPU,DAC,K/D-19.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+56,CPU / Komputer,CPU,DAC,K/D-20.25,2025,i7 | 512GB | 16GB RAM | RTX 3050,Baik,,Data_Lab_SB_II__2026.xlsx
+  ▌ KABEL,,,,,,,,,
+57,Kabel,Kabel 3D,Lition,K.3D/TI-01.25,2025,,Baik,,KABEL_3D.xlsx
+58,Kabel,Kabel 3D,Lition,K.3D/TI-02.25,2025,,Baik,,KABEL_3D.xlsx
+59,Kabel,Kabel 3D,Samsung,K.3D/TI-03.25,2025,,Baik,,KABEL_3D.xlsx
+60,Kabel,Kabel 3D,Samsung,K.3D/TI-04.25,2025,,Baik,,KABEL_3D.xlsx
+61,Kabel,Kabel 3D,Samsung,K.3D/TI-05.25,2025,,Baik,,KABEL_3D.xlsx
+62,Kabel,Kabel 3D,Samsung,K.3D/TI-06.25,2025,,Baik,,KABEL_3D.xlsx
+63,Kabel,Kabel 3D,Samsung,K.3D/TI-07.25,2025,,Baik,,KABEL_3D.xlsx
+64,Kabel,Kabel 3D,,K.3D/TI-08.25,2025,,Baik,,KABEL_3D.xlsx
+65,Kabel,Kabel 3D,,K.3D/TI-09.25,2025,,Baik,,KABEL_3D.xlsx
+66,Kabel,Kabel 3D,,K.3D/TI-10.25,2025,,Baik,,KABEL_3D.xlsx
+67,Kabel,Kabel HDMI,Lition,HD.V/TI-01.25,2025,,Baik,,KABEL_HDMI.xlsx
+68,Kabel,Kabel HDMI,Lition,HD.V/TI-02.25,2025,,Baik,,KABEL_HDMI.xlsx
+69,Kabel,Kabel HDMI,Samsung,HD.V/TI-03.25,2025,,Baik,,KABEL_HDMI.xlsx
+70,Kabel,Kabel HDMI,Samsung,HD.V/TI-04.25,2025,,Baik,,KABEL_HDMI.xlsx
+71,Kabel,Kabel HDMI,Samsung,HD.V/TI-05.25,2025,,Baik,,KABEL_HDMI.xlsx
+72,Kabel,Kabel LAN,Lition,Binus/TKJ.01,2025,,Baik,,data_LABEL_LAN.xlsx
+73,Kabel,Kabel LAN,Lition,Binus/TKJ.02,2025,,Baik,,data_LABEL_LAN.xlsx
+74,Kabel,Kabel LAN,Samsung,Binus/TKJ.03,2025,,Baik,,data_LABEL_LAN.xlsx
+75,Kabel,Kabel LAN,Samsung,Binus/TKJ.04,2025,,Baik,,data_LABEL_LAN.xlsx
+76,Kabel,Kabel LAN,Samsung,Binus/TKJ.05,2025,,Baik,,data_LABEL_LAN.xlsx
+77,Kabel,Kabel LAN,Samsung,Binus/TKJ.06,2025,,Baik,,data_LABEL_LAN.xlsx
+78,Kabel,Kabel LAN,Samsung,Binus/TKJ.07,2025,,Baik,,data_LABEL_LAN.xlsx
+79,Kabel,Kabel LAN,,Binus/TKJ.08,2025,,Baik,,data_LABEL_LAN.xlsx
+80,Kabel,Kabel LAN,,Binus/TKJ.09,2025,,Baik,,data_LABEL_LAN.xlsx
+81,Kabel,Kabel LAN,,Binus/TKJ.10,2025,,Baik,,data_LABEL_LAN.xlsx
+82,Kabel,Kabel LAN,,Binus/TKJ.11,2025,,Baik,,data_LABEL_LAN.xlsx
+83,Kabel,Kabel LAN,,Binus/TKJ.12,2025,,Baik,,data_LABEL_LAN.xlsx
+84,Kabel,Kabel LAN,,Binus/TKJ.13,2025,,Baik,,data_LABEL_LAN.xlsx
+85,Kabel,Kabel LAN,,Binus/TKJ.14,2025,,Baik,,data_LABEL_LAN.xlsx
+86,Kabel,Kabel LAN,,Binus/TKJ.15,2025,,Baik,,data_LABEL_LAN.xlsx
+  ▌ KEYBOARD & MOUSE,,,,,,,,,
+87,Keyboard & Mouse,Keyboard,,K/D-01.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+88,Keyboard & Mouse,Keyboard,,K/D-02.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+89,Keyboard & Mouse,Keyboard,,K/D-03.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+90,Keyboard & Mouse,Keyboard,,K/D-04.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+91,Keyboard & Mouse,Keyboard,,K/D-05.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+92,Keyboard & Mouse,Keyboard,,K/D-06.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+93,Keyboard & Mouse,Keyboard,,K/D-07.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+94,Keyboard & Mouse,Keyboard,,K/D-08.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+95,Keyboard & Mouse,Keyboard,,K/D-09.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+96,Keyboard & Mouse,Keyboard,,K/D-10.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+97,Keyboard & Mouse,Keyboard,,K/D-11.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+98,Keyboard & Mouse,Keyboard,,K/D-12.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+99,Keyboard & Mouse,Keyboard,,K/D-13.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+100,Keyboard & Mouse,Keyboard,,K/D-14.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+101,Keyboard & Mouse,Keyboard,,K/D-15.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+102,Keyboard & Mouse,Keyboard,,K/D-16.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+103,Keyboard & Mouse,Keyboard,,K/D-17.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+104,Keyboard & Mouse,Keyboard,,K/D-18.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+105,Keyboard & Mouse,Keyboard,,K/D-19.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+106,Keyboard & Mouse,Keyboard,,K/D-20.25,2025,D302U USB,Baik,,Data_Lab_SB_II__2026.xlsx
+107,Keyboard & Mouse,Mouse,DAC,K/D-01.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+108,Keyboard & Mouse,Mouse,DAC,K/D-02.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+109,Keyboard & Mouse,Mouse,DAC,K/D-03.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+110,Keyboard & Mouse,Mouse,DAC,K/D-04.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+111,Keyboard & Mouse,Mouse,DAC,K/D-05.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+112,Keyboard & Mouse,Mouse,DAC,K/D-06.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+113,Keyboard & Mouse,Mouse,DAC,K/D-07.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+114,Keyboard & Mouse,Mouse,DAC,K/D-08.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+115,Keyboard & Mouse,Mouse,DAC,K/D-09.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+116,Keyboard & Mouse,Mouse,DAC,K/D-10.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+117,Keyboard & Mouse,Mouse,DAC,K/D-11.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+118,Keyboard & Mouse,Mouse,DAC,K/D-12.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+119,Keyboard & Mouse,Mouse,DAC,K/D-13.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+120,Keyboard & Mouse,Mouse,DAC,K/D-14.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+121,Keyboard & Mouse,Mouse,DAC,K/D-15.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+122,Keyboard & Mouse,Mouse,DAC,K/D-16.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+123,Keyboard & Mouse,Mouse,DAC,K/D-17.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+124,Keyboard & Mouse,Mouse,DAC,K/D-18.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+125,Keyboard & Mouse,Mouse,DAC,K/D-19.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+126,Keyboard & Mouse,Mouse,DAC,K/D-20.25,,D1360 USB,Baik,,Data_Lab_SB_II__2026.xlsx
+  ▌ KOMPONEN ROBOT,,,,,,,,,
+127,Komponen Robot,ATMF 3284 P-1642/CH340g,,,,Jumlah: 3,Baik,,Komponen_Robot_1_.xlsx
+128,Komponen Robot,50cm USB cable,,,,Jumlah: 8,Baik,,Komponen_Robot_1_.xlsx
+129,Komponen Robot,830 Breadboard,,,,Jumlah: 1,Baik,,Komponen_Robot_1_.xlsx
+130,Komponen Robot,DHT 11 Module,,,,Jumlah: 12,Rusak sebagian,Rusak 1,Komponen_Robot_1_.xlsx
+131,Komponen Robot,Water Sensor,,,,Jumlah: 16,Baik,,Komponen_Robot_1_.xlsx
+132,Komponen Robot,4x4 Matrix Module,,,,Jumlah: 7,Baik,,Komponen_Robot_1_.xlsx
+133,Komponen Robot,Stepper Motor+ULN2003DB,,,,Jumlah: 1,Rusak sebagian,Rusak 1,Komponen_Robot_1_.xlsx
+134,Komponen Robot,1602 LCD Module,,,,Jumlah: 2,Baik,,Komponen_Robot_1_.xlsx
+135,Komponen Robot,RGB Module,,,,Jumlah: 5,Rusak sebagian,Rusak 1,Komponen_Robot_1_.xlsx
+136,Komponen Robot,9g Servo,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+137,Komponen Robot,DS 1302 Module,,,,Jumlah: 18,Baik,,Komponen_Robot_1_.xlsx
+138,Komponen Robot,Remote Control,,,,Jumlah: 3,Baik,,Komponen_Robot_1_.xlsx
+139,Komponen Robot,Ky-037 Module,,,,Jumlah: 14,Baik,,Komponen_Robot_1_.xlsx
+140,Komponen Robot,RC 522 RFID Module,,,,Jumlah: 2,Baik,,Komponen_Robot_1_.xlsx
+141,Komponen Robot,30 Jumper Wire,,,,Jumlah: 6,Baik,,Komponen_Robot_1_.xlsx
+142,Komponen Robot,Male to Female Jumper Wireless,,,,Jumlah: 6,Baik,,Komponen_Robot_1_.xlsx
+143,Komponen Robot,4 digit 7 segmen display,,,,Jumlah: 3,Baik,,Komponen_Robot_1_.xlsx
+144,Komponen Robot,1 Digit 7 segment Display,,,,Jumlah: 5,Baik,,Komponen_Robot_1_.xlsx
+145,Komponen Robot,IR Receiver Module,,,,Jumlah: 17,Baik,,Komponen_Robot_1_.xlsx
+146,Komponen Robot,Photoresistor 5528,,,,Jumlah: 6,Baik,,Komponen_Robot_1_.xlsx
+147,Komponen Robot,Buzzer,,,,Jumlah: 1,Baik,,Komponen_Robot_1_.xlsx
+148,Komponen Robot,Sensor Ultrasonik,,,,Jumlah: 13,Baik,,Komponen_Robot_1_.xlsx
+149,Komponen Robot,Joystick Module,,,,Jumlah: 12,Baik,,Komponen_Robot_1_.xlsx
+150,Komponen Robot,Potensiometer 10K,,,,Jumlah: 5,Baik,,Komponen_Robot_1_.xlsx
+151,Komponen Robot,Button,,,,Jumlah: 3,Baik,,Komponen_Robot_1_.xlsx
+152,Komponen Robot,Button Cap,,,,Jumlah: 2,Baik,,Komponen_Robot_1_.xlsx
+153,Komponen Robot,LM 35,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+154,Komponen Robot,LC 74HC595,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+155,Komponen Robot,Tilt Switch,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+156,Komponen Robot,Led Mini,,,,Jumlah: 4,Baik,,Komponen_Robot_1_.xlsx
+157,Komponen Robot,Relay Module,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+158,Komponen Robot,Resistor,,,,Jumlah: 3,Baik,,Komponen_Robot_1_.xlsx
+159,Komponen Robot,PIR Sensor,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+160,Komponen Robot,5V Relay,,,,Jumlah: 10,Baik,,Komponen_Robot_1_.xlsx
+161,Komponen Robot,8x8 Matrix Module,,,,Jumlah: 15,Baik,,Komponen_Robot_1_.xlsx
+162,Komponen Robot,9v Battery Connector,,,,Jumlah: 17,Rusak sebagian,Rusak 1,Komponen_Robot_1_.xlsx
+163,Komponen Robot,2.54 mm pin single,,,,Jumlah: 12,Baik,,Komponen_Robot_1_.xlsx
+164,Komponen Robot,Resister Card,,,,Jumlah: 11,Baik,,Komponen_Robot_1_.xlsx
+165,Komponen Robot,Arduino Uno,,,,Jumlah: 2,Baik,,Komponen_Robot_1_.xlsx
+166,Komponen Robot,Node MCU,,,,Jumlah: 13,Baik,,Komponen_Robot_1_.xlsx
+167,Komponen Robot,Active Buzzer,,,,Jumlah: 1,Baik,,Komponen_Robot_1_.xlsx
+168,Komponen Robot,Pasif Buzzer,,,,Jumlah: 1,Baik,,Komponen_Robot_1_.xlsx
+169,Komponen Robot,Green led x5,,,,Jumlah: 1,Baik,,Komponen_Robot_1_.xlsx
+  ▌ MONITOR / LCD,,,,,,,,,
+170,Monitor / LCD,LCD Monitor,DAC,K/D-01.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+171,Monitor / LCD,LCD Monitor,DAC,K/D-02.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+172,Monitor / LCD,LCD Monitor,DAC,K/D-03.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+173,Monitor / LCD,LCD Monitor,DAC,K/D-04.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+174,Monitor / LCD,LCD Monitor,DAC,K/D-05.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+175,Monitor / LCD,LCD Monitor,DAC,K/D-06.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+176,Monitor / LCD,LCD Monitor,DAC,K/D-07.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+177,Monitor / LCD,LCD Monitor,DAC,K/D-08.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+178,Monitor / LCD,LCD Monitor,DAC,K/D-09.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+179,Monitor / LCD,LCD Monitor,DAC,K/D-10.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+180,Monitor / LCD,LCD Monitor,DAC,K/D-11.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+181,Monitor / LCD,LCD Monitor,DAC,K/D-12.25,2025,"LCD 19""",Adapter Monitor Rusak,,Data_Lab_SB_II__2026.xlsx
+182,Monitor / LCD,LCD Monitor,DAC,K/D-13.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+183,Monitor / LCD,LCD Monitor,DAC,K/D-14.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+184,Monitor / LCD,LCD Monitor,DAC,K/D-15.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+185,Monitor / LCD,LCD Monitor,DAC,K/D-16.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+186,Monitor / LCD,LCD Monitor,DAC,K/D-17.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+187,Monitor / LCD,LCD Monitor,DAC,K/D-18.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+188,Monitor / LCD,LCD Monitor,DAC,K/D-19.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+189,Monitor / LCD,LCD Monitor,DAC,K/D-20.25,2025,"LCD 19""",Baik,,Data_Lab_SB_II__2026.xlsx
+  ▌ POWER SUPPLY,,,,,,,,,
+190,Power Supply,Power Supply,Lition,PS/TI-01.25,2025,,Baik,,Power_supply.xlsx
+191,Power Supply,Power Supply,Lition,PS/TI-02.25,2025,,Baik,,Power_supply.xlsx
+192,Power Supply,Power Supply,Samsung,PS/TI-03.25,2025,,Baik,,Power_supply.xlsx
+193,Power Supply,Power Supply,Samsung,PS/TI-04.25,2025,,Baik,,Power_supply.xlsx
+194,Power Supply,Power Supply,Samsung,PS/TI-05.25,2025,,Baik,,Power_supply.xlsx
+195,Power Supply,Power Supply,Samsung,PS/TI-06.25,2025,,Baik,,Power_supply.xlsx
+196,Power Supply,Power Supply,Samsung,PS/TI-07.25,2025,,Baik,,Power_supply.xlsx
+197,Power Supply,Power Supply,,PS/TI-08.25,2025,,Baik,,Power_supply.xlsx
+198,Power Supply,Power Supply,,PS/TI-09.25,2025,,Baik,,Power_supply.xlsx
+199,Power Supply,Power Supply,,PS/TI-10.25,2025,,Baik,,Power_supply.xlsx
+  ▌ PROYEKTOR & AC,,,,,,,,,
+200,Proyektor & AC,Proyektor,EPSON,,,,Baik,Ruang SB II/6,Data_Lab_SB_II__2026.xlsx
+201,Proyektor & AC,AC,DAIKIN,,,,Baik,Ruang SB II/6,Data_Lab_SB_II__2026.xlsx
+202,Proyektor & AC,AC,DAIKIN,,,,Baik,Ruang SB II/6,Data_Lab_SB_II__2026.xlsx
+203,Proyektor & AC,AC,Panasonic,,2025,,Baik,Ruang SB II/6,Data_Lab_SB_II__2026.xlsx
+  ▌ RASPBERRY PI,,,,,,,,,
+204,Raspberry Pi,Raspberry Pi 01,,RBI/TI-01.24,2024,Adapter: RBR/PU-01.24 | HDMI: CHD/TI-01.24 | Kabel: PR/TI.01.24,Baik,Lengkap,Data_Raspberry_Perlengkapannya_4_.xlsx
+205,Raspberry Pi,Raspberry Pi 02,,RBI/TI-02.24,2024,Adapter: RBR/PU-02.24 | HDMI: CHD/TI-02.24 | Kabel: PR/TI.02.24,Baik,Lengkap,Data_Raspberry_Perlengkapannya_4_.xlsx
+206,Raspberry Pi,Raspberry Pi 03,,RBI/TI-03.24,2024,Adapter: RBR/PU-03.24 | HDMI: CHD/TI-03.24 | Kabel: PR/TI.03.24,Baik,Lengkap,Data_Raspberry_Perlengkapannya_4_.xlsx
+207,Raspberry Pi,Raspberry Pi 04,,RBI/TI-04.24,2024,Adapter: RBR/PU-04.24 | HDMI: CHD/TI-04.24 | Kabel: PR/TI.04.24,Baik,Lengkap,Data_Raspberry_Perlengkapannya_4_.xlsx
+208,Raspberry Pi,Raspberry Pi 05,,RBI/TI-05.24,2024,Adapter: - | HDMI: CHD/TI-05.24 | Kabel: PR/TI.05.24,Baik,Kabel adapter tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+209,Raspberry Pi,Raspberry Pi 06,,-,-,Adapter: RBR/PU-06.24 | HDMI: CHD/TI-06.24 | Kabel: -,Baik,"Raspberry tidak ada, Kabel tidak ada",Data_Raspberry_Perlengkapannya_4_.xlsx
+210,Raspberry Pi,Raspberry Pi 07,,-,-,Adapter: RBR/PU-07.24 | HDMI: CHD/TI-07.24 | Kabel: PR/TI.07.24,Baik,Raspberry tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+211,Raspberry Pi,Raspberry Pi 08,,RBI/TI-08.24,2024,Adapter: RBR/PU-08.24 | HDMI: CHD/TI-08.24 | Kabel: -,Baik,Kabel tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+212,Raspberry Pi,Raspberry Pi 09,,RBI/TI-09.24,2024,Adapter: RBR/PU-09.24 | HDMI: CHD/TI-09.24 | Kabel: PR/TI.09.24,Baik,Lengkap,Data_Raspberry_Perlengkapannya_4_.xlsx
+213,Raspberry Pi,Raspberry Pi 10,,-,-,Adapter: - | HDMI: CHD/TI-10.24 | Kabel: PR/TI.10.24,Baik,Raspberry tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+214,Raspberry Pi,Raspberry Pi 11,,RBI/TI-11.24,2024,Adapter: RBR/PU-11.24 | HDMI: - | Kabel: PR/TI.11.24,Baik,HDMI tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+215,Raspberry Pi,Raspberry Pi 12,,-,-,Adapter: RBR/PU-12.24 | HDMI: - | Kabel: -,Baik,Raspberry tidak ada,Data_Raspberry_Perlengkapannya_4_.xlsx
+216,Raspberry Pi,Raspberry Pi 13,,RBI/TI-13.24,2024,Adapter: - | HDMI: - | Kabel: -,Baik,"Kabel adapter, HDMI, Kabel tidak ada",Data_Raspberry_Perlengkapannya_4_.xlsx
+  ▌ ROUTER,,,,,,,,,
+217,Router,Router RB941,Mikrotik,M/TI-02.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+218,Router,Router RB941,Mikrotik,M/TI-03.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+219,Router,Router RB941,Mikrotik,M/TI-04.21,2021,,TIDAK ADA,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+220,Router,Router RB941,Mikrotik,M/TI-0521,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+221,Router,Router RB941,Mikrotik,M/TI-06.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+222,Router,Router RB941,Mikrotik,M/TI-07.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+223,Router,Router RB941,Mikrotik,M/TI-08.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+224,Router,Router RB941,Mikrotik,M/TI-09.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+225,Router,Router RB941,Mikrotik,M/TI-10.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+226,Router,Router RB941,Mikrotik,M/TI-11.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+227,Router,Router RB941,Mikrotik,M/TI-12.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+228,Router,Router RB941,Mikrotik,M/TI-13.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+229,Router,Router RB941,Mikrotik,M/TI-15.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+230,Router,Router RB941,Mikrotik,M/TI-17.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+231,Router,Router RB941,Mikrotik,M/TI-18.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+232,Router,Router RB941,Mikrotik,M/TI-20.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+233,Router,Router RB750,Mikrotik,ROUTER A,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+234,Router,Router RB750,Mikrotik,ROUTER B,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+235,Router,Router RB750,Mikrotik,ROUTER C,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+236,Router,Router RB941,Mikrotik,M/TI-01.21,2021,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+237,Router,Router RB941,Mikrotik,M/TI-19.21,2021,,TIDAK ADA,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+238,Router,Router,Cisco,,2020,Cisco C891F,,,Data_Lab_SB_II__2026.xlsx
+239,Router,Router,Cisco,C.TI-06,,Cisco 2511 XM,,,Data_Lab_SB_II__2026.xlsx
+240,Router,Router,Mikrotik,M/TI-01.25,2025,HGW0A3ZSF2Z/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+241,Router,Router,Mikrotik,M/TI-05.25,2025,HGW0A40JSZ7/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+242,Router,Router,Mikrotik,M/TI-06.25,2025,HGW0A9B0E3R/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+243,Router,Router,Mikrotik,M/TI-07.25,2025,HGW0A5W6G4W/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+244,Router,Router,Mikrotik,M/TI-08.25,2025,HGW0A445QGP/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+245,Router,Router,Mikrotik,M/TI-09.25,2025,HGW0AF6X0ZW/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+246,Router,Router,Mikrotik,M/TI-10.25,2025,HGW0A3EC52H/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+247,Router,Router,Mikrotik,M/TI-11.25,2025,HGW0A5FZ460/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+248,Router,Router,Mikrotik,M/TI-12.25,2025,HGW0A5BGP3W/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+249,Router,Router,Mikrotik,M/TI-13.25,2025,HGW0A30A0JC/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+250,Router,Router,Mikrotik,M/TI-14.25,2025,HGW0ACGJXWB/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+251,Router,Router,Mikrotik,M/TI-15.25,2025,HGW0A1A56R7/R3,Baik,,Data_Lab_SB_II__2026.xlsx
+252,Router,Router,Mikrotik,M/TI-02.21,2021,D0550BC86DD8/004/R3,,,Data_Lab_SB_II__2026.xlsx
+253,Router,Router,Mikrotik,M/TI-03.21,2021,D0550B8A5FD0/004/R3,,,Data_Lab_SB_II__2026.xlsx
+254,Router,Router,Mikrotik,M/TI-06.21,2021,D0550B69837*/004/R3,,,Data_Lab_SB_II__2026.xlsx
+255,Router,Router,Mikrotik,M/TI-07.21,2021,D0550B051460/044/R3,,,Data_Lab_SB_II__2026.xlsx
+256,Router,Router,Mikrotik,M/TI-08.21,2021,D0550B59C049/004/R3,,,Data_Lab_SB_II__2026.xlsx
+257,Router,Router,Mikrotik,M/TI-09.21,2021,D0550B246F04/004/R4,,,Data_Lab_SB_II__2026.xlsx
+258,Router,Router,Mikrotik,M/TI-10.21,2021,D0550BA63E2D/004/R3,,,Data_Lab_SB_II__2026.xlsx
+259,Router,Router,Mikrotik,M/TI-11.21,2021,D0550B03FF38/004/R3,,,Data_Lab_SB_II__2026.xlsx
+260,Router,Router,Mikrotik,M/TI-12.21,2021,D0550BED2D60/004/R3,,,Data_Lab_SB_II__2026.xlsx
+261,Router,Router,Mikrotik,M/TI-13.21,2021,D0550BE5235A/004/R3,,,Data_Lab_SB_II__2026.xlsx
+262,Router,Router,Mikrotik,M/TI-15.21,2021,D0550BBF5B3/004/R3,,,Data_Lab_SB_II__2026.xlsx
+263,Router,Router,Mikrotik,M/TI-17.21,2021,D0550BE4FF7E/004/R3,,,Data_Lab_SB_II__2026.xlsx
+264,Router,Router,Mikrotik,M/TI-18.21,2021,D0550B5FA921/004/R3,,,Data_Lab_SB_II__2026.xlsx
+265,Router,Router,Mikrotik,M/TI-20.21,2021,D0550B9DF824/004/R3,,,Data_Lab_SB_II__2026.xlsx
+  ▌ SERVER & UPS,,,,,,,,,
+266,Server & UPS,Server DELLEMIC,DELL,Server 01,,,Baik,Lemari Server SB II/6,Data_Lab_SB_II__2026.xlsx
+267,Server & UPS,Server DELLEMIC,DELL,Server 02,,,Baik,Lemari Server SB II/6,Data_Lab_SB_II__2026.xlsx
+268,Server & UPS,UPS,,38,,,Baik,Lemari Server SB II/6,Data_Lab_SB_II__2026.xlsx
+269,Server & UPS,UPS,,28,,,Baik,Lemari Server SB II/6,Data_Lab_SB_II__2026.xlsx
+  ▌ STOP KONTAK,,,,,,,,,
+270,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.01,2025,,Baik,,stop_kontak_binus_3_.xlsx
+271,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.02,2025,,Baik,,stop_kontak_binus_3_.xlsx
+272,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.03,2025,,Baik,,stop_kontak_binus_3_.xlsx
+273,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.04,2025,,Baik,,stop_kontak_binus_3_.xlsx
+274,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.05,2025,,Baik,,stop_kontak_binus_3_.xlsx
+275,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.06,2025,,Baik,,stop_kontak_binus_3_.xlsx
+276,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.07,2025,,Baik,,stop_kontak_binus_3_.xlsx
+277,Stop Kontak,Stop Kontak,,Binus/TKJ.08,2025,,Baik,,stop_kontak_binus_3_.xlsx
+278,Stop Kontak,Stop Kontak,,Binus/TKJ.09,2025,,Baik,,stop_kontak_binus_3_.xlsx
+279,Stop Kontak,Stop Kontak,,Binus/TKJ.10,2025,,Baik,,stop_kontak_binus_3_.xlsx
+280,Stop Kontak,Stop Kontak,,5.SK/TI-01,2024,,Baik,,stop_kontak_binus_3_.xlsx
+281,Stop Kontak,Stop Kontak,,5.SK/TI-02,2024,,Baik,,stop_kontak_binus_3_.xlsx
+282,Stop Kontak,Stop Kontak,,5.SK/TI-03,2024,,Baik,,stop_kontak_binus_3_.xlsx
+283,Stop Kontak,Stop Kontak,,5.SK/TI-04,2024,,Baik,,stop_kontak_binus_3_.xlsx
+284,Stop Kontak,Stop Kontak,,5.SK/TI-05,2024,,Baik,,stop_kontak_binus_3_.xlsx
+285,Stop Kontak,Stop Kontak,,5.SK/TI-06,2024,,Baik,,stop_kontak_binus_3_.xlsx
+286,Stop Kontak,Stop Kontak,,5.SK/TI-07,2024,,Baik,,stop_kontak_binus_3_.xlsx
+287,Stop Kontak,Stop Kontak,,TI/02,2024,,Baik,,stop_kontak_binus_3_.xlsx
+288,Stop Kontak,Stop Kontak,,TI/07,2024,,Baik,,stop_kontak_binus_3_.xlsx
+289,Stop Kontak,Stop Kontak,,TI/09,2024,,Baik,,stop_kontak_binus_3_.xlsx
+290,Stop Kontak,Stop Kontak,,TI/10,2024,,Baik,,stop_kontak_binus_3_.xlsx
+291,Stop Kontak,Stop Kontak,,TI/11,2024,,Baik,,stop_kontak_binus_3_.xlsx
+292,Stop Kontak,Stop Kontak,,TI/24,2024,,Baik,,stop_kontak_binus_3_.xlsx
+293,Stop Kontak,Stop Kontak,,TI/28,2024,,Baik,,stop_kontak_binus_3_.xlsx
+294,Stop Kontak,Stop Kontak,,STK/TI-05,2024,,Baik,,stop_kontak_binus_3_.xlsx
+295,Stop Kontak,Stop Kontak,,STK/TI-06,2024,,Baik,,stop_kontak_binus_3_.xlsx
+296,Stop Kontak,Stop Kontak,,STK/TI-10,2024,,Baik,,stop_kontak_binus_3_.xlsx
+297,Stop Kontak,Stop Kontak,,TI/02,2021,,Baik,,stop_kontak_binus_3_.xlsx
+298,Stop Kontak,Stop Kontak,,TI/03,2021,,Baik,,stop_kontak_binus_3_.xlsx
+299,Stop Kontak,Stop Kontak,,PKL/TI .04,2021,,Baik,,stop_kontak_binus_3_.xlsx
+300,Stop Kontak,Stop Kontak,,PKL/TI .13,2021,,Baik,,stop_kontak_binus_3_.xlsx
+301,Stop Kontak,Stop Kontak,,P/TI.01,2021,,Baik,,stop_kontak_binus_3_.xlsx
+302,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.01,2025,,Baik,,stop_kontak_binus_4_.xlsx
+303,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.02,2025,,Baik,,stop_kontak_binus_4_.xlsx
+304,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.03,2025,,Baik,,stop_kontak_binus_4_.xlsx
+305,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.04,2025,,Baik,,stop_kontak_binus_4_.xlsx
+306,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.05,2025,,Baik,,stop_kontak_binus_4_.xlsx
+307,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.06,2025,,Baik,,stop_kontak_binus_4_.xlsx
+308,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.07,2025,,Baik,,stop_kontak_binus_4_.xlsx
+309,Stop Kontak,Stop Kontak,,Binus/TKJ.08,2025,,Baik,,stop_kontak_binus_4_.xlsx
+310,Stop Kontak,Stop Kontak,,Binus/TKJ.09,2025,,Baik,,stop_kontak_binus_4_.xlsx
+311,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.01,2025,,Baik,,stop_kontak_binus_5_.xlsx
+312,Stop Kontak,Stop Kontak,Lition,Binus/TKJ.02,2025,,Baik,,stop_kontak_binus_5_.xlsx
+313,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.03,2025,,Baik,,stop_kontak_binus_5_.xlsx
+314,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.04,2025,,Baik,,stop_kontak_binus_5_.xlsx
+315,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.05,2025,,Baik,,stop_kontak_binus_5_.xlsx
+316,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.06,2025,,Baik,,stop_kontak_binus_5_.xlsx
+317,Stop Kontak,Stop Kontak,Samsung,Binus/TKJ.07,2025,,Baik,,stop_kontak_binus_5_.xlsx
+318,Stop Kontak,Stop Kontak,,Binus/TKJ.08,2025,,Baik,,stop_kontak_binus_5_.xlsx
+319,Stop Kontak,Stop Kontak,,Binus/TKJ.09,2025,,Baik,,stop_kontak_binus_5_.xlsx
+  ▌ SWITCH,,,,,,,,,
+320,Switch,Cloud Mikrotik Switch,,ROUTER 1,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+321,Switch,Cloud Mikrotik Switch,,ROUTER 2,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+322,Switch,Cloud Mikrotik Switch,,ROUTER 3,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+323,Switch,Cloud Mikrotik Switch,,ROUTER 4,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+324,Switch,Cloud Mikrotik Switch,,ROUTER 5,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+325,Switch,Cloud Mikrotik Switch,,ROUTER 6,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+326,Switch,Switch HP,,SWH/TI-01.2016,2016,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+327,Switch,Switch HP,,SWH/TI-01.2017,2017,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+328,Switch,Cisco 2600 Series,,C.TI-06,,,LENGKAP,,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+329,Switch,Cisco 800 Series,,,,,LENGKAP (TIDAK ADA KODE ALAT),,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+330,Switch,Compex TP1016c,,,,,LENGKAP (TIDAK ADA KODE ALAT),,DATA_INVENTARIS_LEMARI_RUANGAN_JARKOM_SB_2_1_.xlsx
+331,Switch,Switch,D-Link,SWD/TI-04.24,2024,DES-1016A,Baik,,Data_Lab_SB_II__2026.xlsx
+332,Switch,Cloud Switch,Mikrotik,M.TI/01-19,2019,CRS125-246-15-2HND-IN,,,Data_Lab_SB_II__2026.xlsx
+333,Switch,Cloud Switch,Mikrotik,M.TI/02-19,2019,CRS125-246-15-2HND-IN,,,Data_Lab_SB_II__2026.xlsx
+334,Switch,Cloud Switch,Mikrotik,M.TI/03-19,2019,CRS125-246-15-2HND-IN,,,Data_Lab_SB_II__2026.xlsx
+335,Switch,Switch,HP,SWH/TI-01.2016,2016,HP 2510-14 Switch,Baik,,Data_Lab_SB_II__2026.xlsx
+336,Switch,Switch,HP,SWH/TI-02.2016,2016,HP 2510-14 Switch,Baik,,Data_Lab_SB_II__2026.xlsx
+337,Switch,Switch,Ruckus,,,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+338,Switch,Switch,Ruckus,TI.G/R-01.23,2023,ICX 7250-24,Baik,,Data_Lab_SB_II__2026.xlsx
+339,Switch,Switch,Ruckus,TI/S.R-01.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+340,Switch,Switch,Ruckus,TI/S.R-02.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+341,Switch,Switch,Ruckus,TI/S.R-03.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+342,Switch,Switch,Ruckus,TI/S.R-04.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+343,Switch,Switch,Ruckus,TI/S.R-05.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+344,Switch,Switch,Ruckus,TI/S.R-06.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+345,Switch,Switch,Ruckus,TI/S.R-07.23,2023,ICX 7150-24,Baik,,Data_Lab_SB_II__2026.xlsx
+  ▌ TOOLKIT,,,,,,,,,
+346,Toolkit,Toolkit,Lition,T.kit/TI-01.25,2025,,Baik,,Tolkit.xlsx
+347,Toolkit,Toolkit,Lition,T.kit/TI-02.25,2025,,Baik,,Tolkit.xlsx
+348,Toolkit,Toolkit,Samsung,T.kit/TI-03.25,2025,,Baik,,Tolkit.xlsx
+349,Toolkit,Toolkit,Samsung,T.kit/TI-04.25,2025,,Baik,,Tolkit.xlsx
+350,Toolkit,Toolkit,Samsung,T.kit/TI-05.25,2025,,Baik,,Tolkit.xlsx
+351,Toolkit,Toolkit,Samsung,T.kit/TI-06.25,2025,,Baik,,Tolkit.xlsx
+352,Toolkit,Toolkit,Samsung,T.kit/TI-07.25,2025,,Baik,,Tolkit.xlsx
+353,Toolkit,Toolkit,,T.kit/TI-08.25,2025,,Baik,,Tolkit.xlsx
+  ▌ TOOL SET,,,,,,,,,
+354,Tool Set,Tool Set,Good,GT-001,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+355,Tool Set,Tool Set,Good,GT-002,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+356,Tool Set,Tool Set,Good,GT-003,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+357,Tool Set,Tool Set,Good,GT-004,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+358,Tool Set,Tool Set,Good,GT-005,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+359,Tool Set,Tool Set,Good,GT-006,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+360,Tool Set,Tool Set,Good,GT-007,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+361,Tool Set,Tool Set,Good,GT-008,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+362,Tool Set,Tool Set,Good,GT-009,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx
+363,Tool Set,Tool Set,Good,GT-010,2012,Tas (isi 12 alat),Baik,"Obeng+, Obeng-, Obeng Kunci, T-NOL, Soulder, Pinset, TangCucut, Tang Potong, Kikir, Penyangga Solder",ALAT__Autosaved__br_2_.xlsx

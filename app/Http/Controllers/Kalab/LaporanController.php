@@ -60,16 +60,17 @@ class LaporanController extends Controller
         }
 
         // 4. Top Alat (top tools borrowed)
-        $topAlat = Peminjaman::with('alat')
+        $topAlat = Peminjaman::with('borrowable')
             ->where(function ($q) {
                 $q->whereHas('user', fn($u) => $u->where('role', 'dosen'))
                   ->orWhere(function ($sub) {
                       $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
-                          ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'));
+                          ->where('borrowable_type', \App\Models\Alat::class)
+                          ->whereHasMorph('borrowable', [\App\Models\Alat::class], fn($a) => $a->whereNotNull('program_studi'));
                   });
             })
-            ->selectRaw('alat_id, count(*) as total_pinjam')
-            ->groupBy('alat_id')
+            ->selectRaw('borrowable_type, borrowable_id, count(*) as total_pinjam')
+            ->groupBy('borrowable_type', 'borrowable_id')
             ->orderByDesc('total_pinjam')
             ->take(5)
             ->get();
@@ -109,12 +110,13 @@ class LaporanController extends Controller
             'Expires' => '0'
         ];
 
-        $peminjamans = Peminjaman::with(['user', 'alat'])
+        $peminjamans = Peminjaman::with(['user', 'borrowable'])
             ->where(function ($q) {
                 $q->whereHas('user', fn($u) => $u->where('role', 'dosen'))
                   ->orWhere(function ($sub) {
                       $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
-                          ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'));
+                          ->where('borrowable_type', \App\Models\Alat::class)
+                          ->whereHasMorph('borrowable', [\App\Models\Alat::class], fn($a) => $a->whereNotNull('program_studi'));
                   });
             })
             ->latest()
@@ -132,8 +134,9 @@ class LaporanController extends Controller
                 'Nama Peminjam',
                 'Role Peminjam',
                 'NIM/NIP',
-                'Nama Alat',
-                'Kode Alat',
+                'Nama Alat / Tool Set',
+                'Tipe',
+                'Kode Alat / Tool Set',
                 'Jumlah',
                 'Tanggal Pinjam',
                 'Tanggal Kembali',
@@ -142,13 +145,20 @@ class LaporanController extends Controller
             ]);
 
             foreach ($peminjamans as $p) {
+                $borrowable = $p->borrowable;
+                $isToolSet = $p->borrowable_type === \App\Models\ToolSet::class;
+                $name = $isToolSet ? ($borrowable->nama_tool_set ?? '-') : ($borrowable->nama ?? '-');
+                $code = $isToolSet ? ($borrowable->kode_tool_set ?? '-') : ($borrowable->kode ?? '-');
+                $type = $isToolSet ? 'Tool Set' : 'Alat';
+
                 fputcsv($file, [
                     $p->kode_peminjaman,
                     $p->user->name,
                     ucfirst($p->user->role),
                     $p->user->nim ?? $p->user->nip ?? '-',
-                    $p->alat->nama,
-                    $p->alat->kode,
+                    $name,
+                    $type,
+                    $code,
                     $p->jumlah,
                     $p->tanggal_pinjam->format('Y-m-d'),
                     $p->tanggal_kembali->format('Y-m-d'),

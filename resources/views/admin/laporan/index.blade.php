@@ -17,16 +17,16 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button class="btn btn-secondary">
+        <div class="flex items-center gap-3 no-print">
+            <button onclick="window.print()" class="btn btn-secondary">
                 <i class="fas fa-file-pdf"></i>
                 Export PDF
             </button>
 
-            <button class="btn btn-primary">
+            <a href="{{ route('admin.laporan.export-csv') }}" class="btn btn-primary">
                 <i class="fas fa-file-excel"></i>
                 Export Excel
-            </button>
+            </a>
         </div>
     </div>
 
@@ -115,6 +115,55 @@
 
     </div>
 
+    {{-- ToolSet Stats --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center text-violet-600">
+                    <i class="fas fa-toolbox"></i>
+                </div>
+
+                <span class="badge badge-info">
+                    Total
+                </span>
+            </div>
+
+            <h3 class="text-3xl font-bold text-slate-800">{{ $toolSetStats['total'] }}</h3>
+            <p class="text-sm text-slate-500 mt-1">Total Tool Set</p>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <i class="fas fa-box-open"></i>
+                </div>
+
+                <span class="badge badge-success">
+                    Tersedia
+                </span>
+            </div>
+
+            <h3 class="text-3xl font-bold text-slate-800">{{ $toolSetStats['tersedia'] }}</h3>
+            <p class="text-sm text-slate-500 mt-1">Tool Set Tersedia</p>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600">
+                    <i class="fas fa-hand-holding-medical"></i>
+                </div>
+
+                <span class="badge badge-warning">
+                    Dipinjam
+                </span>
+            </div>
+
+            <h3 class="text-3xl font-bold text-slate-800">{{ $toolSetStats['dipinjam'] }}</h3>
+            <p class="text-sm text-slate-500 mt-1">Tool Set Dipinjam</p>
+        </div>
+
+    </div>
     {{-- Charts --}}
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
@@ -261,11 +310,16 @@
 
                     <div class="flex-1">
                         <h4 class="text-sm font-semibold text-slate-800">
-                            {{ $item->alat->nama ?? '—' }}
+                            @if($item->borrowable_type === 'App\Models\ToolSet')
+                                {{ $item->borrowable->nama_tool_set ?? '—' }}
+                                <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
+                            @else
+                                {{ $item->borrowable->nama ?? '—' }}
+                            @endif
                         </h4>
 
                         <p class="text-xs text-slate-400 font-mono">
-                            {{ $item->alat->kode ?? '—' }}
+                            {{ $item->borrowable_type === 'App\Models\ToolSet' ? ($item->borrowable->kode_tool_set ?? '—') : ($item->borrowable->kode ?? '—') }}
                         </p>
                     </div>
 
@@ -410,3 +464,23 @@
 </div>
 
 @endsection
+
+@push('styles')
+<style>
+@media print {
+    aside, nav, header, .no-print, .btn, .sidebar, #sidebar, .header-action, .border-t {
+        display: none !important;
+    }
+    main, .content, body {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+}
+</style>
+@endpush

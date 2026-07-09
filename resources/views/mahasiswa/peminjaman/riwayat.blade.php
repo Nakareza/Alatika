@@ -65,12 +65,23 @@
                 <td class="px-6 py-5">
 
                     <div class="font-semibold text-[#1E2B4A]">
-                        {{ $p->alat->nama }}
+                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        @if($p->borrowable_type === 'App\Models\ToolSet')
+                            <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
+                        @endif
                     </div>
 
                     <div class="text-xs text-slate-500 mt-1">
-                        {{ $p->jumlah }} Unit
+                        {{ $p->jumlah }} {{ $p->borrowable_type === 'App\Models\ToolSet' ? 'Set' : 'Unit' }}
                     </div>
+
+                    @if($p->borrowable_type === 'App\Models\ToolSet')
+                        <button type="button" 
+                                @click="$dispatch('open-modal-components-{{ $p->id }}')"
+                                class="mt-1.5 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                            <i class="fas fa-list text-[10px]"></i> Lihat Komponen
+                        </button>
+                    @endif
 
                 </td>
 
@@ -212,12 +223,12 @@
                         <p class="font-semibold text-xs uppercase tracking-wider text-slate-500 mb-2">Detail Peminjaman</p>
                         <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                             <div>
-                                <span class="text-xs text-slate-400">Nama Alat:</span>
-                                <p class="font-semibold text-xs">{{ $p->alat->nama }}</p>
+                                <span class="text-xs text-slate-400">Nama Alat/Tool Set:</span>
+                                <p class="font-semibold text-xs">{{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}</p>
                             </div>
                             <div>
                                 <span class="text-xs text-slate-400">Jumlah:</span>
-                                <p class="font-semibold text-xs">{{ $p->jumlah }} Unit</p>
+                                <p class="font-semibold text-xs">{{ $p->jumlah }} {{ $p->borrowable_type === 'App\Models\ToolSet' ? 'Set' : 'Unit' }}</p>
                             </div>
                             <div class="col-span-2">
                                 <span class="text-xs text-slate-400">Kode Peminjaman:</span>
@@ -244,6 +255,38 @@
                     </button>
                 </x-slot>
             </form>
+        </x-modal>
+        @endif
+        
+        {{-- Modal Detail Komponen Tool Set --}}
+        @if($p->borrowable_type === 'App\Models\ToolSet' && $p->borrowable)
+        <x-modal name="components-{{ $p->id }}" title="Detail Komponen Tool Set" size="md">
+            <div class="mt-4 space-y-3">
+                <p class="text-sm font-semibold text-[#1E2B4A]">{{ $p->borrowable->nama_tool_set }} ({{ $p->borrowable->kode_tool_set }})</p>
+                <div class="border border-slate-100 rounded-xl overflow-hidden text-sm">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-2 font-semibold text-slate-500">Nama Komponen</th>
+                                <th class="px-4 py-2 font-semibold text-slate-500 text-center" style="width: 80px;">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($p->borrowable->details as $d)
+                            <tr>
+                                <td class="px-4 py-2.5 text-slate-700">{{ $d->nama_komponen }}</td>
+                                <td class="px-4 py-2.5 text-slate-600 text-center font-semibold">{{ $d->jumlah }} {{ $d->satuan }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <x-slot name="footer">
+                <button type="button" @click="$dispatch('close-modal-components-{{ $p->id }}')" class="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 transition font-medium">
+                    Tutup
+                </button>
+            </x-slot>
         </x-modal>
         @endif
     @endforeach

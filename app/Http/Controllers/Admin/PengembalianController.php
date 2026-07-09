@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
+use App\Models\Alat;
+use App\Models\ToolSet;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,7 @@ class PengembalianController extends Controller
     public function index(Request $request)
     {
         // Admin hanya menangani pengembalian MAHASISWA
-        $query = Peminjaman::with(['user', 'alat'])
+        $query = Peminjaman::with(['user', 'borrowable'])
             ->whereHas('user', function ($q) {
                 $q->where('role', 'mahasiswa');
             })
@@ -29,22 +31,26 @@ class PengembalianController extends Controller
 
         // Search mahasiswa / alat / kode
         if ($request->filled('search')) {
-
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
-
                 $q->whereHas('user', function ($user) use ($search) {
                     $user->where('name', 'like', "%{$search}%")
                         ->orWhere('nim', 'like', "%{$search}%");
                 })
-
-                ->orWhereHas('alat', function ($alat) use ($search) {
-                    $alat->where('nama', 'like', "%{$search}%");
+                ->orWhere(function ($sub) use ($search) {
+                    $sub->where(function ($q1) use ($search) {
+                        $q1->where('borrowable_type', Alat::class)
+                           ->whereHasMorph('borrowable', [Alat::class], function ($q) use ($search) {
+                               $q->where('nama', 'like', "%{$search}%");
+                           });
+                    })->orWhere(function ($q2) use ($search) {
+                        $q2->where('borrowable_type', ToolSet::class)
+                           ->whereHasMorph('borrowable', [ToolSet::class], function ($q) use ($search) {
+                               $q->where('nama_tool_set', 'like', "%{$search}%");
+                           });
+                    });
                 })
-
                 ->orWhere('kode_peminjaman', 'like', "%{$search}%");
-
             });
         }
 
@@ -82,47 +88,49 @@ class PengembalianController extends Controller
             'catatan_kondisi' => 'nullable|string'
         ]);
 
-        $peminjaman = Peminjaman::findOrFail($id);
+        $peminjaman = Peminjaman::with('borrowable')->findOrFail($id);
         
-        // Return stok
-        $alat = $peminjaman->alat;
-        if ($request->kondisi_kembali === 'baik' || $request->kondisi_kembali === 'rusak_ringan') {
-            $alat->stok_tersedia += $peminjaman->jumlah;
-        } else {
-            // Jika rusak berat, stok tidak dikembalikan ke stok tersedia
-            // (tergantung business logic lab, biasanya dikurangi dari stok total juga / masuk maintenance)
-            $alat->stok_total -= $peminjaman->jumlah;
+        $borrowable = $peminjaman->borrowable;
+        if ($borrowable) {
+            if ($request->kondisi_kembali === 'baik' || $request->kondisi_kembali === 'rusak_ringan') {
+                $borrowable->stok_tersedia += $peminjaman->jumlah;
+            } else {
+                // Rusak berat
+                if ($peminjaman->borrowable_type === ToolSet::class) {
+                    $borrowable->stok -= $peminjaman->jumlah;
+                } else {
+                    $borrowable->stok_total -= $peminjaman->jumlah;
+                }
+            }
+            $borrowable->save();
         }
-        $alat->save();
 
         $peminjaman->update([
             'status' => 'selesai',
             'kondisi_kembali' => $request->kondisi_kembali,
             'catatan_kondisi' => $request->catatan_kondisi,
-            // Jika belum ada foto karena offline return, kita biarkan null atau bisa upload admin manual
         ]);
+
+        $itemName = $peminjaman->borrowable_type === ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
 
         // Send notif
         $telegram->notifyReturnVerified($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $itemName,
         ]);
 
-        // Process waitlist
-        if ($alat->stok_tersedia > 0) {
-            $waitlists = \App\Models\Waitlist::where('alat_id', $alat->id)
+        // Process waitlist (only for Alat unit)
+        if ($peminjaman->borrowable_type === Alat::class && $borrowable && $borrowable->stok_tersedia > 0) {
+            $waitlists = \App\Models\Waitlist::where('alat_id', $borrowable->id)
                 ->where('status', 'waiting')
                 ->get();
 
             foreach ($waitlists as $waiter) {
-                // Send telegram notification to each waitlisted user
                 if ($waiter->user) {
                     $telegram->notifyWaitlistRestock($waiter->user, [
-                        'alat' => $alat->nama
+                        'alat' => $borrowable->nama
                     ]);
                 }
-                
-                // Update status to notified so they don't get spammed next return
                 $waiter->update(['status' => 'notified']);
             }
         }

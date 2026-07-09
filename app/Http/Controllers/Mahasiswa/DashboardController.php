@@ -25,7 +25,7 @@ class DashboardController extends Controller
             'ditolak' => $user->peminjaman()->where('status', 'ditolak')->count(),
         ];
         
-        $recent = $user->peminjaman()->with('alat')
+        $recent = $user->peminjaman()->with('borrowable')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();

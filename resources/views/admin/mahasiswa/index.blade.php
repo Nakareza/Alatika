@@ -14,10 +14,10 @@
             </p>
         </div>
 
-        <button class="btn btn-secondary" type="button">
+        <a href="{{ route('admin.mahasiswa.export-csv', request()->all()) }}" class="btn btn-secondary">
             <i class="fas fa-file-export"></i>
             Export
-        </button>
+        </a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

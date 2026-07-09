@@ -115,12 +115,23 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
 
     Route::delete('/alat/{alat}', [AdminInventarisController::class, 'destroy'])
         ->name('alat.destroy');
+
+    Route::get('/tool-sets/{id}/edit', [AdminInventarisController::class, 'editToolSet'])
+        ->name('toolset.edit');
+
+    Route::put('/tool-sets/{id}', [AdminInventarisController::class, 'updateToolSet'])
+        ->name('toolset.update');
+
+    Route::delete('/tool-sets/{id}', [AdminInventarisController::class, 'destroyToolSet'])
+        ->name('toolset.destroy');
     
     // Data Mahasiswa Routes
     Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index'])->name('mahasiswa');
+    Route::get('/mahasiswa/export-csv', [AdminMahasiswaController::class, 'exportCsv'])->name('mahasiswa.export-csv');
     
     // Data Dosen Routes
     Route::get('/dosen', [AdminDosenController::class, 'index'])->name('dosen');
+    Route::get('/dosen/export-csv', [AdminDosenController::class, 'exportCsv'])->name('dosen.export-csv');
     
     // Laporan Routes
     Route::get('/laporan', function () {
@@ -144,14 +155,21 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
             'maintenance'   => \App\Models\Alat::where('status', 'maintenance')->count(),
         ];
 
+        // ToolSet statistics
+        $toolSetStats = [
+            'total'     => \App\Models\ToolSet::count(),
+            'tersedia'  => \App\Models\ToolSet::sum('stok_tersedia'),
+            'dipinjam'  => \App\Models\ToolSet::sum('stok') - \App\Models\ToolSet::sum('stok_tersedia'),
+        ];
+
         $mahasiswaAktif = \App\Models\User::where('role', 'mahasiswa')
             ->whereHas('peminjaman')
             ->count();
 
-        $topAlat = \App\Models\Peminjaman::with('alat')
+        $topAlat = \App\Models\Peminjaman::with('borrowable')
             ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
-            ->selectRaw('alat_id, count(*) as total_pinjam')
-            ->groupBy('alat_id')
+            ->selectRaw('borrowable_type, borrowable_id, count(*) as total_pinjam')
+            ->groupBy('borrowable_type', 'borrowable_id')
             ->orderByDesc('total_pinjam')
             ->take(5)
             ->get();
@@ -179,9 +197,69 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
             ->get();
 
         return view('admin.laporan.index', compact(
-            'stats', 'alatStats', 'mahasiswaAktif', 'topAlat', 'ringkasanBulanan', 'kategoriDistribusi'
+            'stats', 'alatStats', 'toolSetStats', 'mahasiswaAktif', 'topAlat', 'ringkasanBulanan', 'kategoriDistribusi'
         ));
     })->name('laporan');
+
+    Route::get('/laporan/export-csv', function () {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="laporan_peminjaman_mahasiswa_' . date('Y-m-d') . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $peminjamans = \App\Models\Peminjaman::with(['user', 'borrowable'])
+            ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
+            ->latest()
+            ->get();
+
+        $callback = function () use ($peminjamans) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+            
+            fputcsv($file, [
+                'Kode Peminjaman',
+                'Nama Peminjam',
+                'NIM',
+                'Nama Alat / Tool Set',
+                'Tipe',
+                'Kode Alat / Tool Set',
+                'Jumlah',
+                'Tanggal Pinjam',
+                'Tanggal Kembali',
+                'Keperluan',
+                'Status'
+            ]);
+
+            foreach ($peminjamans as $p) {
+                $borrowable = $p->borrowable;
+                $isToolSet = $p->borrowable_type === \App\Models\ToolSet::class;
+                $name = $isToolSet ? ($borrowable->nama_tool_set ?? '-') : ($borrowable->nama ?? '-');
+                $code = $isToolSet ? ($borrowable->kode_tool_set ?? '-') : ($borrowable->kode ?? '-');
+                $type = $isToolSet ? 'Tool Set' : 'Alat';
+
+                fputcsv($file, [
+                    $p->kode_peminjaman,
+                    $p->user->name,
+                    $p->user->nim ?? '-',
+                    $name,
+                    $type,
+                    $code,
+                    $p->jumlah,
+                    $p->tanggal_pinjam->format('Y-m-d'),
+                    $p->tanggal_kembali->format('Y-m-d'),
+                    $p->keperluan,
+                    $p->status_label
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    })->name('laporan.export-csv');
     
     // Profil Admin Routes
     Route::get('/profil', function () {
@@ -213,6 +291,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     // Keranjang (Cart) Routes
     Route::get('/keranjang', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'index'])->name('keranjang');
     Route::post('/keranjang/{alat_id}/add', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'add'])->name('keranjang.add');
+    Route::post('/keranjang/toolset/{toolset_id}/add', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'addToolSet'])->name('keranjang.addToolSet');
     Route::delete('/keranjang/{id}/remove', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'remove'])->name('keranjang.remove');
     Route::post('/keranjang/checkout', [\App\Http\Controllers\Mahasiswa\KeranjangController::class, 'checkout'])->name('keranjang.checkout');
     

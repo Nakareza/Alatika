@@ -218,9 +218,14 @@
                 <td class="px-6 py-5">
                     <p class="text-sm font-semibold text-slate-500">{{ $index + 1 }}</p>
                     @if($p->status === 'pending')
-                        <span class="text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium {{ $p->alat->stok_tersedia >= $p->jumlah ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
+                        @php
+                            $borrowable = $p->borrowable;
+                            $stokTersedia = $borrowable ? $borrowable->stok_tersedia : 0;
+                            $stokTotal = $borrowable ? ($p->borrowable_type === 'App\Models\ToolSet' ? $borrowable->stok : $borrowable->stok_total) : 0;
+                        @endphp
+                        <span class="text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium {{ $stokTersedia >= $p->jumlah ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
                             <i class="fas fa-box text-[9px]"></i>
-                            Stok: {{ $p->alat->stok_tersedia }}/{{ $p->alat->stok_total }}
+                            Stok: {{ $stokTersedia }}/{{ $stokTotal }}
                         </span>
                     @endif
                 </td>
@@ -245,7 +250,10 @@
                 {{-- Alat --}}
                 <td class="px-6 py-5">
                     <p class="font-semibold text-[#1E2B4A]">
-                        {{ $p->alat->nama }}
+                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        @if($p->borrowable_type === 'App\Models\ToolSet')
+                            <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
+                        @endif
                     </p>
                 </td>
 
@@ -283,15 +291,17 @@
                             title="Detail"
                             onclick="showDetail(
                                 '{{ $p->kode_peminjaman }}',
-                                '{{ $p->user->name }}',
-                                '{{ $p->user->nim ?? '-' }}',
-                                '{{ $p->alat->nama }}',
+                                '{{ addslashes($p->user->name) }}',
+                                '{{ $p->user->nim ?? \'-\' }}',
+                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' ? addslashes($p->borrowable->nama_tool_set) : addslashes($p->alat->nama) }}',
                                 {{ $p->jumlah }},
-                                '{{ $p->tanggal_pinjam->format('d M Y') }}',
-                                '{{ $p->tanggal_kembali->format('d M Y') }}',
+                                '{{ $p->tanggal_pinjam->format(\'d M Y\') }}',
+                                '{{ $p->tanggal_kembali->format(\'d M Y\') }}',
                                 '{{ $p->status_label }}',
-                                '{{ $p->keperluan ?? '-' }}',
-                                '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}'
+                                '{{ addslashes($p->keperluan ?? \'-\') }}',
+                                '{{ $p->surat_keterangan ? asset(\'storage/\' . $p->surat_keterangan) : \'\' }}',
+                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' ? \'Set\' : \'Unit\' }}',
+                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' && $p->borrowable ? addslashes(json_encode($p->borrowable->details)) : \'[]\' }}'
                             )">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
@@ -418,6 +428,22 @@
             <p id="detail_keperluan" class="font-semibold text-[#1E2B4A]"></p>
         </div>
 
+        <div class="col-span-2 hidden" id="detail_komponen_section">
+            <p class="text-slate-500 mb-1.5 font-semibold">Komponen Tool Set</p>
+            <div class="border border-slate-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-slate-500 font-semibold">Nama Komponen</th>
+                            <th class="px-3 py-2 text-slate-500 font-semibold text-center" style="width: 80px;">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail_komponen_body" class="divide-y divide-slate-100">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="col-span-2" id="detail_surat_container">
             <p class="text-slate-500">Surat Keterangan</p>
             <a id="detail_surat_link" href="#" target="_blank" class="text-blue-600 font-semibold hover:underline flex items-center gap-1.5 mt-0.5">
@@ -478,12 +504,12 @@
 </div>
 
 <script>
-function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, keperluan, suratKeterangan) {
+function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, keperluan, suratKeterangan, satuan, komponenJson) {
     document.getElementById('detail_kode').innerText = kode;
     document.getElementById('detail_user').innerText = user;
     document.getElementById('detail_nim').innerText = nim;
     document.getElementById('detail_alat').innerText = alat;
-    document.getElementById('detail_jumlah').innerText = jumlah + ' Unit';
+    document.getElementById('detail_jumlah').innerText = jumlah + ' ' + (satuan || 'Unit');
     document.getElementById('detail_pinjam').innerText = pinjam;
     document.getElementById('detail_kembali').innerText = kembali;
     document.getElementById('detail_status').innerText = status;
@@ -496,6 +522,29 @@ function showDetail(kode, user, nim, alat, jumlah, pinjam, kembali, status, kepe
         docLink.href = suratKeterangan;
     } else {
         docContainer.classList.add('hidden');
+    }
+
+    const kompSection = document.getElementById('detail_komponen_section');
+    const kompBody = document.getElementById('detail_komponen_body');
+    kompBody.innerHTML = '';
+    
+    if (komponenJson && komponenJson !== '[]') {
+        kompSection.classList.remove('hidden');
+        try {
+            const komponen = JSON.parse(komponenJson);
+            komponen.forEach(k => {
+                kompBody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-3 py-2 text-slate-700 font-medium">${k.nama_komponen}</td>
+                        <td class="px-3 py-2 text-slate-600 text-center font-bold">${k.jumlah} ${k.satuan}</td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    } else {
+        kompSection.classList.add('hidden');
     }
 
     window.dispatchEvent(

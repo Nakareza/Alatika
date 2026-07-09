@@ -124,17 +124,25 @@ class PeminjamanController extends Controller
 
     public function approve(Request $request, $id, TelegramService $telegram)
     {
-        $peminjaman = Peminjaman::with(['user', 'alat'])->findOrFail($id);
+        $peminjaman = Peminjaman::with(['user', 'borrowable'])->findOrFail($id);
+
+        $borrowable = $peminjaman->borrowable;
+        if (!$borrowable) {
+            return redirect()->back()->with('error', 'Data inventaris tidak ditemukan.');
+        }
+
+        $isSpecialTool = ($peminjaman->borrowable_type === \App\Models\Alat::class) && ($borrowable->program_studi !== null);
 
         // Guard: kalab hanya approve dosen ATAU mahasiswa dengan alat khusus
-        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $peminjaman->alat->program_studi !== null)) {
+        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $isSpecialTool)) {
             return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menyetujui peminjaman ini.');
         }
 
+        $itemName = $peminjaman->borrowable_type === \App\Models\ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
+
         // Check stock availability before approving
-        $alat = $peminjaman->alat;
-        if ($alat->stok_tersedia < $peminjaman->jumlah) {
-            return redirect()->back()->with('error', 'Stok alat "' . $alat->nama . '" tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
+        if ($borrowable->stok_tersedia < $peminjaman->jumlah) {
+            return redirect()->back()->with('error', 'Stok "' . $itemName . '" tidak mencukupi (tersedia: ' . $borrowable->stok_tersedia . ', diminta: ' . $peminjaman->jumlah . ').');
         }
 
         // Update keperluan if Kalab modified it
@@ -157,12 +165,12 @@ class PeminjamanController extends Controller
 
             if ($peminjaman->admin_approved_by !== null) {
                 // Finalize approval: decrement stock, set status to dipinjam
-                $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+                $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                 $peminjaman->update(['status' => 'dipinjam']);
 
                 $telegram->notifyPeminjamanApproved($peminjaman->user, [
                     'kode' => $peminjaman->kode_peminjaman,
-                    'alat' => $peminjaman->alat->nama,
+                    'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
                     'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                     'approver_role' => 'Admin dan Kepala Lab',
@@ -175,20 +183,18 @@ class PeminjamanController extends Controller
         }
 
         // Case 2: Dosen borrowing a prodi tool (double approval: Kalab + Kaprodi)
-        if ($alat->program_studi !== null) {
+        if ($peminjaman->borrowable_type === \App\Models\Alat::class && $borrowable->program_studi !== null) {
             $peminjaman->update($updateData);
 
             // If kaprodi has already approved, finalize approval
             if ($peminjaman->kaprodi_approved_by !== null) {
                 // Decrement stock upon approval
-                $alat->stok_tersedia -= $peminjaman->jumlah;
-                $alat->save();
-
+                $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                 $peminjaman->update(['status' => 'dipinjam']);
 
                 $telegram->notifyPeminjamanApproved($peminjaman->user, [
                     'kode' => $peminjaman->kode_peminjaman,
-                    'alat' => $peminjaman->alat->nama,
+                    'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
                     'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                     'approver_role' => 'Kepala Lab dan Kaprodi',
@@ -197,12 +203,12 @@ class PeminjamanController extends Controller
                 return redirect()->back()->with('success', 'Peminjaman Dosen disetujui. Status: Dipinjam (Disetujui oleh Kepala Lab dan Kaprodi).');
             } else {
                 // Notify Kaprodi to approve
-                $kaprodis = User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
                 foreach ($kaprodis as $kaprodi) {
                     $telegram->notifyNewRequest($kaprodi, [
                         'peminjam_nama' => $peminjaman->user->name,
                         'peminjam_role' => 'dosen',
-                        'alat' => $alat->nama,
+                        'alat' => $itemName,
                         'jumlah' => $peminjaman->jumlah,
                         'kode' => $peminjaman->kode_peminjaman,
                     ]);
@@ -213,15 +219,14 @@ class PeminjamanController extends Controller
         }
 
         // Standard single approval (decrements stock immediately)
-        $alat->stok_tersedia -= $peminjaman->jumlah;
-        $alat->save();
+        $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
 
         $updateData['status'] = 'dipinjam';
         $peminjaman->update($updateData);
 
         $telegram->notifyPeminjamanApproved($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $itemName,
             'jumlah' => $peminjaman->jumlah,
             'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
             'approver_role' => 'Kepala Lab',
@@ -234,10 +239,17 @@ class PeminjamanController extends Controller
     {
         $request->validate(['alasan' => 'required|string']);
 
-        $peminjaman = Peminjaman::with('user')->findOrFail($id);
+        $peminjaman = Peminjaman::with(['user', 'borrowable'])->findOrFail($id);
+
+        $borrowable = $peminjaman->borrowable;
+        if (!$borrowable) {
+            return redirect()->back()->with('error', 'Data inventaris tidak ditemukan.');
+        }
+
+        $isSpecialTool = ($peminjaman->borrowable_type === \App\Models\Alat::class) && ($borrowable->program_studi !== null);
 
         // Guard: kalab hanya reject dosen atau mahasiswa alat khusus
-        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $peminjaman->alat->program_studi !== null)) {
+        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $isSpecialTool)) {
             return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menolak peminjaman ini.');
         }
 
@@ -248,9 +260,11 @@ class PeminjamanController extends Controller
             'kalab_approved_at' => now(),
         ]);
 
+        $itemName = $peminjaman->borrowable_type === \App\Models\ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
+
         $telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $itemName,
             'alasan' => $request->alasan,
         ]);
 
@@ -266,15 +280,16 @@ class PeminjamanController extends Controller
         ]);
 
         $ids = $request->peminjaman_ids;
-        $peminjamans = Peminjaman::with(['user', 'alat'])
+        $peminjamans = Peminjaman::with(['user', 'borrowable'])
             ->whereIn('id', $ids)
             ->where('status', 'pending')
-            ->where(function ($q) {
-                $q->whereHas('user', fn($u) => $u->where('role', 'dosen'))
-                  ->orWhere(function ($sub) {
-                      $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
-                          ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'));
-                  });
+            ->where(function ($query) {
+                $query->whereHas('user', fn($u) => $u->where('role', 'dosen'))
+                      ->orWhere(function ($sub) {
+                          $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
+                              ->where('borrowable_type', \App\Models\Alat::class)
+                              ->whereHasMorph('borrowable', [\App\Models\Alat::class], fn($a) => $a->whereNotNull('program_studi'));
+                      });
             })
             ->get();
 
@@ -282,11 +297,14 @@ class PeminjamanController extends Controller
         $failedMessages = [];
 
         foreach ($peminjamans as $peminjaman) {
-            $alat = $peminjaman->alat;
+            $borrowable = $peminjaman->borrowable;
+            if (!$borrowable) continue;
+
+            $itemName = $peminjaman->borrowable_type === \App\Models\ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
 
             // Check stock availability
-            if ($alat->stok_tersedia < $peminjaman->jumlah) {
-                $failedMessages[] = '"' . $alat->nama . '" stok tidak mencukupi (tersedia: ' . $alat->stok_tersedia . ')';
+            if ($borrowable->stok_tersedia < $peminjaman->jumlah) {
+                $failedMessages[] = '"' . $itemName . '" stok tidak mencukupi (tersedia: ' . $borrowable->stok_tersedia . ')';
                 continue;
             }
 
@@ -295,19 +313,19 @@ class PeminjamanController extends Controller
                 'kalab_approved_at' => now(),
             ];
 
+            $isSpecialTool = ($peminjaman->borrowable_type === \App\Models\Alat::class) && ($borrowable->program_studi !== null);
+
             // Case 1: Student borrowing special tool (Admin + Kalab)
             if ($peminjaman->user->role === 'mahasiswa') {
                 $peminjaman->update($updateData);
 
                 if ($peminjaman->admin_approved_by !== null) {
-                    $alat->stok_tersedia -= $peminjaman->jumlah;
-                    $alat->save();
-
+                    $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                     $peminjaman->update(['status' => 'dipinjam']);
 
                     $telegram->notifyPeminjamanApproved($peminjaman->user, [
                         'kode' => $peminjaman->kode_peminjaman,
-                        'alat' => $peminjaman->alat->nama,
+                        'alat' => $itemName,
                         'jumlah' => $peminjaman->jumlah,
                         'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                         'approver_role' => 'Admin dan Kepala Lab',
@@ -319,19 +337,17 @@ class PeminjamanController extends Controller
             }
 
             // Case 2: Dosen borrowing prodi tool (Kalab + Kaprodi)
-            if ($alat->program_studi !== null) {
+            if ($isSpecialTool) {
                 $peminjaman->update($updateData);
 
                 // If kaprodi has already approved, finalize approval
                 if ($peminjaman->kaprodi_approved_by !== null) {
-                    $alat->stok_tersedia -= $peminjaman->jumlah;
-                    $alat->save();
-
+                    $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                     $peminjaman->update(['status' => 'dipinjam']);
 
                     $telegram->notifyPeminjamanApproved($peminjaman->user, [
                         'kode' => $peminjaman->kode_peminjaman,
-                        'alat' => $peminjaman->alat->nama,
+                        'alat' => $itemName,
                         'jumlah' => $peminjaman->jumlah,
                         'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                         'approver_role' => 'Kepala Lab dan Kaprodi',
@@ -340,12 +356,12 @@ class PeminjamanController extends Controller
                     $approvedCount++;
                 } else {
                     // Notify Kaprodi to approve
-                    $kaprodis = User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                    $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
                     foreach ($kaprodis as $kaprodi) {
                         $telegram->notifyNewRequest($kaprodi, [
                             'peminjam_nama' => $peminjaman->user->name,
                             'peminjam_role' => 'dosen',
-                            'alat' => $alat->nama,
+                            'alat' => $itemName,
                             'jumlah' => $peminjaman->jumlah,
                             'kode' => $peminjaman->kode_peminjaman,
                         ]);
@@ -353,15 +369,14 @@ class PeminjamanController extends Controller
                 }
             } else {
                 // Decrement stock upon approval
-                $alat->stok_tersedia -= $peminjaman->jumlah;
-                $alat->save();
+                $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
 
                 $updateData['status'] = 'dipinjam';
                 $peminjaman->update($updateData);
 
                 $telegram->notifyPeminjamanApproved($peminjaman->user, [
                     'kode' => $peminjaman->kode_peminjaman,
-                    'alat' => $peminjaman->alat->nama,
+                    'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
                     'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                     'approver_role' => 'Kepala Lab',

@@ -239,9 +239,16 @@
                     </td>
 
                     <td class="px-6 py-4">
+                        @if($p->borrowable_type === 'App\Models\ToolSet')
                         <p class="text-sm font-medium text-slate-800">
-                            {{ $p->alat->nama }}
+                            <i class="fas fa-toolbox text-violet-500 mr-1"></i>
+                            {{ $p->borrowable->nama_tool_set ?? '—' }}
                         </p>
+                        @else
+                        <p class="text-sm font-medium text-slate-800">
+                            {{ $p->borrowable->nama ?? '—' }}
+                        </p>
+                        @endif
 
                         <p class="text-xs text-slate-400">
                             {{ $p->kode_peminjaman }}

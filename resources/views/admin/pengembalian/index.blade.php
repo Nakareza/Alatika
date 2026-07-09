@@ -167,7 +167,10 @@
                 <td class="px-6 py-5">
 
                     <p class="text-sm font-semibold text-slate-800">
-                        {{ $p->alat->nama }}
+                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        @if($p->borrowable_type === 'App\Models\ToolSet')
+                            <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
+                        @endif
                     </p>
 
                     <p class="text-xs text-slate-400">
@@ -370,11 +373,11 @@
 
                 <div class="flex justify-between text-sm">
                     <span class="font-semibold text-slate-500">
-                        Alat
+                        Alat / Tool Set
                     </span>
 
-                    <span class="text-slate-700">
-                        {{ $p->alat->nama }}
+                    <span class="text-slate-700 font-medium">
+                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
                     </span>
                 </div>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Alat;
 use App\Models\Keranjang;
 use App\Models\Peminjaman;
+use App\Models\ToolSet;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,13 @@ class KeranjangController extends Controller
      */
     public function index()
     {
-        $keranjang = Keranjang::with('alat')->where('user_id', Auth::id())->get();
+        $keranjang = Keranjang::with(['cartable' => function ($morphTo) {
+                $morphTo->morphWith([
+                    \App\Models\ToolSet::class => ['details'],
+                ]);
+            }])
+            ->where('user_id', Auth::id())
+            ->get();
         return view('mahasiswa.keranjang.index', compact('keranjang'));
     }
 
@@ -55,6 +62,41 @@ class KeranjangController extends Controller
     }
 
     /**
+     * Add ToolSet to cart
+     */
+    public function addToolSet(Request $request, $toolset_id)
+    {
+        $toolSet = ToolSet::findOrFail($toolset_id);
+
+        $request->validate([
+            'jumlah' => 'required|integer|min:1|max:' . $toolSet->stok_tersedia
+        ]);
+
+        // Check if this ToolSet is already in the cart
+        $keranjang = Keranjang::where('user_id', Auth::id())
+                             ->where('cartable_type', 'App\Models\ToolSet')
+                             ->where('cartable_id', $toolset_id)
+                             ->first();
+
+        if ($keranjang) {
+            $newJumlah = $keranjang->jumlah + $request->jumlah;
+            if ($newJumlah > $toolSet->stok_tersedia) {
+                return redirect()->back()->with('error', 'Jumlah melebihi stok yang tersedia.');
+            }
+            $keranjang->update(['jumlah' => $newJumlah]);
+        } else {
+            Keranjang::create([
+                'user_id' => Auth::id(),
+                'cartable_type' => 'App\Models\ToolSet',
+                'cartable_id' => $toolset_id,
+                'jumlah' => $request->jumlah
+            ]);
+        }
+
+        return redirect()->route('mahasiswa.peminjaman.ajukan')->with('success', 'Tool Set berhasil ditambahkan ke keranjang.');
+    }
+
+    /**
      * Remove item from cart
      */
     public function remove($id)
@@ -75,7 +117,13 @@ class KeranjangController extends Controller
             'tanggal_kembali' => 'required|date|after_or_equal:today',
         ]);
 
-        $keranjangItems = Keranjang::with('alat')->where('user_id', Auth::id())->get();
+        $keranjangItems = Keranjang::with(['cartable' => function ($morphTo) {
+                $morphTo->morphWith([
+                    \App\Models\ToolSet::class => ['details'],
+                ]);
+            }])
+            ->where('user_id', Auth::id())
+            ->get();
 
         if ($keranjangItems->isEmpty()) {
             return redirect()->route('mahasiswa.alat')->with('error', 'Keranjang Anda kosong.');
@@ -87,25 +135,40 @@ class KeranjangController extends Controller
             $alatNames = [];
 
             foreach ($keranjangItems as $item) {
+                $cartable = $item->cartable;
+
                 // Ensure stock is still available
-                if ($item->alat->stok_tersedia < $item->jumlah) {
-                    throw new \Exception("Stok {$item->alat->nama} tidak mencukupi saat ini.");
+                if ($cartable->stok_tersedia < $item->jumlah) {
+                    $itemName = $item->cartable_type === 'App\Models\ToolSet'
+                        ? $cartable->nama_tool_set
+                        : $cartable->nama;
+                    throw new \Exception("Stok {$itemName} tidak mencukupi saat ini.");
                 }
 
-                Peminjaman::create([
+                $peminjamanData = [
                     'kode_peminjaman' => $kode,
                     'user_id' => Auth::id(),
-                    'alat_id' => $item->alat_id,
                     'jumlah' => $item->jumlah,
                     'keperluan' => $request->keperluan,
                     'tanggal_pinjam' => now(),
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'status' => 'pending',
-                ]);
+                ];
+
+                if ($item->cartable_type === 'App\Models\ToolSet') {
+                    // ToolSet: use polymorphic fields
+                    $peminjamanData['borrowable_type'] = 'App\Models\ToolSet';
+                    $peminjamanData['borrowable_id'] = $item->cartable_id;
+                    $alatNames[] = "{$cartable->nama_tool_set} ({$item->jumlah} set)";
+                } else {
+                    // Alat: use legacy alat_id (boot() will sync borrowable fields)
+                    $peminjamanData['alat_id'] = $item->alat_id;
+                    $alatNames[] = "{$cartable->nama} ({$item->jumlah} unit)";
+                }
+
+                Peminjaman::create($peminjamanData);
 
                 // Stock is NOT decremented here — it will be decremented when Admin approves
-                
-                $alatNames[] = "{$item->alat->nama} ({$item->jumlah} unit)";
             }
 
             // Clear cart

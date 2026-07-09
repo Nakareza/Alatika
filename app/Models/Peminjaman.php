@@ -13,6 +13,8 @@ class Peminjaman extends Model
         'kode_peminjaman',
         'user_id',
         'alat_id',
+        'borrowable_type',
+        'borrowable_id',
         'jumlah',
         'keperluan',
         'tanggal_pinjam',
@@ -60,6 +62,23 @@ class Peminjaman extends Model
         'overdue_d7_sent'    => 'boolean',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            // Automatically set borrowable_type and borrowable_id if empty but alat_id is filled
+            if (empty($model->borrowable_type) && !empty($model->alat_id)) {
+                $model->borrowable_type = 'App\Models\Alat';
+                $model->borrowable_id = $model->alat_id;
+            }
+            // Automatically sync back to alat_id if borrowable is Alat
+            if ($model->borrowable_type === 'App\Models\Alat') {
+                $model->alat_id = $model->borrowable_id;
+            }
+        });
+    }
+
     // ===================================================
     // RELATIONSHIPS
     // ===================================================
@@ -73,11 +92,30 @@ class Peminjaman extends Model
     }
 
     /**
-     * Alat yang dipinjam
+     * Polymorphic relation
+     */
+    public function borrowable()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Internal relation helper for Alat
      */
     public function alat()
     {
-        return $this->belongsTo(Alat::class);
+        return $this->belongsTo(Alat::class, 'alat_id');
+    }
+
+    /**
+     * Accessor to fallback to borrowable when it is an Alat
+     */
+    public function getAlatAttribute()
+    {
+        if ($this->borrowable_type === 'App\Models\Alat') {
+            return $this->borrowable;
+        }
+        return $this->getRelationValue('alat');
     }
 
     /**
