@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class MahasiswaController extends Controller
+class DosenController extends Controller
 {
     public function index(Request $request)
     {
-        $baseQuery = User::query()->where('role', 'mahasiswa');
+        $baseQuery = User::query()->where('role', 'dosen');
 
         $query = clone $baseQuery;
 
@@ -20,7 +20,7 @@ class MahasiswaController extends Controller
             $query->where(function ($builder) use ($search) {
                 $builder->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('nim', 'like', "%{$search}%");
+                    ->orWhere('nip', 'like', "%{$search}%");
             });
         }
 
@@ -32,7 +32,7 @@ class MahasiswaController extends Controller
             }
         }
 
-        $mahasiswa = $query
+        $dosen = $query
             ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
@@ -46,27 +46,27 @@ class MahasiswaController extends Controller
                 ->count(),
         ];
 
-        return view('admin.mahasiswa.index', compact('mahasiswa', 'stats'));
+        return view('kaprodi.dosen.index', compact('dosen', 'stats'));
     }
 
     public function exportCsv(Request $request)
     {
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="data_mahasiswa_' . date('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="data_dosen_' . date('Y-m-d') . '.csv"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0'
         ];
 
-        $query = User::query()->where('role', 'mahasiswa');
+        $query = User::query()->where('role', 'dosen');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($builder) use ($search) {
                 $builder->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('nim', 'like', "%{$search}%");
+                    ->orWhere('nip', 'like', "%{$search}%");
             });
         }
 
@@ -78,27 +78,27 @@ class MahasiswaController extends Controller
             }
         }
 
-        $mahasiswa = $query->orderBy('name')->get();
+        $dosen = $query->orderBy('name')->get();
 
-        $callback = function () use ($mahasiswa) {
+        $callback = function () use ($dosen) {
             $file = fopen('php://output', 'w');
             fputs($file, "\xEF\xBB\xBF");
             
             fputcsv($file, [
                 'ID',
                 'Nama',
-                'NIM',
+                'NIP',
                 'Email',
                 'Status Telegram',
                 'Chat ID Telegram',
                 'Terdaftar Pada'
             ]);
 
-            foreach ($mahasiswa as $item) {
+            foreach ($dosen as $item) {
                 fputcsv($file, [
                     $item->id,
                     $item->name,
-                    $item->nim ?: '-',
+                    $item->nip ?: '-',
                     $item->email,
                     $item->telegram_chat_id ? 'Tertaut' : 'Belum Tertaut',
                     $item->telegram_chat_id ?: '-',

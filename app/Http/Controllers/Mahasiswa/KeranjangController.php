@@ -114,7 +114,8 @@ class KeranjangController extends Controller
     {
         $request->validate([
             'keperluan' => 'required|string|max:255',
-            'tanggal_kembali' => 'required|date|after_or_equal:today',
+            'tanggal_pinjam' => 'required|date|after_or_equal:today',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
         ]);
 
         $keranjangItems = Keranjang::with(['cartable' => function ($morphTo) {
@@ -127,6 +128,22 @@ class KeranjangController extends Controller
 
         if ($keranjangItems->isEmpty()) {
             return redirect()->route('mahasiswa.alat')->with('error', 'Keranjang Anda kosong.');
+        }
+
+        // Validate that there is no special tool in the cart for checkout endpoint
+        $hasSpecialTool = false;
+        foreach ($keranjangItems as $item) {
+            if ($item->cartable_type === 'App\Models\Alat') {
+                $alat = Alat::find($item->cartable_id);
+                if ($alat && $alat->program_studi !== null) {
+                    $hasSpecialTool = true;
+                    break;
+                }
+            }
+        }
+        if ($hasSpecialTool) {
+            return redirect()->route('mahasiswa.peminjaman.ajukan')
+                ->with('error', 'Peminjaman Alat Khusus wajib melalui form pengajuan resmi dengan melampirkan Surat Keterangan.');
         }
 
         DB::beginTransaction();
@@ -150,7 +167,7 @@ class KeranjangController extends Controller
                     'user_id' => Auth::id(),
                     'jumlah' => $item->jumlah,
                     'keperluan' => $request->keperluan,
-                    'tanggal_pinjam' => now(),
+                    'tanggal_pinjam' => $request->tanggal_pinjam,
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'status' => 'pending',
                 ];

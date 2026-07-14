@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Kalab;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     /**
-     * Display all users
+     * Display filtered users (admin, mahasiswa, kaprodi)
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->whereIn('role', ['admin', 'mahasiswa', 'kaprodi']);
 
         // Filter by role
         if ($request->filled('role')) {
@@ -35,15 +34,15 @@ class UserController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        return view('admin.users.index', compact('users'));
+        return view('kalab.users.index', compact('users'));
     }
 
     /**
-     * Show create user form
+     * Show create form
      */
     public function create()
     {
-        return view('admin.users.create');
+        return view('kalab.users.create');
     }
 
     /**
@@ -52,13 +51,13 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role'     => 'required|in:admin,dosen,kalab,kaprodi,mahasiswa',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|string|min:8',
+            'role'          => 'required|in:admin,mahasiswa,kaprodi',
+            'program_studi' => 'nullable|in:D3 IK,D4 TRK',
         ];
 
-        // NIM required for mahasiswa, NIP for dosen/kalab/admin/kaprodi
         if ($request->role === 'mahasiswa') {
             $rules['nim'] = 'required|string|max:20|unique:users,nim';
         } else {
@@ -72,46 +71,50 @@ class UserController extends Controller
         ]);
 
         User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'nim'      => $request->nim,
-            'nip'      => $request->nip,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'nim'           => $request->nim,
+            'nip'           => $request->nip,
+            'password'      => Hash::make($request->password),
+            'role'          => $request->role,
+            'program_studi' => $request->program_studi,
         ]);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('kalab.users.index')
                          ->with('success', 'User berhasil ditambahkan!');
     }
 
     /**
-     * Update user role
+     * Update user role and prodi
      */
     public function updateRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|in:admin,dosen,kalab,kaprodi,mahasiswa',
+            'role'          => 'required|in:admin,mahasiswa,kaprodi',
+            'program_studi' => 'nullable|in:D3 IK,D4 TRK',
         ]);
 
-        $user->update(['role' => $request->role]);
+        $user->update([
+            'role'          => $request->role,
+            'program_studi' => $request->program_studi,
+        ]);
 
-        return redirect()->route('admin.users.index')
-                         ->with('success', "Role {$user->name} berhasil diubah menjadi {$request->role}!");
+        return redirect()->route('kalab.users.index')
+                         ->with('success', "Data {$user->name} berhasil diperbarui!");
     }
 
     /**
-     * Delete a user
+     * Delete user
      */
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {
-            return redirect()->route('admin.users.index')
-                             ->with('error', 'Anda tidak bisa menghapus akun sendiri!');
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
         $user->delete();
 
-        return redirect()->route('admin.users.index')
-                         ->with('success', "User {$user->name} berhasil dihapus!");
+        return redirect()->route('kalab.users.index')
+                         ->with('success', 'User berhasil dihapus!');
     }
 }

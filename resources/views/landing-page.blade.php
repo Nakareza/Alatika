@@ -408,10 +408,10 @@
                 <div class="absolute rounded-full pointer-events-none" style="width:360px;height:360px;border:1.5px solid #EBF3FD;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
                 <div class="absolute rounded-full pointer-events-none" style="width:460px;height:460px;border:1px solid #F0F6FE;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
 
-                <img src="{{ asset('images/hero.png') }}"
-                     alt="Electronics Lab"
-                     class="animate-float relative z-10"
-                     style="max-width:440px;width:100%;object-fit:contain;filter:drop-shadow(0 16px 40px rgba(30,43,74,0.14));">
+                <img src="{{ asset('images/ikon.png') }}"
+                     alt="Ikon aplikasi peminjaman"
+                     class="relative z-10"
+                     style="max-width:460px;width:100%;object-fit:contain;">
 
                 <!-- Badge — approval -->
                 <div class="card absolute z-20"

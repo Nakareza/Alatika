@@ -101,7 +101,7 @@
         Quick Actions
     </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
         <a href="{{ route('admin.alat') }}"
            class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
@@ -113,19 +113,6 @@
             <div>
                 <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Alat</h3>
                 <p class="text-xs text-slate-400">Manajemen alat</p>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.mahasiswa') }}"
-           class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 hover:border-[#B5D4F4] hover:bg-[#F8FBFF] transition-all hover-lift group">
-
-            <div class="w-11 h-11 rounded-xl bg-[#F5F8FF] border border-[#D4E6F8] text-[#185FA5] flex items-center justify-center group-hover:bg-[#185FA5] group-hover:text-white transition-all duration-300">
-                <i class="fas fa-user-graduate text-base"></i>
-            </div>
-
-            <div>
-                <h3 class="font-bold text-slate-700 text-sm group-hover:text-[#185FA5] transition-colors">Kelola Mahasiswa</h3>
-                <p class="text-xs text-slate-400">Data mahasiswa</p>
             </div>
         </a>
 
@@ -223,16 +210,16 @@
                         <div class="flex items-center gap-3">
 
                             <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                                {{ strtoupper(substr($p->user->name, 0, 2)) }}
+                                {{ strtoupper(substr($p->nama_peminjam, 0, 2)) }}
                             </div>
 
                             <div>
                                 <p class="font-semibold text-slate-800 text-sm">
-                                    {{ $p->user->name }}
+                                    {{ $p->nama_peminjam }}
                                 </p>
 
                                 <p class="text-xs text-slate-400">
-                                    {{ $p->user->nim ?? $p->user->email }}
+                                    {{ $p->user ? ($p->user->nim ?? $p->user->email) : $p->peminjam_role }}
                                 </p>
                             </div>
                         </div>

@@ -239,10 +239,10 @@
                 <td class="px-6 py-5">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#1E2B4A] text-white flex items-center justify-center font-bold">
-                            {{ strtoupper(substr($p->user->name, 0, 1)) }}
+                            {{ strtoupper(substr($p->nama_peminjam, 0, 1)) }}
                         </div>
                         <div>
-                            <p class="font-semibold text-[#1E2B4A]">{{ $p->user->name }}</p>
+                            <p class="font-semibold text-[#1E2B4A]">{{ $p->nama_peminjam }}</p>
                         </div>
                     </div>
                 </td>
@@ -250,7 +250,7 @@
                 {{-- Alat --}}
                 <td class="px-6 py-5">
                     <p class="font-semibold text-[#1E2B4A]">
-                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        {{ $p->item_name }}
                         @if($p->borrowable_type === 'App\Models\ToolSet')
                             <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
                         @endif
@@ -282,50 +282,125 @@
 
                 {{-- Aksi --}}
                 <td class="px-6 py-5">
-                    <div class="flex justify-center items-center gap-2">
+                    <div class="flex flex-col gap-2">
 
                         {{-- Detail Button --}}
                         <button
                             type="button"
-                            class="w-9 h-9 rounded-xl text-blue-600 hover:bg-blue-50 transition flex items-center justify-center"
+                            class="w-full px-3 py-2 rounded-lg text-blue-600 hover:bg-blue-50 transition flex items-center justify-center gap-1.5 text-xs font-semibold"
                             title="Detail"
                             onclick="showDetail(
                                 '{{ $p->kode_peminjaman }}',
-                                '{{ addslashes($p->user->name) }}',
-                                '{{ $p->user->nim ?? \'-\' }}',
-                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' ? addslashes($p->borrowable->nama_tool_set) : addslashes($p->alat->nama) }}',
+                                '{{ addslashes($p->nama_peminjam) }}',
+                                '{{ $p->user ? ($p->user->nim ?? "-") : $p->peminjam_role }}',
+                                '{{ addslashes($p->item_name) }}',
                                 {{ $p->jumlah }},
-                                '{{ $p->tanggal_pinjam->format(\'d M Y\') }}',
-                                '{{ $p->tanggal_kembali->format(\'d M Y\') }}',
+                                '{{ $p->tanggal_pinjam->format('d M Y') }}',
+                                '{{ $p->tanggal_kembali->format('d M Y') }}',
                                 '{{ $p->status_label }}',
-                                '{{ addslashes($p->keperluan ?? \'-\') }}',
-                                '{{ $p->surat_keterangan ? asset(\'storage/\' . $p->surat_keterangan) : \'\' }}',
-                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' ? \'Set\' : \'Unit\' }}',
-                                '{{ $p->borrowable_type === \'App\Models\ToolSet\' && $p->borrowable ? addslashes(json_encode($p->borrowable->details)) : \'[]\' }}'
+                                '{{ addslashes($p->keperluan ?? '-') }}',
+                                '{{ $p->surat_keterangan ? asset('storage/' . $p->surat_keterangan) : '' }}',
+                                '{{ $p->borrowable_type === 'App\Models\ToolSet' ? 'Set' : 'Unit' }}',
+                                '{{ $p->borrowable_type === 'App\Models\ToolSet' && $p->borrowable ? addslashes(json_encode($p->borrowable->details)) : '[]' }}'
                             )">
                             <i class="fas fa-eye text-sm"></i>
+                            <span>Detail</span>
                         </button>
 
-                        {{-- Pending: Admin langsung approve/reject --}}
+                        {{-- Status Info (no action buttons) --}}
                         @if($p->status === 'pending')
-                            <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
-                                method="POST" style="display:inline;">
-                                @csrf
-                                <button type="submit"
-                                    class="w-9 h-9 rounded-lg text-green-600 hover:bg-green-50 transition"
-                                    title="Setujui">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </form>
-
-                            <button type="button"
-                                class="w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 transition"
-                                title="Tolak"
-                                onclick="showRejectModal({{ $p->id }})">
-                                <i class="fas fa-times"></i>
-                            </button>
+                            @if($p->admin_approved_by === null)
+                                <div class="flex gap-2">
+                                    <form action="{{ route('admin.peminjaman.approve', $p->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition text-xs font-semibold flex items-center gap-1 shadow-sm">
+                                            <i class="fas fa-check"></i> Setujui
+                                        </button>
+                                    </form>
+                                    <button type="button" class="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition text-xs font-semibold flex items-center gap-1 shadow-sm" onclick="showRejectModal({{ $p->id }})">
+                                        <i class="fas fa-times"></i> Tolak
+                                    </button>
+                                </div>
+                            @else
+                                @php
+                                    $pendingRoles = [];
+                                    if (is_array($p->required_approvals)) {
+                                        if (in_array('kalab', $p->required_approvals) && $p->kalab_approved_by === null) {
+                                            $pendingRoles[] = 'Kepala Lab';
+                                        }
+                                        if (in_array('kaprodi', $p->required_approvals) && $p->kaprodi_approved_by === null) {
+                                            $pendingRoles[] = 'Kaprodi';
+                                        }
+                                    } else {
+                                        // Special tool for student
+                                        $isSpecialTool = ($p->borrowable_type === 'App\Models\Alat') && ($p->alat?->program_studi !== null);
+                                        if ($isSpecialTool && $p->kalab_approved_by === null) {
+                                            $pendingRoles[] = 'Kepala Lab';
+                                        }
+                                    }
+                                    $pendingStr = implode(' & ', $pendingRoles);
+                                @endphp
+                                <div class="px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-100 text-xs text-left">
+                                    <div class="font-semibold text-indigo-700 mb-1">
+                                        <i class="fas fa-check-circle mr-1"></i> Disetujui Admin
+                                    </div>
+                                    <div class="text-indigo-600">
+                                        {{ !empty($pendingStr) ? 'Menunggu ' . $pendingStr : 'Menunggu Kepala Lab' }}
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            {{-- Approval Status Info --}}
+                            @if($p->status === 'ditolak')
+                                <div class="px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-xs">
+                                    <div class="font-semibold text-red-700 mb-1">
+                                        <i class="fas fa-times-circle mr-1"></i> Ditolak
+                                    </div>
+                                    @if($p->rejected_reason)
+                                        <div class="text-red-600 text-xs line-clamp-2">
+                                            <span class="font-semibold">Alasan:</span> {{ $p->rejected_reason }}
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif($p->status === 'dipinjam')
+                                <div class="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-xs">
+                                    <div class="font-semibold text-emerald-700 mb-1">
+                                        <i class="fas fa-check-circle mr-1"></i> Disetujui
+                                    </div>
+                                    @php
+                                        $approvalStatus = $p->approval_status;
+                                        $approvers = [];
+                                        if ($approvalStatus['admin_approved']) {
+                                            $approvers[] = 'Admin (' . $approvalStatus['admin_approved_at']->format('d M') . ')';
+                                        }
+                                        if ($approvalStatus['kalab_approved']) {
+                                            $approvers[] = 'Kalab (' . $approvalStatus['kalab_approved_at']->format('d M') . ')';
+                                        }
+                                        if ($approvalStatus['kaprodi_approved']) {
+                                            $approvers[] = 'Kaprodi (' . $approvalStatus['kaprodi_approved_at']->format('d M') . ')';
+                                        }
+                                    @endphp
+                                    <div class="text-emerald-600">
+                                        {{ implode(', ', $approvers) }}
+                                    </div>
+                                </div>
+                            @elseif($p->status === 'menunggu_verifikasi')
+                                <div class="px-3 py-2 rounded-lg bg-purple-50 border border-purple-100 text-xs">
+                                    <div class="font-semibold text-purple-700 mb-1">
+                                        <i class="fas fa-camera-alt mr-1"></i> Menunggu Verifikasi
+                                    </div>
+                                    <div class="text-purple-600 text-xs">
+                                        Menunggu verifikasi pengembalian alat
+                                    </div>
+                                </div>
+                            @else
+                                <div class="px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+                                    <div class="font-semibold text-slate-700">
+                                        <i class="fas fa-info-circle mr-1"></i> {{ $p->status_label }}
+                                    </div>
+                                </div>
+                            @endif
                         @endif
-
 
                     </div>
                 </td>

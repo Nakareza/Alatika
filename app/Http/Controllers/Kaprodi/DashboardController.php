@@ -11,39 +11,37 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $userProdi = $user->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
+
+        // Base query for this prodi's kaprodi-relevant loans
+        $baseQuery = Peminjaman::whereJsonContains('required_approvals', 'kaprodi')
+            ->whereHas('user', function ($u) use ($prodiShort) {
+                $u->where('program_studi', 'like', "%{$prodiShort}%");
+            });
 
         // Stats count
         $stats = [
-            'pending' => Peminjaman::where('status', 'pending')
-                ->whereHas('user', function ($q) {
-                    $q->where('role', 'dosen');
-                })
-                ->whereHas('alat', function ($q) {
-                    $q->whereNotNull('program_studi');
-                })
-                ->count(),
-            'dipinjam' => Peminjaman::where('status', 'dipinjam')->count(),
-            'selesai' => Peminjaman::where('status', 'selesai')->count(),
-            'overdue' => Peminjaman::where('status', 'dipinjam')
+            'pending' => (clone $baseQuery)->where('status', 'pending')->whereNotNull('kalab_approved_by')->count(),
+            'dipinjam' => (clone $baseQuery)->where('status', 'dipinjam')->count(),
+            'selesai' => (clone $baseQuery)->where('status', 'selesai')->count(),
+            'overdue' => (clone $baseQuery)->where('status', 'dipinjam')
                 ->where('tanggal_kembali', '<', now()->toDateString())
                 ->count(),
         ];
 
-        // Fetch recent pending approvals (only Dosen loans for tools requiring Kaprodi approval)
-        $pending_approvals = Peminjaman::with(['user', 'alat'])
+        // Fetch recent pending approvals
+        $pending_approvals = (clone $baseQuery)
+            ->with(['user', 'alat'])
             ->where('status', 'pending')
-            ->whereHas('user', function ($q) {
-                $q->where('role', 'dosen');
-            })
-            ->whereHas('alat', function ($q) {
-                $q->whereNotNull('program_studi');
-            })
+            ->whereNotNull('kalab_approved_by')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
         // Fetch currently borrowed items (all for monitoring)
-        $active_borrowings = Peminjaman::with(['user', 'alat'])
+        $active_borrowings = (clone $baseQuery)
+            ->with(['user', 'alat'])
             ->where('status', 'dipinjam')
             ->orderBy('updated_at', 'desc')
             ->take(5)

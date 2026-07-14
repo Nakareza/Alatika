@@ -1,16 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class DosenController extends Controller
+class MahasiswaController extends Controller
 {
     public function index(Request $request)
     {
-        $baseQuery = User::query()->where('role', 'dosen');
+        $userProdi = auth()->user()->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
+
+        $baseQuery = User::query()
+            ->where('role', 'mahasiswa')
+            ->where('program_studi', 'like', "%{$prodiShort}%");
 
         $query = clone $baseQuery;
 
@@ -20,7 +25,7 @@ class DosenController extends Controller
             $query->where(function ($builder) use ($search) {
                 $builder->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('nip', 'like', "%{$search}%");
+                    ->orWhere('nim', 'like', "%{$search}%");
             });
         }
 
@@ -32,7 +37,7 @@ class DosenController extends Controller
             }
         }
 
-        $dosen = $query
+        $mahasiswa = $query
             ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
@@ -46,27 +51,32 @@ class DosenController extends Controller
                 ->count(),
         ];
 
-        return view('admin.dosen.index', compact('dosen', 'stats'));
+        return view('kaprodi.mahasiswa.index', compact('mahasiswa', 'stats'));
     }
 
     public function exportCsv(Request $request)
     {
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="data_dosen_' . date('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="data_mahasiswa_' . date('Y-m-d') . '.csv"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0'
         ];
 
-        $query = User::query()->where('role', 'dosen');
+        $userProdi = auth()->user()->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
+
+        $query = User::query()
+            ->where('role', 'mahasiswa')
+            ->where('program_studi', 'like', "%{$prodiShort}%");
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($builder) use ($search) {
                 $builder->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('nip', 'like', "%{$search}%");
+                    ->orWhere('nim', 'like', "%{$search}%");
             });
         }
 
@@ -78,28 +88,30 @@ class DosenController extends Controller
             }
         }
 
-        $dosen = $query->orderBy('name')->get();
+        $mahasiswa = $query->orderBy('name')->get();
 
-        $callback = function () use ($dosen) {
+        $callback = function () use ($mahasiswa) {
             $file = fopen('php://output', 'w');
             fputs($file, "\xEF\xBB\xBF");
             
             fputcsv($file, [
                 'ID',
                 'Nama',
-                'NIP',
+                'NIM',
                 'Email',
+                'Program Studi',
                 'Status Telegram',
                 'Chat ID Telegram',
                 'Terdaftar Pada'
             ]);
 
-            foreach ($dosen as $item) {
+            foreach ($mahasiswa as $item) {
                 fputcsv($file, [
                     $item->id,
                     $item->name,
-                    $item->nip ?: '-',
+                    $item->nim ?: '-',
                     $item->email,
+                    $item->program_studi ?: '-',
                     $item->telegram_chat_id ? 'Tertaut' : 'Belum Tertaut',
                     $item->telegram_chat_id ?: '-',
                     $item->created_at?->format('Y-m-d H:i:s') ?: '-'

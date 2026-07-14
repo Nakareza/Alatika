@@ -140,21 +140,21 @@
 
                     <div class="flex items-center gap-3">
 
-                        <div
+                         <div
                             class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold bg-[#1E2B4A]">
 
-                            {{ strtoupper(substr($p->user->name,0,1)) }}
+                            {{ strtoupper(substr($p->nama_peminjam,0,1)) }}
 
                         </div>
 
                         <div>
 
                             <p class="text-sm font-semibold text-slate-800">
-                                {{ $p->user->name }}
+                                {{ $p->nama_peminjam }}
                             </p>
 
                             <p class="text-xs text-slate-400">
-                                {{ $p->user->nim ?? '-' }}
+                                {{ $p->user ? ($p->user->nim ?? '-') : $p->peminjam_role }}
                             </p>
 
                         </div>
@@ -167,7 +167,7 @@
                 <td class="px-6 py-5">
 
                     <p class="text-sm font-semibold text-slate-800">
-                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        {{ $p->item_name }}
                         @if($p->borrowable_type === 'App\Models\ToolSet')
                             <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
                         @endif
@@ -366,8 +366,8 @@
                         Peminjam
                     </span>
 
-                    <span class="text-slate-700">
-                        {{ $p->user->name }}
+                    <span class="text-slate-700 font-semibold">
+                        {{ $p->nama_peminjam }} ({{ $p->peminjam_role }})
                     </span>
                 </div>
 
@@ -377,7 +377,7 @@
                     </span>
 
                     <span class="text-slate-700 font-medium">
-                        {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                        {{ $p->item_name }}
                     </span>
                 </div>
 

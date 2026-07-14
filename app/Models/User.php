@@ -26,6 +26,7 @@ class User extends Authenticatable
         'nip',
         'password',
         'role',
+        'program_studi',
         'telegram_chat_id',
     ];
 

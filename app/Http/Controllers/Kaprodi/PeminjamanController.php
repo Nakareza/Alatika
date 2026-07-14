@@ -15,19 +15,29 @@ class PeminjamanController extends Controller
      */
     public function persetujuan(Request $request)
     {
-        $query = Peminjaman::with(['user', 'alat']);
+        $userProdi = auth()->user()->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
 
-        // Kaprodi only approves pending loans for Dosen where the tool has a program study
+        $query = Peminjaman::with(['user', 'alat'])
+            ->where(function ($q) use ($prodiShort) {
+                $q->whereHas('user', function ($u) use ($prodiShort) {
+                    $u->where('program_studi', 'like', "%{$prodiShort}%");
+                })->orWhere(function ($sub) use ($prodiShort) {
+                    $sub->whereNull('user_id')
+                        ->whereHas('alat', function ($a) use ($prodiShort) {
+                            $a->where('program_studi', 'like', "%{$prodiShort}%");
+                        });
+                });
+            });
+
+        // Kaprodi only sees/approves pending loans that require Kaprodi approval and have been approved by Kalab,
+        // or non-pending loans.
         $query->where(function ($q) {
             $q->where('status', '!=', 'pending')
               ->orWhere(function ($sub) {
                   $sub->where('status', 'pending')
-                      ->whereHas('user', function ($u) {
-                          $u->where('role', 'dosen');
-                      })
-                      ->whereHas('alat', function ($a) {
-                          $a->whereNotNull('program_studi');
-                      });
+                      ->whereJsonContains('required_approvals', 'kaprodi')
+                      ->whereNotNull('kalab_approved_by');
               });
         });
 
@@ -72,14 +82,25 @@ class PeminjamanController extends Controller
             ->withQueryString();
 
         // Statistik
+        $statsQuery = Peminjaman::where(function ($q) use ($prodiShort) {
+            $q->whereHas('user', function ($u) use ($prodiShort) {
+                $u->where('program_studi', 'like', "%{$prodiShort}%");
+            })->orWhere(function ($sub) use ($prodiShort) {
+                $sub->whereNull('user_id')
+                    ->whereHas('alat', function ($a) use ($prodiShort) {
+                        $a->where('program_studi', 'like', "%{$prodiShort}%");
+                    });
+            });
+        });
+
         $stats = [
-            'pending' => Peminjaman::where('status', 'pending')
-                ->whereHas('user', fn($u) => $u->where('role', 'dosen'))
-                ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'))
+             'pending' => (clone $statsQuery)->where('status', 'pending')
+                ->whereJsonContains('required_approvals', 'kaprodi')
+                ->whereNotNull('kalab_approved_by')
                 ->count(),
-            'dipinjam' => Peminjaman::where('status', 'dipinjam')->count(),
-            'selesai' => Peminjaman::where('status', 'selesai')->count(),
-            'total_pengajuan' => Peminjaman::count(),
+            'dipinjam' => (clone $statsQuery)->where('status', 'dipinjam')->count(),
+            'selesai' => (clone $statsQuery)->where('status', 'selesai')->count(),
+            'total_pengajuan' => (clone $statsQuery)->count(),
         ];
 
         return view(
@@ -93,7 +114,20 @@ class PeminjamanController extends Controller
      */
     public function riwayat(Request $request)
     {
+        $userProdi = auth()->user()->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
+
         $peminjaman = Peminjaman::with(['user', 'alat'])
+            ->where(function ($q) use ($prodiShort) {
+                $q->whereHas('user', function ($u) use ($prodiShort) {
+                    $u->where('program_studi', 'like', "%{$prodiShort}%");
+                })->orWhere(function ($sub) use ($prodiShort) {
+                    $sub->whereNull('user_id')
+                        ->whereHas('alat', function ($a) use ($prodiShort) {
+                            $a->where('program_studi', 'like', "%{$prodiShort}%");
+                        });
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -112,6 +146,12 @@ class PeminjamanController extends Controller
             return redirect()->back()->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
         }
 
+        if ($peminjaman->required_approvals !== null) {
+            if (!in_array('kaprodi', $peminjaman->required_approvals)) {
+                return redirect()->back()->with('error', 'Akses ditolak. Peminjaman ini tidak memerlukan persetujuan Kaprodi.');
+            }
+        }
+
         // Check stock availability before approving
         $alat = $peminjaman->alat;
         if ($alat->stok_tersedia < $peminjaman->jumlah) {
@@ -119,10 +159,86 @@ class PeminjamanController extends Controller
         }
 
         // Set Kaprodi approved fields
-        $peminjaman->update([
+        $updateData = [
             'kaprodi_approved_by' => Auth::id(),
             'kaprodi_approved_at' => now(),
-        ]);
+        ];
+
+        // Custom approvals logic
+        if ($peminjaman->required_approvals !== null) {
+            $peminjaman->update($updateData);
+
+            // Check if all required approvals are met
+            $isFullyApproved = true;
+            $approverNames = [];
+
+            if (in_array('admin', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Admin/Teknisi';
+                if ($peminjaman->admin_approved_by === null) $isFullyApproved = false;
+            }
+            if (in_array('kalab', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kepala Lab';
+                if ($peminjaman->kalab_approved_by === null) $isFullyApproved = false;
+            }
+            if (in_array('kaprodi', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kaprodi';
+                if ($peminjaman->kaprodi_approved_by === null) $isFullyApproved = false;
+            }
+
+            $approverList = implode(' dan ', $approverNames);
+
+            if ($isFullyApproved) {
+                $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+                $peminjaman->update(['status' => 'dipinjam']);
+
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $alat->nama,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => $approverList,
+                ]);
+
+                return redirect()->back()->with('success', "Peminjaman disetujui secara final (Disetujui oleh {$approverList}). Status: Dipinjam.");
+            } else {
+                // Find who is next to approve
+                $pendingApprovers = [];
+                if (in_array('admin', $peminjaman->required_approvals) && $peminjaman->admin_approved_by === null) {
+                    $pendingApprovers[] = 'Admin';
+                    // Notify Admin
+                    $admins = \App\Models\User::where('role', 'admin')->whereNotNull('telegram_chat_id')->get();
+                    foreach ($admins as $admin) {
+                        $telegram->notifyNewRequest($admin, [
+                            'peminjam_nama' => $peminjaman->user->name,
+                            'peminjam_role' => $peminjaman->user->role,
+                            'alat' => $alat->nama,
+                            'jumlah' => $peminjaman->jumlah,
+                            'kode' => $peminjaman->kode_peminjaman,
+                        ]);
+                    }
+                }
+                if (in_array('kalab', $peminjaman->required_approvals) && $peminjaman->kalab_approved_by === null) {
+                    $pendingApprovers[] = 'Kepala Lab';
+                    // Notify Kalab
+                    $kalabs = \App\Models\User::where('role', 'kalab')->whereNotNull('telegram_chat_id')->get();
+                    foreach ($kalabs as $kalab) {
+                        $telegram->notifyNewRequest($kalab, [
+                            'peminjam_nama' => $peminjaman->user->name,
+                            'peminjam_role' => $peminjaman->user->role,
+                            'alat' => $alat->nama,
+                            'jumlah' => $peminjaman->jumlah,
+                            'kode' => $peminjaman->kode_peminjaman,
+                        ]);
+                    }
+                }
+                if (in_array('kaprodi', $peminjaman->required_approvals) && $peminjaman->kaprodi_approved_by === null) {
+                    $pendingApprovers[] = 'Kaprodi';
+                }
+
+                $pendingList = implode(', ', $pendingApprovers);
+                return redirect()->back()->with('success', "Peminjaman disetujui oleh Kaprodi. Menunggu persetujuan dari: {$pendingList}.");
+            }
+        }
 
         // Check if the Kalab has already approved
         $otherApproved = $peminjaman->kalab_approved_by !== null;
@@ -137,7 +253,7 @@ class PeminjamanController extends Controller
 
             $telegram->notifyPeminjamanApproved($peminjaman->user, [
                 'kode' => $peminjaman->kode_peminjaman,
-                'alat' => $peminjaman->alat->nama,
+                'alat' => $peminjaman->item_name,
                 'jumlah' => $peminjaman->jumlah,
                 'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                 'approver_role' => $otherRole . ' dan Kaprodi',
@@ -169,11 +285,13 @@ class PeminjamanController extends Controller
             'kaprodi_approved_at' => now(),
         ]);
 
-        $telegram->notifyPeminjamanRejected($peminjaman->user, [
-            'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
-            'alasan' => $request->alasan,
-        ]);
+        if ($peminjaman->user) {
+            $telegram->notifyPeminjamanRejected($peminjaman->user, [
+                'kode' => $peminjaman->kode_peminjaman,
+                'alat' => $peminjaman->item_name,
+                'alasan' => $request->alasan,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Peminjaman ditolak oleh Kaprodi.');
     }
@@ -189,9 +307,29 @@ class PeminjamanController extends Controller
         ]);
 
         $ids = $request->peminjaman_ids;
+        $userProdi = auth()->user()->program_studi;
+        $prodiShort = str_contains($userProdi, 'D3') ? 'D3' : 'D4';
+
         $peminjamans = Peminjaman::with(['user', 'alat'])
             ->whereIn('id', $ids)
             ->where('status', 'pending')
+            ->where(function ($q) use ($prodiShort) {
+                $q->whereHas('user', function ($u) use ($prodiShort) {
+                    $u->where('program_studi', 'like', "%{$prodiShort}%");
+                })->orWhere(function ($sub) use ($prodiShort) {
+                    $sub->whereNull('user_id')
+                        ->whereHas('alat', function ($a) use ($prodiShort) {
+                            $a->where('program_studi', 'like', "%{$prodiShort}%");
+                        });
+                });
+            })
+            ->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereHas('user', fn($u) => $u->where('role', 'dosen'))
+                        ->whereHas('alat', fn($a) => $a->whereNotNull('program_studi'))
+                        ->whereNotNull('kalab_approved_by');
+                })->orWhereJsonContains('required_approvals', 'kaprodi');
+            })
             ->get();
 
         $approvedCount = 0;
@@ -225,7 +363,7 @@ class PeminjamanController extends Controller
 
                 $telegram->notifyPeminjamanApproved($peminjaman->user, [
                     'kode' => $peminjaman->kode_peminjaman,
-                    'alat' => $peminjaman->alat->nama,
+                    'alat' => $peminjaman->item_name,
                     'jumlah' => $peminjaman->jumlah,
                     'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                     'approver_role' => $otherRole . ' dan Kaprodi',

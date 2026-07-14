@@ -6,9 +6,9 @@ use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InventarisAdminController as AdminInventarisController;
-use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
-use App\Http\Controllers\Admin\DosenController as AdminDosenController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Kaprodi\MahasiswaController as KaprodiMahasiswaController;
+use App\Http\Controllers\Kaprodi\DosenController as KaprodiDosenController;
+use App\Http\Controllers\Kaprodi\UserController as KaprodiUserController;
 use App\Http\Controllers\ProfilController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\PeminjamanController;
@@ -125,13 +125,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::delete('/tool-sets/{id}', [AdminInventarisController::class, 'destroyToolSet'])
         ->name('toolset.destroy');
     
-    // Data Mahasiswa Routes
-    Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index'])->name('mahasiswa');
-    Route::get('/mahasiswa/export-csv', [AdminMahasiswaController::class, 'exportCsv'])->name('mahasiswa.export-csv');
     
-    // Data Dosen Routes
-    Route::get('/dosen', [AdminDosenController::class, 'index'])->name('dosen');
-    Route::get('/dosen/export-csv', [AdminDosenController::class, 'exportCsv'])->name('dosen.export-csv');
     
     // Laporan Routes
     Route::get('/laporan', function () {
@@ -266,12 +260,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
         return view('admin.profil');
     })->name('profil');
 
-    // Kelola User Routes (Tambah Dosen, KA Lab, dll)
-    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-    Route::patch('/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.updateRole');
-    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });
 
 // Mahasiswa Routes (requires authentication + mahasiswa role)
@@ -283,6 +271,7 @@ Route::prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])->name('mahasi
     Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'store'])->name('peminjaman.store');
     Route::get('/peminjaman/riwayat', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'riwayat'])->name('peminjaman.riwayat');
     Route::post('/peminjaman/{id}/kembalikan', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
+    Route::post('/peminjaman/{id}/cancel', [\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'cancel'])->name('peminjaman.cancel');
     Route::post('/pengajuan/tambah/{id}',[\App\Http\Controllers\Mahasiswa\PeminjamanController::class, 'tambahPengajuan'])->name('pengajuan.tambah');
     // Alat Routes
     Route::get('/alat', [\App\Http\Controllers\Mahasiswa\AlatController::class, 'index'])->name('alat');
@@ -311,6 +300,9 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::post('/persetujuan/bulk-approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'bulkApprove'])->name('persetujuan.bulk-approve');
     Route::post('/persetujuan/{id}/approve', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'approve'])->name('persetujuan.approve');
     Route::post('/persetujuan/{id}/reject', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'reject'])->name('persetujuan.reject');
+    Route::get('/peminjaman/create', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'create'])->name('peminjaman.create');
+    Route::post('/peminjaman/store-manual', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'storeManual'])->name('peminjaman.store-manual');
+    Route::post('/peminjaman/{id}/complete-return', [\App\Http\Controllers\Kalab\PeminjamanController::class, 'completeReturn'])->name('peminjaman.complete-return');
     Route::get('/peminjaman/{id}',[\App\Http\Controllers\Kalab\PeminjamanController::class, 'show'])->name('peminjaman.show');
     // Data Alat
     Route::get('/alat', [\App\Http\Controllers\Kalab\AlatController::class, 'index'])->name('alat');
@@ -328,6 +320,13 @@ Route::prefix('kalab')->middleware(['auth', 'role:kalab'])->name('kalab.')->grou
     Route::get('/profil', function () {
         return view('kalab.profil');
     })->name('profil');
+
+    // Kelola User (KA Lab)
+    Route::get('/users', [\App\Http\Controllers\Kalab\UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [\App\Http\Controllers\Kalab\UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [\App\Http\Controllers\Kalab\UserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}/role', [\App\Http\Controllers\Kalab\UserController::class, 'updateRole'])->name('users.updateRole');
+    Route::delete('/users/{user}', [\App\Http\Controllers\Kalab\UserController::class, 'destroy'])->name('users.destroy');
 });
 
 // KA Prodi Routes (requires authentication + kaprodi role)
@@ -347,15 +346,31 @@ Route::prefix('kaprodi')->middleware(['auth', 'role:kaprodi'])->name('kaprodi.')
     Route::get('/profil', function () {
         return view('kaprodi.profil');
     })->name('profil');
+
+    // Data Mahasiswa Routes
+    Route::get('/mahasiswa', [KaprodiMahasiswaController::class, 'index'])->name('mahasiswa');
+    Route::get('/mahasiswa/export-csv', [KaprodiMahasiswaController::class, 'exportCsv'])->name('mahasiswa.export-csv');
+    
+    // Data Dosen Routes
+    Route::get('/dosen', [KaprodiDosenController::class, 'index'])->name('dosen');
+    Route::get('/dosen/export-csv', [KaprodiDosenController::class, 'exportCsv'])->name('dosen.export-csv');
+    
+    // Kelola User Routes
+    Route::get('/users', [KaprodiUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [KaprodiUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [KaprodiUserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}/role', [KaprodiUserController::class, 'updateRole'])->name('users.updateRole');
+    Route::delete('/users/{user}', [KaprodiUserController::class, 'destroy'])->name('users.destroy');
 });
 
-// Dosen Routes (requires authentication + dosen role)
-Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->group(function () {
+// Dosen Routes (requires authentication + dosen/kaprodi role)
+Route::prefix('dosen')->middleware(['auth', 'role:dosen,kaprodi'])->name('dosen.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Dosen\DashboardController::class, 'index'])->name('dashboard');
     
     // Peminjaman Mahasiswa (ini sebenarnya fitur dosen pinjam alat, ganti nama aja biar wajar)
     Route::get('/peminjaman/ajukan', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'ajukan'])->name('peminjaman.ajukan');
     Route::post('/peminjaman/ajukan', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'store'])->name('peminjaman.store');
+    Route::post('/peminjaman/{id}/kembalikan', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
     
     // Riwayat
     Route::get('/riwayat', [\App\Http\Controllers\Dosen\PeminjamanController::class, 'riwayat'])->name('riwayat');

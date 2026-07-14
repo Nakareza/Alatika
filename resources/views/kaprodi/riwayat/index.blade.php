@@ -84,23 +84,30 @@
                     <td class="px-6 py-5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm">
-                                {{ strtoupper(substr($p->user->name,0,2)) }}
+                                {{ strtoupper(substr($p->nama_peminjam,0,2)) }}
                             </div>
                             <div>
-                                <p class="font-semibold text-[#1E2B4A]">{{ $p->user->name }}</p>
-                                <p class="text-xs text-slate-500">{{ ucfirst($p->user->role) }}</p>
+                                <p class="font-semibold text-[#1E2B4A]">{{ $p->nama_peminjam }}</p>
+                                <p class="text-xs text-slate-500">{{ $p->peminjam_role }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-5">{{ $p->alat->nama }}</td>
+                    <td class="px-6 py-5">{{ $p->item_name }}</td>
                     <td class="px-6 py-5">{{ $p->jumlah }} Unit</td>
                     <td class="px-6 py-5">{{ $p->tanggal_pinjam->format('d M Y') }}</td>
                     <td class="px-6 py-5">{{ $p->tanggal_kembali->format('d M Y') }}</td>
                     <td class="px-6 py-5">
-                        <span class="badge {{ $p->status_config['color'] }}">
-                            <i class="fas {{ $p->status_config['icon'] }} mr-1"></i>
-                            {{ $p->status_label }}
-                        </span>
+                        <div class="flex flex-col gap-1">
+                            <span class="badge {{ $p->status_config['color'] }}">
+                                <i class="fas {{ $p->status_config['icon'] }} mr-1"></i>
+                                {{ $p->status_label }}
+                            </span>
+                            @if($p->status === 'ditolak' && $p->rejected_reason)
+                                <div class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100 max-w-xs">
+                                    <span class="font-semibold">Alasan:</span> {{ $p->rejected_reason }}
+                                </div>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-6 py-5">
                         @if($p->alat->kondisi == 'baik')
@@ -153,15 +160,15 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500">Nama Peminjam</p>
-                    <p class="font-semibold text-[#1E2B4A]">{{ $p->user->name }}</p>
+                    <p class="font-semibold text-[#1E2B4A]">{{ $p->nama_peminjam }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500">Role</p>
-                    <p class="font-semibold text-[#1E2B4A]">{{ ucfirst($p->user->role) }}</p>
+                    <p class="font-semibold text-[#1E2B4A]">{{ $p->peminjam_role }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500">Nama Alat</p>
-                    <p class="font-semibold text-[#1E2B4A]">{{ $p->alat->nama }}</p>
+                    <p class="font-semibold text-[#1E2B4A]">{{ $p->item_name }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500">Jumlah</p>

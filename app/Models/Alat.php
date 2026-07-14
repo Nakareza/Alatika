@@ -39,6 +39,14 @@ class Alat extends Model
         parent::boot();
 
         static::saving(function ($model) {
+            // Ensure code starts with INV-
+            if ($model->kode && !str_starts_with(strtoupper($model->kode), 'INV')) {
+                $model->kode = 'INV-' . $model->kode;
+            }
+            if ($model->kode_barang && !str_starts_with(strtoupper($model->kode_barang), 'INV')) {
+                $model->kode_barang = 'INV-' . $model->kode_barang;
+            }
+
             // Sync nama_barang and nama
             if ($model->isDirty('nama') && !$model->isDirty('nama_barang')) {
                 $model->nama_barang = $model->nama;
@@ -70,6 +78,11 @@ class Alat extends Model
                 if ($kategoriModel) {
                     $model->kategori = $kategoriModel->nama_kategori;
                 }
+            } elseif ($model->kategori && !$model->kategori_id) {
+                $kategoriModel = Kategori::firstOrCreate([
+                    'nama_kategori' => $model->kategori
+                ]);
+                $model->kategori_id = $kategoriModel->id;
             }
         });
     }

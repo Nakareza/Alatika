@@ -18,7 +18,7 @@ class ImportUsersFromCsv extends Command
     public function handle(): int
     {
         $this->info('=== Import Data Dosen ===');
-        $this->importDosen(base_path('Daftar Dosen IK TI Genap 2025-2026.csv'));
+        $this->importDosen(base_path('Daftar Dosen IK TI.csv'));
 
         $this->info('');
         $this->info('=== Import Data Mahasiswa TI ===');
@@ -55,10 +55,10 @@ class ImportUsersFromCsv extends Command
         }
 
         // Skip header row (No,Nama,NIP,Homebase)
-        fgetcsv($handle);
+        fgetcsv($handle, 0, ';');
 
         $rowNum = 1;
-        while (($row = fgetcsv($handle)) !== false) {
+        while (($row = fgetcsv($handle, 0, ';')) !== false) {
             $rowNum++;
 
             // Need at least 3 columns: No, Nama, NIP
@@ -83,22 +83,33 @@ class ImportUsersFromCsv extends Command
             // Password = NIP without dots (NIP already has no dots, but str_replace is safe)
             $password = str_replace('.', '', $nip);
 
-            // Use firstOrCreate to avoid race conditions
-            $user = User::firstOrCreate(
-                ['nip' => $nip],
-                [
-                    'name'     => $nama,
-                    'email'    => null,
-                    'password' => Hash::make($password),
-                    'role'     => 'dosen',
-                ]
-            );
+            // Determine homebase/program studi for dosen
+            $homebase = isset($row[3]) ? trim($row[3]) : '';
+            $prodi = null;
+            if (str_contains($homebase, 'Teknik Informatika')) {
+                $prodi = 'D3 IK';
+            } elseif (str_contains($homebase, 'Rekayasa Komputer')) {
+                $prodi = 'D4 TRK';
+            }
 
-            if ($user->wasRecentlyCreated) {
-                $this->dosenCount++;
-                $this->line("  OK: {$nama} (NIP: {$nip})");
+            // Update program_studi if exists, or create new user
+            $user = User::where('nip', $nip)->first();
+            if ($user) {
+                $user->update([
+                    'program_studi' => $prodi,
+                ]);
+                $this->line("  Update (sudah ada, set prodi): {$nama} (NIP: {$nip}, Prodi: {$prodi})");
             } else {
-                $this->line("  Skip (sudah ada): {$nama} (NIP: {$nip})");
+                User::create([
+                    'name'          => $nama,
+                    'nip'           => $nip,
+                    'email'         => null,
+                    'password'      => Hash::make($password),
+                    'role'          => 'dosen',
+                    'program_studi' => $prodi,
+                ]);
+                $this->dosenCount++;
+                $this->line("  OK (baru): {$nama} (NIP: {$nip}, Prodi: {$prodi})");
             }
         }
 
@@ -176,25 +187,42 @@ class ImportUsersFromCsv extends Command
             // Password = NIM without dots (e.g., "4.33.25.0.01" → "43325001")
             $password = str_replace('.', '', $nim);
 
-            // Use firstOrCreate to avoid race conditions
-            $user = User::firstOrCreate(
-                ['nim' => $nim],
-                [
-                    'name'     => $nama,
-                    'email'    => null,
-                    'password' => Hash::make($password),
-                    'role'     => 'mahasiswa',
-                ]
-            );
+            // Determine program_studi for mahasiswa based on NIM prefix
+            $firstDigit = substr(ltrim($nim), 0, 1);
+            $prodi = null;
+            if ($firstDigit === '3') {
+                $prodi = 'D3 IK';
+            } elseif ($firstDigit === '4') {
+                $prodi = 'D4 TRK';
+            }
 
-            if ($user->wasRecentlyCreated) {
+            // Update program_studi if exists, or create new user
+            $user = User::where('nim', $nim)->first();
+            if ($user) {
+                $user->update([
+                    'program_studi' => $prodi,
+                ]);
+                $this->line("  Update (sudah ada, set prodi): {$nama} (NIM: {$nim}, Prodi: {$prodi})");
                 if ($label === 'TI') {
                     $this->mhsTiCount++;
                 } else {
                     $this->mhsIkCount++;
                 }
             } else {
-                $this->line("  Skip (sudah ada): {$nama} (NIM: {$nim})");
+                User::create([
+                    'name'          => $nama,
+                    'nim'           => $nim,
+                    'email'         => null,
+                    'password'      => Hash::make($password),
+                    'role'          => 'mahasiswa',
+                    'program_studi' => $prodi,
+                ]);
+                if ($label === 'TI') {
+                    $this->mhsTiCount++;
+                } else {
+                    $this->mhsIkCount++;
+                }
+                $this->line("  OK (baru): {$nama} (NIM: {$nim}, Prodi: {$prodi})");
             }
         }
 

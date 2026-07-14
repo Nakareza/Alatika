@@ -47,8 +47,9 @@ class PeminjamanController extends Controller
             ];
         })->values()->all();
 
-        // Ambil semua alat untuk dropdown dengan grouping nama
-        $alat = Alat::selectRaw('MIN(id) as id, nama, MAX(kode) as kode, MAX(kategori) as kategori, MAX(program_studi) as program_studi, SUM(stok_total) as stok_total, SUM(stok_tersedia) as stok_tersedia, MAX(lokasi) as lokasi, MAX(status) as status, MAX(kondisi) as kondisi')
+        // Ambil semua alat untuk dropdown dengan grouping nama (hanya Alat Khusus)
+        $alat = Alat::where('program_studi', 'D3 TI / D4 TRK')
+            ->selectRaw('MIN(id) as id, nama, MAX(kode) as kode, MAX(kategori) as kategori, MAX(program_studi) as program_studi, SUM(stok_total) as stok_total, SUM(stok_tersedia) as stok_tersedia, MAX(lokasi) as lokasi, MAX(status) as status, MAX(kondisi) as kondisi')
             ->groupBy('nama')
             ->get();
         
@@ -78,6 +79,14 @@ class PeminjamanController extends Controller
 
         foreach ($request->items as $item) {
             $repAlat = Alat::findOrFail($item['alat_id']);
+
+            // Validate that the tool is a special tool
+            if ($repAlat->program_studi !== 'D3 TI / D4 TRK') {
+                return back()->with(
+                    'error',
+                    'Dosen hanya diperbolehkan meminjam alat khusus.'
+                );
+            }
 
             // Validate total available stock for this tool name
             $totalTersedia = Alat::where('nama', $repAlat->nama)->sum('stok_tersedia');
@@ -109,24 +118,10 @@ class PeminjamanController extends Controller
                     'keperluan' => $request->keperluan,
                     'status' => 'pending',
                     'surat_keterangan' => $suratKeteranganPath,
+                    'required_approvals' => ['kalab', 'kaprodi'],
                 ]);
 
                 $remaining -= $borrowQty;
-
-                // notif teknisi
-                $teknisi = User::where('role', 'teknisi')
-                    ->whereNotNull('telegram_chat_id')
-                    ->get();
-
-                foreach ($teknisi as $user) {
-                    $telegram->notifyNewRequest($user, [
-                        'peminjam_nama' => Auth::user()->name,
-                        'peminjam_role' => 'dosen',
-                        'alat' => $a->nama,
-                        'jumlah' => $borrowQty,
-                        'kode' => $peminjaman->kode_peminjaman,
-                    ]);
-                }
 
                 // notif kalab
                 $kalabs = User::where('role', 'kalab')
@@ -144,9 +139,20 @@ class PeminjamanController extends Controller
                 }
 
                 if ($a->program_studi !== null) {
+                    $borrowerProdi = auth()->user()->program_studi;
                     $kaprodis = User::where('role', 'kaprodi')
                         ->whereNotNull('telegram_chat_id')
-                        ->get();
+                        ->get()
+                        ->filter(function ($kaprodi) use ($borrowerProdi, $a) {
+                            if ($borrowerProdi) {
+                                $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                return $borrowerShort === $kProdiShort;
+                            }
+                            
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return str_contains($a->program_studi, $kProdiShort);
+                        });
                     foreach ($kaprodis as $kaprodi) {
                         $telegram->notifyNewRequest($kaprodi, [
                             'peminjam_nama' => auth()->user()->name,
@@ -169,6 +175,38 @@ class PeminjamanController extends Controller
                 'success',
                 'Pengajuan berhasil dikirim ke Teknisi dan Kepala Laboratorium.'
             );
+    }
+
+    public function kembalikan(Request $request, $id)
+    {
+        $peminjaman = Peminjaman::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->whereIn('status', ['dipinjam', 'disetujui'])
+            ->firstOrFail();
+
+        $request->validate([
+            'foto_bukti_kembali' => 'required|image|mimes:jpg,jpeg,png|max:5000',
+        ]);
+
+        if ($request->hasFile('foto_bukti_kembali')) {
+            $file = $request->file('foto_bukti_kembali');
+            $fileName = 'bukti-' . strtolower($peminjaman->kode_peminjaman) . '-' . time() . '.' . $file->getClientOriginalExtension();
+            $savePath = 'bukti-pengembalian/' . $fileName;
+
+            \Illuminate\Support\Facades\Storage::disk('public')->put($savePath, file_get_contents($file));
+
+            $peminjaman->update([
+                'status' => 'menunggu_verifikasi',
+                'foto_bukti_kembali' => $savePath,
+                'tanggal_dikembalikan' => now(),
+            ]);
+
+            return redirect()
+                ->route('dosen.riwayat')
+                ->with('success', 'Pengajuan pengembalian berhasil dikirim. Silakan serahkan alat ke laboratorium.');
+        }
+
+        return back()->with('error', 'Gagal mengunggah foto bukti pengembalian.');
     }
 
 }

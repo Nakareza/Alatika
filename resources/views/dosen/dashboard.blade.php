@@ -98,7 +98,7 @@
                                         <div>
                                             <p class="font-semibold text-sm text-[#1E2B4A] mb-1"
                                                style="font-family:'Plus Jakarta Sans',sans-serif;">
-                                                {{ $p->alat->nama }}
+                                                {{ $p->item_name }}
                                             </p>
 
                                             <p class="text-xs text-slate-500">

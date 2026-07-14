@@ -48,7 +48,7 @@
     </div>
     @endif
 
-    <div class="card p-6">
+    <div class="card p-6" x-data="{ kategori: '{{ old('kategori_id', $alat->kategori_id) }}' }">
 
         <form action="{{ route('admin.alat.update', $alat->id) }}"
               method="POST">
@@ -84,17 +84,33 @@
 
                 <div>
                     <label class="block text-sm mb-2">
-                        Kategori
+                        Kategori <span class="text-red-500">*</span>
+                    </label>
+
+                    <select name="kategori_id" x-model="kategori" class="inp w-full" required>
+                        <option value="">Pilih Kategori</option>
+                        @foreach($kategoris as $kat)
+                            <option value="{{ $kat->id }}">
+                                {{ $kat->nama_kategori }}
+                            </option>
+                        @endforeach
+                        <option value="__new">+ Tambah kategori baru</option>
+                    </select>
+                    <input type="text" name="kategori_baru" x-show="kategori === '__new'" x-bind:required="kategori === '__new'" class="inp mt-2" value="{{ old('kategori_baru') }}" placeholder="Masukkan nama kategori baru" x-cloak>
+                </div>
+
+                <div>
+                    <label class="block text-sm mb-2">
+                        Lokasi Lab / Tempat Penyimpanan
                     </label>
 
                     <input
                         type="text"
-                        name="kategori"
-                        value="{{ old('kategori', $alat->kategori) }}"
+                        name="lokasi"
+                        value="{{ old('lokasi', $alat->lokasi) }}"
+                        placeholder="Contoh: Ruang Lab TI Lemari A"
                         class="inp w-full">
                 </div>
-
-                
 
                 <div>
                     <label class="block text-sm mb-2 font-semibold text-slate-700">
@@ -127,6 +143,18 @@
                     @error('stok_maintenance')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm mb-2">
+                        Kondisi Fisik <span class="text-red-500">*</span>
+                    </label>
+
+                    <select name="kondisi" class="inp w-full" required>
+                        <option value="baik" {{ old('kondisi', $alat->kondisi) === 'baik' ? 'selected' : '' }}>Baik</option>
+                        <option value="perlu_pengecekan" {{ old('kondisi', $alat->kondisi) === 'perlu_pengecekan' ? 'selected' : '' }}>Perlu Pengecekan</option>
+                        <option value="rusak" {{ old('kondisi', $alat->kondisi) === 'rusak' ? 'selected' : '' }}>Rusak</option>
+                    </select>
                 </div>
 
                 {{-- Program Studi / Kepemilikan --}}

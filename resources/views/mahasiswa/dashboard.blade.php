@@ -81,7 +81,7 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
                                         <p class="font-bold text-slate-800 text-base mb-0.5" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                                            {{ $p->borrowable_type === 'App\Models\ToolSet' ? ($p->borrowable->nama_tool_set ?? '-') : ($p->alat->nama ?? '-') }}
+                                            {{ $p->item_name }}
                                             @if($p->borrowable_type === 'App\Models\ToolSet')
                                                 <span class="inline-block px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Tool Set</span>
                                             @endif

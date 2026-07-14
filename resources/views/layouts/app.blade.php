@@ -59,7 +59,7 @@
 
     <div id="mainContent" class="transition-all duration-300 ease-in-out" :class="collapsed ? 'ml-20' : 'ml-64'" x-data="sidebarHandler" @load="triggerPageAnimation()" x-init="init()">
 
-        <x-header-dashboard title="{{ View::yieldContent('title', 'Dashboard') }}" />
+        <x-header-dashboard :title="View::yieldContent('title', 'Dashboard')" />
 
         @yield('banner')
 

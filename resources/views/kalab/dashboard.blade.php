@@ -98,16 +98,16 @@
                                     <div class="flex items-center gap-3">
 
                                         <div class="w-10 h-10 rounded-full bg-[#185FA5] text-white flex items-center justify-center text-xs font-bold">
-                                            {{ strtoupper(substr($peminjaman->user->name, 0, 2)) }}
+                                            {{ strtoupper(substr($peminjaman->nama_peminjam, 0, 2)) }}
                                         </div>
 
                                         <div>
                                             <p class="text-sm font-semibold text-slate-800">
-                                                {{ $peminjaman->user->name }}
+                                                {{ $peminjaman->nama_peminjam }}
                                             </p>
 
                                             <p class="text-xs text-slate-500">
-                                                {{ ucfirst($peminjaman->user->role) }}
+                                                {{ $peminjaman->peminjam_role }}
                                             </p>
                                         </div>
 
@@ -118,7 +118,7 @@
                                 <td class="py-4 px-4">
                                     <div>
                                         <p class="text-sm font-semibold text-slate-800">
-                                            {{ $peminjaman->alat->nama }}
+                                            {{ $peminjaman->item_name }}
                                         </p>
 
                                         <p class="text-xs text-slate-500">

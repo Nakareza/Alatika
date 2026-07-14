@@ -22,6 +22,10 @@ class KeranjangController extends Controller
     {
         $alat = Alat::findOrFail($alat_id);
 
+        if ($alat->program_studi !== 'D3 TI / D4 TRK') {
+            return redirect()->back()->with('error', 'Dosen hanya diperbolehkan meminjam alat khusus.');
+        }
+
         $request->validate([
             'jumlah' => 'required|integer|min:1|max:' . $alat->stok_tersedia,
         ]);
@@ -73,6 +77,10 @@ class KeranjangController extends Controller
             $alatNames = [];
 
             foreach ($keranjangItems as $item) {
+                if ($item->alat->program_studi !== 'D3 TI / D4 TRK') {
+                    throw new \Exception("Dosen hanya diperbolehkan meminjam alat khusus.");
+                }
+
                 if ($item->alat->stok_tersedia < $item->jumlah) {
                     throw new \Exception("Stok {$item->alat->nama} tidak mencukupi saat ini.");
                 }
@@ -86,6 +94,7 @@ class KeranjangController extends Controller
                     'tanggal_pinjam'   => now(),
                     'tanggal_kembali'  => $request->tanggal_kembali,
                     'status'           => 'pending',
+                    'required_approvals' => ['kalab', 'kaprodi'],
                 ]);
 
                 // Stock is NOT decremented here — it will be decremented when Kalab approves
@@ -117,7 +126,29 @@ class KeranjangController extends Controller
             }
 
             if ($hasKaprodiApprovalItem) {
-                $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                $borrowerProdi = auth()->user()->program_studi;
+                $kaprodis = \App\Models\User::where('role', 'kaprodi')
+                    ->whereNotNull('telegram_chat_id')
+                    ->get()
+                    ->filter(function ($kaprodi) use ($borrowerProdi, $keranjangItems) {
+                        if ($borrowerProdi) {
+                            $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return $borrowerShort === $kProdiShort;
+                        }
+                        
+                        // Fallback to checking tools prodi
+                        foreach ($keranjangItems as $item) {
+                            if ($item->alat && $item->alat->program_studi !== null) {
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                if (str_contains($item->alat->program_studi, $kProdiShort)) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    });
+
                 foreach ($kaprodis as $kaprodi) {
                     $telegram->notifyNewRequest($kaprodi, [
                         'peminjam_nama'  => auth()->user()->name,

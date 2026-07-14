@@ -194,21 +194,21 @@
                     <td class="px-6 py-5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-[#1E2B4A] text-white flex items-center justify-center font-bold text-sm">
-                                {{ strtoupper(substr($p->user->name,0,2)) }}
+                                {{ strtoupper(substr($p->nama_peminjam,0,2)) }}
                             </div>
                             <div>
                                 <p class="font-semibold text-[#1E2B4A]">
-                                    {{ $p->user->name }}
+                                    {{ $p->nama_peminjam }}
                                 </p>
                                 <p class="text-xs text-slate-500">
-                                    {{ ucfirst($p->user->role) }}
+                                    {{ $p->peminjam_role }}
                                 </p>
                             </div>
                         </div>
                     </td>
 
                     <td class="px-6 py-5 text-slate-700 font-medium">
-                        {{ $p->alat->nama }}
+                        {{ $p->item_name }}
                     </td>
 
                     <td class="px-6 py-5 text-center font-semibold text-[#1E2B4A]">
@@ -237,9 +237,16 @@
                                 Dikembalikan
                             </span>
                         @elseif($p->status == 'ditolak')
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
-                                Ditolak
-                            </span>
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
+                                    <i class="fas fa-times-circle mr-1"></i> Ditolak
+                                </span>
+                                @if($p->rejected_reason)
+                                    <div class="text-xs text-rose-600 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100 max-w-xs text-left">
+                                        <span class="font-semibold">Alasan:</span> {{ $p->rejected_reason }}
+                                    </div>
+                                @endif
+                            </div>
                         @endif
                     </td>
 
@@ -367,7 +374,7 @@
                 </p>
 
                 <p class="font-semibold">
-                    {{ $p->user->name }}
+                    {{ $p->nama_peminjam }}
                 </p>
             </div>
 
@@ -377,7 +384,7 @@
                 </p>
 
                 <p class="font-semibold">
-                    {{ ucfirst($p->user->role) }}
+                    {{ $p->peminjam_role }}
                 </p>
             </div>
 
@@ -387,7 +394,7 @@
                 </p>
 
                 <p class="font-semibold">
-                    {{ $p->alat->nama }}
+                    {{ $p->item_name }}
                 </p>
             </div>
 

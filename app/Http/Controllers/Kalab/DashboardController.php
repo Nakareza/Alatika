@@ -13,8 +13,8 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Ka Lab hanya menangani peminjaman DOSEN
-        $dsn = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'dosen'));
+        // Ka Lab handles loans that require Kalab approval
+        $dsn = Peminjaman::whereJsonContains('required_approvals', 'kalab');
         
         $stats = [
             'total_alat' => \App\Models\Alat::count(),
@@ -28,19 +28,17 @@ class DashboardController extends Controller
             'rusak' => 0,
         ];
 
-        // Fetch recent pending approvals (dosen only)
+        // Fetch recent pending approvals (dosen, special tools, and manual loans)
         $pending_approvals = Peminjaman::with(['user', 'alat'])
-            ->whereHas('user', function($q) {
-                $q->where('role', 'dosen');
-            })
+            ->whereJsonContains('required_approvals', 'kalab')
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        // Fetch recent activities (dosen only)
+        // Fetch recent activities
         $recent_activities = Peminjaman::with(['user', 'alat'])
-            ->whereHas('user', fn($q) => $q->where('role', 'dosen'))
+            ->whereJsonContains('required_approvals', 'kalab')
             ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get();

@@ -143,16 +143,16 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-[#185FA5] text-white flex items-center justify-center text-sm font-bold">
-                                        {{ strtoupper(substr($p->user->name, 0, 2)) }}
+                                        {{ strtoupper(substr($p->nama_peminjam, 0, 2)) }}
                                     </div>
                                     <div>
-                                        <p class="font-semibold text-[#1E2B4A]">{{ $p->user->name }}</p>
-                                        <p class="text-xs text-slate-500">{{ ucfirst($p->user->role) }}</p>
+                                        <p class="font-semibold text-[#1E2B4A]">{{ $p->nama_peminjam }}</p>
+                                        <p class="text-xs text-slate-500">{{ $p->peminjam_role }}</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <p class="font-semibold text-[#1E2B4A]">{{ $p->alat->nama }}</p>
+                                <p class="font-semibold text-[#1E2B4A]">{{ $p->item_name }}</p>
                                 <p class="text-xs text-slate-500">{{ $p->alat->kode }}</p>
                             </td>
                             <td class="px-6 py-4">
@@ -170,30 +170,25 @@
                                 @elseif($p->status == 'selesai')
                                     <span class="badge badge-success">Selesai</span>
                                 @elseif($p->status == 'ditolak')
-                                    <span class="badge badge-danger">Ditolak</span>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-times-circle mr-1"></i> Ditolak
+                                        </span>
+                                        @if($p->rejected_reason)
+                                            <div class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100 max-w-xs">
+                                                <span class="font-semibold">Alasan:</span> {{ $p->rejected_reason }}
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex justify-center gap-2">
-                                    @if($p->status == 'pending')
-                                        <button type="button"
-                                                onclick="submitDirectApprove({{ $p->id }})"
-                                                class="w-9 h-9 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition flex items-center justify-center"
-                                                title="Setujui">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                        <button type="button"
-                                                onclick="showRejectModal({{ $p->id }}, '{{ addslashes($p->user->name) }}', '{{ addslashes($p->alat->nama) }}')"
-                                                class="w-9 h-9 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition flex items-center justify-center"
-                                                title="Tolak">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    @endif
                                     <button type="button"
                                             onclick="showDetail(
                                                 '{{ $p->kode_peminjaman }}',
-                                                '{{ $p->user->name }}',
-                                                '{{ $p->alat->nama }}',
+                                                '{{ addslashes($p->nama_peminjam) }}',
+                                                '{{ $p->item_name }}',
                                                 '{{ $p->jumlah }}',
                                                 '{{ $p->tanggal_pinjam->format('d M Y') }}',
                                                 '{{ $p->tanggal_kembali->format('d M Y') }}',
@@ -204,6 +199,22 @@
                                             title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </button>
+
+                                    @if($p->status == 'pending' && $p->kaprodi_approved_by === null)
+                                        <button type="button"
+                                                onclick="submitDirectApprove({{ $p->id }})"
+                                                class="w-9 h-9 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition flex items-center justify-center"
+                                                title="Setujui">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+
+                                        <button type="button"
+                                                onclick="showRejectModal({{ $p->id }}, '{{ addslashes($p->nama_peminjam) }}', '{{ addslashes($p->item_name) }}')"
+                                                class="w-9 h-9 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition flex items-center justify-center"
+                                                title="Tolak">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -20,7 +20,7 @@ class PeminjamanApiController extends Controller
         $dipinjam = (clone $mhs)->where('status', 'dipinjam')->count();
         $menungguVerifikasi = (clone $mhs)->where('status', 'menunggu_verifikasi')->count();
 
-        $recent = Peminjaman::with(['user', 'alat'])
+        $recent = Peminjaman::with(['user', 'borrowable'])
             ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->orderBy('updated_at', 'desc')
             ->take(5)
@@ -30,7 +30,7 @@ class PeminjamanApiController extends Controller
                     'id' => $p->id,
                     'user_name' => $p->user->name,
                     'user_initial' => substr($p->user->name, 0, 2),
-                    'alat_nama' => $p->alat->nama,
+                    'alat_nama' => $p->item_name,
                     'status' => $p->status,
                     'status_label' => $p->status_label,
                     'time_ago' => $p->updated_at->diffForHumans(),
@@ -54,7 +54,7 @@ class PeminjamanApiController extends Controller
     public function pendingVerifications()
     {
         // Hanya pengembalian dari mahasiswa
-        $returns = Peminjaman::with(['user', 'alat'])
+        $returns = Peminjaman::with(['user', 'borrowable'])
             ->whereHas('user', fn($q) => $q->where('role', 'mahasiswa'))
             ->where('status', 'menunggu_verifikasi')
             ->orderBy('tanggal_dikembalikan', 'desc')
@@ -64,7 +64,7 @@ class PeminjamanApiController extends Controller
                     'id' => $p->id,
                     'kode' => $p->kode_peminjaman,
                     'user_name' => $p->user->name,
-                    'alat_nama' => $p->alat->nama,
+                    'alat_nama' => $p->item_name,
                     'foto_url' => $p->foto_bukti_url,
                     'tanggal_kembali' => $p->tanggal_dikembalikan->format('d M Y H:i'),
                     'time_ago' => $p->tanggal_dikembalikan->diffForHumans()

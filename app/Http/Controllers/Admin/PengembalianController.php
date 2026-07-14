@@ -13,11 +13,9 @@ class PengembalianController extends Controller
 {
     public function index(Request $request)
     {
-        // Admin hanya menangani pengembalian MAHASISWA
+        // Admin menangani pengembalian MAHASISWA dan peminjaman manual yang butuh persetujuan admin
         $query = Peminjaman::with(['user', 'borrowable'])
-            ->whereHas('user', function ($q) {
-                $q->where('role', 'mahasiswa');
-            })
+            ->whereJsonContains('required_approvals', 'admin')
             ->whereIn('status', [
                 'dipinjam',
                 'menunggu_verifikasi',
@@ -67,7 +65,7 @@ class PengembalianController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $mhs = Peminjaman::whereHas('user', fn($q) => $q->where('role', 'mahasiswa'));
+        $mhs = Peminjaman::whereJsonContains('required_approvals', 'admin');
         $stats = [
             'total'      => (clone $mhs)->count(),
             'selesai'    => (clone $mhs)->where('status', 'selesai')->count(),

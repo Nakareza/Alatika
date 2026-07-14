@@ -52,7 +52,7 @@
          x-init="init()">
 
         {{-- Ganti header mahasiswa dengan header admin --}}
-        <x-header-dashboard-admin title="{{ View::yieldContent('title', 'Dashboard') }}" />
+        <x-header-dashboard-admin :title="View::yieldContent('title', 'Dashboard')" />
 
         @yield('banner')
 

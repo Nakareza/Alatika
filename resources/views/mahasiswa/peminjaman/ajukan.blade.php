@@ -246,7 +246,7 @@
                         <div>
                             <label class="form-label">Tanggal Pinjam <span class="text-red-500">*</span></label>
                             <input type="date" x-model="tanggalPinjam" @change="filterWeekend"
-                                   min="{{ date('Y-m-d') }}" class="inp" required>
+                                   min="{{ date('Y-m-d') }}" class="inp" :disabled="isSameDay" required>
                         </div>
 
                         <div x-show="!isSameDay" x-transition>
@@ -484,7 +484,16 @@
             onKeperluanChange() {
                 this.errorMsg = '';
                 if (this.isSameDay) {
+                    this.tanggalPinjam = '{{ date('Y-m-d') }}';
                     this.tanggalKembali = this.tanggalPinjam;
+
+                    const date = new Date(this.tanggalPinjam);
+                    const day = date.getUTCDay();
+                    if (day === 0 || day === 6) {
+                        this.errorMsg = 'Peminjaman tidak tersedia di hari Sabtu dan Minggu.';
+                        this.tanggalPinjam = '';
+                        this.tanggalKembali = '';
+                    }
                 }
             },
 

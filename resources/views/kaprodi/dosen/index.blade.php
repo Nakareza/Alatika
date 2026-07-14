@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.kaprodi')
 
 @section('title', 'Data Dosen')
 
@@ -17,7 +17,7 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.dosen.export-csv', request()->all()) }}" class="btn btn-secondary">
+            <a href="{{ route('kaprodi.dosen.export-csv', request()->all()) }}" class="btn btn-secondary">
                 <i class="fas fa-download text-sm"></i>
                 Export
             </a>
@@ -76,7 +76,7 @@
     </div>
 
     <div class="card p-6">
-        <form method="GET" action="{{ route('admin.dosen') }}" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <form method="GET" action="{{ route('kaprodi.dosen') }}" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-6 relative">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input
@@ -102,7 +102,7 @@
                     Filter
                 </button>
 
-                <a href="{{ route('admin.dosen') }}" class="btn btn-secondary">
+                <a href="{{ route('kaprodi.dosen') }}" class="btn btn-secondary">
                     Reset
                 </a>
             </div>
@@ -118,6 +118,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Dosen</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">NIP</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Prodi</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Telegram</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Terdaftar</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Aksi</th>
@@ -147,6 +148,15 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm text-slate-600">{{ $item->email }}</td>
+                            <td class="px-6 py-4">
+                                @if($item->program_studi)
+                                    <span class="badge bg-purple-100 text-purple-700 font-semibold">
+                                        {{ $item->program_studi }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-slate-100 text-slate-500">Belum ada data</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 @if($item->telegram_chat_id)
                                     <span class="badge badge-success">Tertaut</span>

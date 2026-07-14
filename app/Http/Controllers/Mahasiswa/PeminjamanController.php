@@ -98,6 +98,14 @@ class PeminjamanController extends Controller
 
     public function store(Request $request, TelegramService $telegram)
     {
+        $isSameDay = static::isKeperluanSameDay($request->input('keperluan', ''));
+        if ($isSameDay) {
+            $request->merge([
+                'tanggal_pinjam' => date('Y-m-d'),
+                'tanggal_kembali' => date('Y-m-d'),
+            ]);
+        }
+
         $request->validate([
             'tanggal_pinjam' => 'required|date|after_or_equal:today',
             'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
@@ -144,6 +152,8 @@ class PeminjamanController extends Controller
             }
         }
 
+        $kode = Peminjaman::generateKode();
+
         foreach ($items as $item) {
             if ($item['type'] === 'toolset') {
                 $toolSet = ToolSet::findOrFail($item['alat_id']);
@@ -156,7 +166,7 @@ class PeminjamanController extends Controller
                 }
 
                 $peminjaman = Peminjaman::create([
-                    'kode_peminjaman' => Peminjaman::generateKode(),
+                    'kode_peminjaman' => $kode,
                     'user_id' => Auth::id(),
                     'borrowable_type' => ToolSet::class,
                     'borrowable_id' => $toolSet->id,
@@ -165,6 +175,7 @@ class PeminjamanController extends Controller
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'keperluan' => $request->keperluan,
                     'status' => 'pending',
+                    'required_approvals' => ['admin'],
                 ]);
 
                 // Notify Admin
@@ -204,8 +215,10 @@ class PeminjamanController extends Controller
                     if ($remaining <= 0) break;
                     $borrowQty = min($remaining, $a->stok_tersedia);
 
+                    $isKhusus = $a->program_studi !== null;
+
                     $peminjaman = Peminjaman::create([
-                        'kode_peminjaman' => Peminjaman::generateKode(),
+                        'kode_peminjaman' => $kode,
                         'user_id' => Auth::id(),
                         'alat_id' => $a->id,
                         'jumlah' => $borrowQty,
@@ -214,6 +227,7 @@ class PeminjamanController extends Controller
                         'keperluan' => $request->keperluan,
                         'status' => 'pending',
                         'surat_keterangan' => $suratKeteranganPath,
+                        'required_approvals' => $isKhusus ? ['kalab'] : ['admin'],
                     ]);
 
                     $remaining -= $borrowQty;
@@ -317,5 +331,19 @@ class PeminjamanController extends Controller
         }
 
         return back()->with('error', 'Gagal mengunggah foto bukti pengembalian.');
+    }
+
+    public function cancel($id)
+    {
+        $peminjaman = Peminjaman::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $peminjaman->delete();
+
+        return redirect()
+            ->route('mahasiswa.peminjaman.riwayat')
+            ->with('success', 'Pengajuan peminjaman berhasil dibatalkan.');
     }
 }

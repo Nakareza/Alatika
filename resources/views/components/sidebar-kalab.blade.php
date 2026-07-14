@@ -145,6 +145,28 @@
             </span>
         </a>
 
+        <!-- Kelola User -->
+        <a href="{{ route('kalab.users.index') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('kalab.users*') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('kalab.users*'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
+
+            <i class="fas fa-users w-5 text-center"></i>
+
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">
+                  Kelola User
+            </span>
+        </a>
+
         <!-- Riwayat -->
         <a href="{{ route('kalab.riwayat') }}"
            class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"

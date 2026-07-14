@@ -108,6 +108,72 @@
             </span>
         </a>
 
+        <!-- Data Mahasiswa -->
+        <a href="{{ route('kaprodi.mahasiswa') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('kaprodi.mahasiswa*') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('kaprodi.mahasiswa*'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
+
+            <i class="fas fa-user-graduate w-5 text-center"></i>
+
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">
+                  Data Mahasiswa
+            </span>
+        </a>
+
+        <!-- Data Dosen -->
+        <a href="{{ route('kaprodi.dosen') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('kaprodi.dosen*') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('kaprodi.dosen*'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
+
+            <i class="fas fa-chalkboard-teacher w-5 text-center"></i>
+
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">
+                  Data Dosen
+            </span>
+        </a>
+
+        <!-- Kelola User -->
+        <a href="{{ route('kaprodi.users.index') }}"
+           class="group flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200"
+           style="{{ request()->routeIs('kaprodi.users*') ? 'background:#1E2B4A;color:white;box-shadow:0 4px 14px rgba(30,43,74,0.22);' : 'color:#64748b;' }}"
+           x-bind:class="collapsed ? 'justify-center' : ''"
+           @if(!request()->routeIs('kaprodi.users*'))
+           onmouseover="this.style.background='#EBF3FD';this.style.color='#185FA5';"
+           onmouseout="this.style.background='';this.style.color='#64748b';"
+           @endif>
+
+            <i class="fas fa-users-cog w-5 text-center"></i>
+
+            <span x-show="!collapsed"
+                  x-transition:enter="transition ease-out duration-200 delay-75"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  class="text-sm whitespace-nowrap"
+                  style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">
+                  Kelola User
+            </span>
+        </a>
+
         <!-- Divider -->
         <div x-show="!collapsed"
              class="my-2"

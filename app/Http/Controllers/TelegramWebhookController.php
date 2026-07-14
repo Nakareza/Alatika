@@ -288,7 +288,7 @@ class TelegramWebhookController extends Controller
                     default => '⚙️',
                 };
                 
-                $message .= "{$icon} <b>{$p->alat->nama}</b> ({$p->jumlah} unit)\n";
+                $message .= "{$icon} <b>{$p->item_name}</b> ({$p->jumlah} unit)\n";
                 $message .= "📋 Kode: <code>{$p->kode_peminjaman}</code>\n";
                 $message .= "📅 Status: <b>{$p->status_label}</b>\n";
                 if ($p->status === 'dipinjam') {
@@ -409,18 +409,18 @@ class TelegramWebhookController extends Controller
                 $this->telegram->sendMessage($chatId,
                     "✅ <b>Bukti Foto Diterima!</b>\n\n"
                     . "📋 Kode: <code>{$kode}</code>\n"
-                    . "🔧 Alat: {$peminjaman->alat->nama}\n\n"
+                    . "🔧 Alat: {$peminjaman->item_name}\n\n"
                     . "Pengajuan pengembalian telah dikirim ke petugas.\n"
                     . "Silakan serahkan fisik alat ke laboratorium."
                 );
 
-                $approverRole = $user->role === 'mahasiswa' ? 'admin' : 'kalab';
+                $approverRole = in_array('admin', $peminjaman->required_approvals ?: []) ? 'admin' : 'kalab';
                 $approvers = User::where('role', $approverRole)->whereNotNull('telegram_chat_id')->get();
 
                 foreach ($approvers as $approver) {
                     $this->telegram->notifyReturnConfirmation($approver, [
                         'peminjam_nama' => $user->name,
-                        'alat' => $peminjaman->alat->nama . " (Kode: {$kode})",
+                        'alat' => $peminjaman->item_name . " (Kode: {$kode})",
                         'kode' => $kode,
                         'telegram_photo_file_id' => $fileId,
                     ]);
@@ -466,7 +466,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $peminjaman = \App\Models\Peminjaman::with(['user', 'alat'])->where('kode_peminjaman', strtoupper($kode))->first();
+        $peminjaman = \App\Models\Peminjaman::with(['user', 'borrowable'])->where('kode_peminjaman', strtoupper($kode))->first();
         if (!$peminjaman) {
             $this->telegram->sendMessage($chatId, "❌ Peminjaman tidak ditemukan.");
             return;
@@ -478,24 +478,28 @@ class TelegramWebhookController extends Controller
         }
 
         // Check stock availability before approving
-        $alat = $peminjaman->alat;
-        if ($alat->stok_tersedia < $peminjaman->jumlah) {
+        $borrowable = $peminjaman->borrowable;
+        if (!$borrowable) {
+            $this->telegram->sendMessage($chatId, "❌ Data inventaris tidak ditemukan.");
+            return;
+        }
+        if ($borrowable->stok_tersedia < $peminjaman->jumlah) {
             $this->telegram->sendMessage($chatId,
-                "⚠️ Stok alat \"{$alat->nama}\" tidak mencukupi (tersedia: {$alat->stok_tersedia}, diminta: {$peminjaman->jumlah})."
+                "⚠️ Stok \"{$peminjaman->item_name}\" tidak mencukupi (tersedia: {$borrowable->stok_tersedia}, diminta: {$peminjaman->jumlah})."
             );
             return;
         }
 
-        if ($user->role === 'admin' && $peminjaman->user->role !== 'mahasiswa') {
-            $this->telegram->sendMessage($chatId, "⚠️ Admin hanya bisa menyetujui peminjaman dari Mahasiswa.");
-            return;
-        }
-        if ($user->role === 'kalab' && $peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $alat->program_studi !== null)) {
-            $this->telegram->sendMessage($chatId, "⚠️ Kepala Lab hanya memproses peminjaman Dosen atau Mahasiswa untuk Alat Khusus.");
-            return;
-        }
-        if ($user->role === 'kaprodi' && ($alat->program_studi === null || $peminjaman->user->role !== 'dosen')) {
-            $this->telegram->sendMessage($chatId, "⚠️ Kaprodi hanya memproses peminjaman Dosen untuk alat yang memerlukan persetujuan Kaprodi.");
+        $nextRole = $peminjaman->next_approver_role;
+        $nextRoleMap = [
+            'Admin' => 'admin',
+            'Kepala Lab' => 'kalab',
+            'Kaprodi' => 'kaprodi'
+        ];
+        $expectedRole = $nextRoleMap[$nextRole] ?? null;
+
+        if ($user->role !== $expectedRole) {
+            $this->telegram->sendMessage($chatId, "⚠️ Saat ini giliran {$nextRole} untuk menyetujui peminjaman ini.");
             return;
         }
 
@@ -521,7 +525,31 @@ class TelegramWebhookController extends Controller
         $shouldFinalize = true;
         $approverDesc = '';
 
-        if ($alat->program_studi !== null) {
+        if ($peminjaman->required_approvals !== null) {
+            $approverNames = [];
+            if (in_array('admin', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Admin/Teknisi';
+                if ($peminjaman->admin_approved_by === null) $shouldFinalize = false;
+            }
+            if (in_array('kalab', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kepala Lab';
+                if ($peminjaman->kalab_approved_by === null) $shouldFinalize = false;
+            }
+            if (in_array('kaprodi', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kaprodi';
+                if ($peminjaman->kaprodi_approved_by === null) $shouldFinalize = false;
+            }
+
+            if ($shouldFinalize) {
+                $approverDesc = implode(' dan ', $approverNames);
+            } else {
+                $pending = [];
+                if (in_array('admin', $peminjaman->required_approvals) && $peminjaman->admin_approved_by === null) $pending[] = 'Admin';
+                if (in_array('kalab', $peminjaman->required_approvals) && $peminjaman->kalab_approved_by === null) $pending[] = 'Ka Lab';
+                if (in_array('kaprodi', $peminjaman->required_approvals) && $peminjaman->kaprodi_approved_by === null) $pending[] = 'Kaprodi';
+                $approverDesc = 'Menunggu persetujuan ' . implode(', ', $pending);
+            }
+        } elseif ($alat->program_studi !== null) {
             if ($peminjaman->user->role === 'mahasiswa') {
                 // Special tools for students: requires Admin + Kalab
                 if ($peminjaman->admin_approved_by === null) {
@@ -551,12 +579,12 @@ class TelegramWebhookController extends Controller
         }
 
         if ($shouldFinalize) {
-            $alat->decrement('stok_tersedia', $peminjaman->jumlah);
+            $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
             $peminjaman->update(['status' => 'dipinjam']);
 
             $this->telegram->notifyPeminjamanApproved($peminjaman->user, [
                 'kode' => $peminjaman->kode_peminjaman,
-                'alat' => $alat->nama,
+                'alat' => $peminjaman->item_name,
                 'jumlah' => $peminjaman->jumlah,
                 'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
                 'approver_role' => $approverDesc,
@@ -577,6 +605,41 @@ class TelegramWebhookController extends Controller
                 . "👤 Disetujui oleh: {$user->name} ({$user->role})\n"
                 . "⏳ Status: {$approverDesc}\n"
             );
+
+            // Notify next approver
+            $nextRole = $peminjaman->next_approver_role;
+            $nextRoleMap = [
+                'Admin' => 'admin',
+                'Kepala Lab' => 'kalab',
+                'Kaprodi' => 'kaprodi'
+            ];
+            $targetRole = $nextRoleMap[$nextRole] ?? null;
+            if ($targetRole) {
+                $query = User::where('role', $targetRole)->whereNotNull('telegram_chat_id');
+                if ($targetRole === 'kaprodi' && $peminjaman->user) {
+                    $borrowerProdi = $peminjaman->user->program_studi;
+                    $kaprodis = $query->get()->filter(function ($kaprodi) use ($borrowerProdi) {
+                        if ($borrowerProdi) {
+                            $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return $borrowerShort === $kProdiShort;
+                        }
+                        return false;
+                    });
+                } else {
+                    $kaprodis = $query->get();
+                }
+
+                foreach ($kaprodis as $approver) {
+                    $this->telegram->notifyNewRequest($approver, [
+                        'peminjam_nama' => $peminjaman->user ? $peminjaman->user->name : ($peminjaman->nama_peminjam_non_user ?: 'Non User'),
+                        'peminjam_role' => $peminjaman->user ? $peminjaman->user->role : 'luar',
+                        'alat' => $peminjaman->alat ? $peminjaman->alat->name : 'Tool Set',
+                        'jumlah' => $peminjaman->jumlah,
+                        'kode' => $peminjaman->kode_peminjaman,
+                    ]);
+                }
+            }
         }
     }
 
@@ -679,7 +742,7 @@ class TelegramWebhookController extends Controller
 
         $this->telegram->notifyPeminjamanRejected($peminjaman->user, [
             'kode' => $peminjaman->kode_peminjaman,
-            'alat' => $peminjaman->alat->nama,
+            'alat' => $peminjaman->item_name,
             'alasan' => $alasan,
         ]);
 
@@ -745,7 +808,7 @@ class TelegramWebhookController extends Controller
         $message = "📋 <b>Pengajuan Pending ({$roleDesc})</b>\n\n";
         foreach ($pending as $p) {
             $message .= "👤 <b>{$p->user->name}</b>\n";
-            $message .= "🔧 Alat: {$p->alat->nama} ({$p->jumlah} unit)\n";
+            $message .= "🔧 Alat: {$p->item_name} ({$p->jumlah} unit)\n";
             $message .= "📋 Kode: <code>{$p->kode_peminjaman}</code>\n";
             $message .= "📅 Pinjam: {$p->tanggal_pinjam->format('d/m')} s.d. {$p->tanggal_kembali->format('d/m/Y')}\n";
             $message .= "📝 Tujuan: <i>{$p->keperluan}</i>\n\n";
@@ -985,7 +1048,7 @@ protected function commandApproveReturn(string $chatId, ?string $kode): void
             $peminjaman->user->telegram_chat_id,
             "✅ <b>Pengembalian Diverifikasi</b>\n\n"
             . "📋 Kode: <code>{$kode}</code>\n"
-            . "🔧 Alat: {$peminjaman->alat->nama}\n\n"
+            . "🔧 Alat: {$peminjaman->item_name}\n\n"
             . "Terima kasih telah mengembalikan alat 🙏"
         );
     }

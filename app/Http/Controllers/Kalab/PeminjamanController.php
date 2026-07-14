@@ -3,27 +3,53 @@
 namespace App\Http\Controllers\Kalab;
 
 use App\Http\Controllers\Controller;
+use App\Models\Alat;
 use App\Models\Peminjaman;
+use App\Models\ToolSet;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
+    private function isManualExternalLoan(Peminjaman $peminjaman): bool
+    {
+        return $peminjaman->user_id === null && filled($peminjaman->nama_peminjam_non_user);
+    }
+
+    private function notifyApprovedToBorrower(TelegramService $telegram, Peminjaman $peminjaman, array $data): void
+    {
+        if ($peminjaman->user) {
+            $telegram->notifyPeminjamanApproved($peminjaman->user, $data);
+        }
+    }
+
+    private function notifyRejectedToBorrower(TelegramService $telegram, Peminjaman $peminjaman, array $data): void
+    {
+        if ($peminjaman->user) {
+            $telegram->notifyPeminjamanRejected($peminjaman->user, $data);
+        }
+    }
+
     public function persetujuan(Request $request)
     {
+        $group = $request->get('group', 'all');
+
         $query = Peminjaman::with(['user', 'alat'])
-            ->where(function ($q) {
-                $q->whereHas('user', function ($u) {
-                    $u->where('role', 'dosen');
-                })->orWhere(function ($sub) {
-                    $sub->whereHas('user', function ($u) {
-                        $u->where('role', 'mahasiswa');
-                    })->whereHas('alat', function ($a) {
-                        $a->whereNotNull('program_studi');
-                    });
-                });
+            ->whereJsonContains('required_approvals', 'kalab');
+
+        if ($group === 'dosen') {
+            $query->whereHas('user', function ($u) {
+                $u->where('role', 'dosen');
             });
+        } elseif ($group === 'mahasiswa') {
+            $query->whereHas('user', function ($u) {
+                $u->where('role', 'mahasiswa');
+            });
+        } elseif ($group === 'organisasi') {
+            $query->whereNull('user_id')
+                ->whereNotNull('nama_peminjam_non_user');
+        }
 
         // Search
         if ($request->filled('search')) {
@@ -66,17 +92,20 @@ class PeminjamanController extends Controller
             ->withQueryString();
 
         // Statistik
-        $statsQuery = Peminjaman::where(function ($q) {
-            $q->whereHas('user', function ($u) {
+        $statsQuery = Peminjaman::whereJsonContains('required_approvals', 'kalab');
+
+        if ($group === 'dosen') {
+            $statsQuery->whereHas('user', function ($u) {
                 $u->where('role', 'dosen');
-            })->orWhere(function ($sub) {
-                $sub->whereHas('user', function ($u) {
-                    $u->where('role', 'mahasiswa');
-                })->whereHas('alat', function ($a) {
-                    $a->whereNotNull('program_studi');
-                });
             });
-        });
+        } elseif ($group === 'mahasiswa') {
+            $statsQuery->whereHas('user', function ($u) {
+                $u->where('role', 'mahasiswa');
+            });
+        } elseif ($group === 'organisasi') {
+            $statsQuery->whereNull('user_id')
+                ->whereNotNull('nama_peminjam_non_user');
+        }
 
         $stats = [
             'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
@@ -87,25 +116,15 @@ class PeminjamanController extends Controller
 
         return view(
             'kalab.persetujuan.index',
-            compact('peminjaman', 'stats')
+            compact('peminjaman', 'stats', 'group')
         );
     }
 
     public function riwayat(Request $request)
     {
-        // Ka Lab melihat riwayat peminjaman DOSEN dan MAHASISWA alat khusus
+        // Ka Lab melihat riwayat peminjaman yang memerlukan persetujuan Kepala Lab
         $peminjaman = Peminjaman::with(['user', 'alat'])
-            ->where(function ($q) {
-                $q->whereHas('user', function ($u) {
-                    $u->where('role', 'dosen');
-                })->orWhere(function ($sub) {
-                    $sub->whereHas('user', function ($u) {
-                        $u->where('role', 'mahasiswa');
-                    })->whereHas('alat', function ($a) {
-                        $a->whereNotNull('program_studi');
-                    });
-                });
-            })
+            ->whereJsonContains('required_approvals', 'kalab')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
             
@@ -132,10 +151,20 @@ class PeminjamanController extends Controller
         }
 
         $isSpecialTool = ($peminjaman->borrowable_type === \App\Models\Alat::class) && ($borrowable->program_studi !== null);
+        $borrowerRole = $peminjaman->user?->role;
+        $isManualExternalLoan = $this->isManualExternalLoan($peminjaman);
+        $borrowerName = $peminjaman->user?->name ?? $peminjaman->nama_peminjam_non_user ?? 'Peminjam';
+        $borrowerRoleLabel = $peminjaman->user ? $peminjaman->peminjam_role : 'Organisasi/Luar';
 
-        // Guard: kalab hanya approve dosen ATAU mahasiswa dengan alat khusus
-        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $isSpecialTool)) {
-            return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menyetujui peminjaman ini.');
+        // Guard: kalab hanya approve dosen ATAU mahasiswa dengan alat khusus.
+        if ($peminjaman->required_approvals !== null) {
+            if (!in_array('kalab', $peminjaman->required_approvals)) {
+                return redirect()->back()->with('error', 'Akses ditolak. Peminjaman ini tidak memerlukan persetujuan Kepala Lab.');
+            }
+        } else {
+            if (!$isManualExternalLoan && $borrowerRole !== 'dosen' && !($borrowerRole === 'mahasiswa' && $isSpecialTool)) {
+                return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menyetujui peminjaman ini.');
+            }
         }
 
         $itemName = $peminjaman->borrowable_type === \App\Models\ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
@@ -159,8 +188,100 @@ class PeminjamanController extends Controller
             static::addKeperluanIfNew($newKeperluan);
         }
 
+        // Custom approvals logic
+        if ($peminjaman->required_approvals !== null) {
+            $peminjaman->update($updateData);
+
+            // Check if all required approvals are met
+            $isFullyApproved = true;
+            $approverNames = [];
+
+            if (in_array('admin', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Admin/Teknisi';
+                if ($peminjaman->admin_approved_by === null) $isFullyApproved = false;
+            }
+            if (in_array('kalab', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kepala Lab';
+                if ($peminjaman->kalab_approved_by === null) $isFullyApproved = false;
+            }
+            if (in_array('kaprodi', $peminjaman->required_approvals)) {
+                $approverNames[] = 'Kaprodi';
+                if ($peminjaman->kaprodi_approved_by === null) $isFullyApproved = false;
+            }
+
+            $approverList = implode(' dan ', $approverNames);
+
+            if ($isFullyApproved) {
+                $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
+                $peminjaman->update(['status' => 'dipinjam']);
+
+                $this->notifyApprovedToBorrower($telegram, $peminjaman, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $itemName,
+                    'jumlah' => $peminjaman->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => $approverList,
+                ]);
+
+                return redirect()->back()->with('success', "Peminjaman disetujui secara final (Disetujui oleh {$approverList}). Status: Dipinjam.");
+            } else {
+                // Find who is next to approve
+                $pendingApprovers = [];
+                if (in_array('admin', $peminjaman->required_approvals) && $peminjaman->admin_approved_by === null) {
+                    $pendingApprovers[] = 'Admin';
+                    // Notify Admin/Teknisi
+                    $admins = User::where('role', 'admin')->whereNotNull('telegram_chat_id')->get();
+                    foreach ($admins as $admin) {
+                        $telegram->notifyNewRequest($admin, [
+                            'peminjam_nama' => $borrowerName,
+                            'peminjam_role' => $borrowerRoleLabel,
+                            'alat' => $itemName,
+                            'jumlah' => $peminjaman->jumlah,
+                            'kode' => $peminjaman->kode_peminjaman,
+                        ]);
+                    }
+                }
+                if (in_array('kalab', $peminjaman->required_approvals) && $peminjaman->kalab_approved_by === null) {
+                    $pendingApprovers[] = 'Kepala Lab';
+                }
+                if (in_array('kaprodi', $peminjaman->required_approvals) && $peminjaman->kaprodi_approved_by === null) {
+                    $pendingApprovers[] = 'Kaprodi';
+                    // Notify Kaprodi (filtered by prodi)
+                    $borrowerProdi = $peminjaman->user?->program_studi;
+                    $kaprodis = User::where('role', 'kaprodi')
+                        ->whereNotNull('telegram_chat_id')
+                        ->get()
+                        ->filter(function ($kaprodi) use ($borrowerProdi, $peminjaman) {
+                            if ($borrowerProdi) {
+                                $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                return $borrowerShort === $kProdiShort;
+                            }
+                            $toolProdi = $peminjaman->alat?->program_studi;
+                            if ($toolProdi) {
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                return str_contains($toolProdi, $kProdiShort);
+                            }
+                            return false;
+                        });
+                    foreach ($kaprodis as $kaprodi) {
+                        $telegram->notifyNewRequest($kaprodi, [
+                            'peminjam_nama' => $borrowerName,
+                            'peminjam_role' => $borrowerRoleLabel,
+                            'alat' => $itemName,
+                            'jumlah' => $peminjaman->jumlah,
+                            'kode' => $peminjaman->kode_peminjaman,
+                        ]);
+                    }
+                }
+
+                $pendingList = implode(', ', $pendingApprovers);
+                return redirect()->back()->with('success', "Peminjaman disetujui oleh Kepala Lab. Menunggu persetujuan dari: {$pendingList}.");
+            }
+        }
+
         // Case 1: Student borrowing a special tool (double approval: Admin + Kalab)
-        if ($peminjaman->user->role === 'mahasiswa') {
+        if (!$isManualExternalLoan && $borrowerRole === 'mahasiswa') {
             $peminjaman->update($updateData);
 
             if ($peminjaman->admin_approved_by !== null) {
@@ -168,7 +289,7 @@ class PeminjamanController extends Controller
                 $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                 $peminjaman->update(['status' => 'dipinjam']);
 
-                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                $this->notifyApprovedToBorrower($telegram, $peminjaman, [
                     'kode' => $peminjaman->kode_peminjaman,
                     'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
@@ -183,7 +304,7 @@ class PeminjamanController extends Controller
         }
 
         // Case 2: Dosen borrowing a prodi tool (double approval: Kalab + Kaprodi)
-        if ($peminjaman->borrowable_type === \App\Models\Alat::class && $borrowable->program_studi !== null) {
+        if (!$isManualExternalLoan && $peminjaman->borrowable_type === \App\Models\Alat::class && $borrowable->program_studi !== null) {
             $peminjaman->update($updateData);
 
             // If kaprodi has already approved, finalize approval
@@ -192,7 +313,7 @@ class PeminjamanController extends Controller
                 $borrowable->decrement('stok_tersedia', $peminjaman->jumlah);
                 $peminjaman->update(['status' => 'dipinjam']);
 
-                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                $this->notifyApprovedToBorrower($telegram, $peminjaman, [
                     'kode' => $peminjaman->kode_peminjaman,
                     'alat' => $itemName,
                     'jumlah' => $peminjaman->jumlah,
@@ -202,12 +323,28 @@ class PeminjamanController extends Controller
 
                 return redirect()->back()->with('success', 'Peminjaman Dosen disetujui. Status: Dipinjam (Disetujui oleh Kepala Lab dan Kaprodi).');
             } else {
-                // Notify Kaprodi to approve
-                $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                // Notify Kaprodi to approve (filtered by prodi)
+                $borrowerProdi = $peminjaman->user?->program_studi;
+                $kaprodis = \App\Models\User::where('role', 'kaprodi')
+                    ->whereNotNull('telegram_chat_id')
+                    ->get()
+                    ->filter(function ($kaprodi) use ($borrowerProdi, $peminjaman) {
+                        if ($borrowerProdi) {
+                            $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return $borrowerShort === $kProdiShort;
+                        }
+                        $toolProdi = $peminjaman->alat?->program_studi;
+                        if ($toolProdi) {
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return str_contains($toolProdi, $kProdiShort);
+                        }
+                        return false;
+                    });
                 foreach ($kaprodis as $kaprodi) {
                     $telegram->notifyNewRequest($kaprodi, [
-                        'peminjam_nama' => $peminjaman->user->name,
-                        'peminjam_role' => 'dosen',
+                        'peminjam_nama' => $borrowerName,
+                        'peminjam_role' => $borrowerRoleLabel,
                         'alat' => $itemName,
                         'jumlah' => $peminjaman->jumlah,
                         'kode' => $peminjaman->kode_peminjaman,
@@ -224,7 +361,7 @@ class PeminjamanController extends Controller
         $updateData['status'] = 'dipinjam';
         $peminjaman->update($updateData);
 
-        $telegram->notifyPeminjamanApproved($peminjaman->user, [
+        $this->notifyApprovedToBorrower($telegram, $peminjaman, [
             'kode' => $peminjaman->kode_peminjaman,
             'alat' => $itemName,
             'jumlah' => $peminjaman->jumlah,
@@ -247,9 +384,12 @@ class PeminjamanController extends Controller
         }
 
         $isSpecialTool = ($peminjaman->borrowable_type === \App\Models\Alat::class) && ($borrowable->program_studi !== null);
+        $borrowerRole = $peminjaman->user?->role;
+        $isManualExternalLoan = $this->isManualExternalLoan($peminjaman);
 
-        // Guard: kalab hanya reject dosen atau mahasiswa alat khusus
-        if ($peminjaman->user->role !== 'dosen' && !($peminjaman->user->role === 'mahasiswa' && $isSpecialTool)) {
+        // Guard: kalab hanya reject dosen atau mahasiswa alat khusus.
+        // Peminjaman manual luar user (organisasi/UKM) tetap bisa ditolak oleh Kalab.
+        if (!$isManualExternalLoan && $borrowerRole !== 'dosen' && !($borrowerRole === 'mahasiswa' && $isSpecialTool)) {
             return redirect()->back()->with('error', 'Akses ditolak. Anda tidak berwenang menolak peminjaman ini.');
         }
 
@@ -262,14 +402,52 @@ class PeminjamanController extends Controller
 
         $itemName = $peminjaman->borrowable_type === \App\Models\ToolSet::class ? $borrowable->nama_tool_set : $borrowable->nama;
 
-        $telegram->notifyPeminjamanRejected($peminjaman->user, [
+        $this->notifyRejectedToBorrower($telegram, $peminjaman, [
             'kode' => $peminjaman->kode_peminjaman,
             'alat' => $itemName,
             'alasan' => $request->alasan,
         ]);
 
-        $roleLabel = $peminjaman->user->role === 'dosen' ? 'Dosen' : 'Mahasiswa';
+        $roleLabel = $peminjaman->user?->role === 'dosen' ? 'Dosen' : ($peminjaman->user?->role === 'mahasiswa' ? 'Mahasiswa' : 'Organisasi/Luar');
         return redirect()->back()->with('success', "Peminjaman {$roleLabel} ditolak.");
+    }
+
+    public function completeReturn(Request $request, $id)
+    {
+        $request->validate([
+            'kondisi_kembali' => 'required|in:baik,rusak_ringan,rusak_berat',
+            'catatan_kondisi' => 'nullable|string',
+        ]);
+
+        $peminjaman = Peminjaman::with('borrowable')->findOrFail($id);
+
+        if (!in_array($peminjaman->status, ['dipinjam', 'menunggu_verifikasi'])) {
+            return redirect()->back()->with('error', 'Peminjaman ini tidak sedang dipinjam.');
+        }
+
+        $borrowable = $peminjaman->borrowable;
+        if ($borrowable) {
+            if ($request->kondisi_kembali === 'baik' || $request->kondisi_kembali === 'rusak_ringan') {
+                $borrowable->stok_tersedia += $peminjaman->jumlah;
+            } else {
+                if ($peminjaman->borrowable_type === ToolSet::class) {
+                    $borrowable->stok -= $peminjaman->jumlah;
+                } else {
+                    $borrowable->stok_total -= $peminjaman->jumlah;
+                }
+            }
+
+            $borrowable->save();
+        }
+
+        $peminjaman->update([
+            'status' => 'selesai',
+            'kondisi_kembali' => $request->kondisi_kembali,
+            'catatan_kondisi' => $request->catatan_kondisi,
+            'tanggal_dikembalikan' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Peminjaman berhasil ditandai selesai.');
     }
 
     public function bulkApprove(Request $request, TelegramService $telegram)
@@ -288,7 +466,8 @@ class PeminjamanController extends Controller
                       ->orWhere(function ($sub) {
                           $sub->whereHas('user', fn($u) => $u->where('role', 'mahasiswa'))
                               ->where('borrowable_type', \App\Models\Alat::class)
-                              ->whereHasMorph('borrowable', [\App\Models\Alat::class], fn($a) => $a->whereNotNull('program_studi'));
+                              ->whereHasMorph('borrowable', [\App\Models\Alat::class], fn($a) => $a->whereNotNull('program_studi'))
+                              ->whereNotNull('admin_approved_by');
                       });
             })
             ->get();
@@ -355,8 +534,24 @@ class PeminjamanController extends Controller
 
                     $approvedCount++;
                 } else {
-                    // Notify Kaprodi to approve
-                    $kaprodis = \App\Models\User::where('role', 'kaprodi')->whereNotNull('telegram_chat_id')->get();
+                    // Notify Kaprodi to approve (filtered by prodi)
+                    $borrowerProdi = $peminjaman->user?->program_studi;
+                    $kaprodis = \App\Models\User::where('role', 'kaprodi')
+                        ->whereNotNull('telegram_chat_id')
+                        ->get()
+                        ->filter(function ($kaprodi) use ($borrowerProdi, $peminjaman) {
+                            if ($borrowerProdi) {
+                                $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                return $borrowerShort === $kProdiShort;
+                            }
+                            $toolProdi = $peminjaman->alat?->program_studi;
+                            if ($toolProdi) {
+                                $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                                return str_contains($toolProdi, $kProdiShort);
+                            }
+                            return false;
+                        });
                     foreach ($kaprodis as $kaprodi) {
                         $telegram->notifyNewRequest($kaprodi, [
                             'peminjam_nama' => $peminjaman->user->name,
@@ -392,6 +587,138 @@ class PeminjamanController extends Controller
         }
 
         return redirect()->back()->with($failedMessages ? 'error' : 'success', $message);
+    }
+
+    public function create()
+    {
+        $users = \App\Models\User::whereIn('role', ['dosen', 'mahasiswa'])->orderBy('name')->get();
+        $alat = \App\Models\Alat::orderBy('nama')->get();
+        $categories = \App\Models\Kategori::orderBy('nama_kategori')->get();
+        return view('kalab.persetujuan.create', compact('users', 'alat', 'categories'));
+    }
+
+    public function storeManual(Request $request, TelegramService $telegram)
+    {
+        $request->validate([
+            'user_id' => 'required',
+            'nama_peminjam_non_user' => 'required_if:user_id,non_user|nullable|string|max:255',
+            'alat_id' => 'required|exists:alat,id',
+            'jumlah' => 'required|integer|min:1',
+            'keperluan' => 'required|string|max:500',
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
+            'surat_keterangan' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5000',
+            'approvers' => 'nullable|array',
+            'approvers.*' => 'string|in:admin,kaprodi',
+        ]);
+
+        if ($request->user_id === 'non_user') {
+            $request->validate([
+                'surat_keterangan' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5000',
+            ], [
+                'surat_keterangan.required' => 'Surat keterangan wajib dilampirkan untuk peminjaman luar / organisasi.',
+            ]);
+        }
+
+        $a = \App\Models\Alat::findOrFail($request->alat_id);
+        if ($a->stok_tersedia < $request->jumlah) {
+            return back()->with('error', 'Stok alat "' . $a->nama . '" tidak mencukupi (tersedia: ' . $a->stok_tersedia . ').');
+        }
+
+        $userId = $request->user_id === 'non_user' ? null : $request->user_id;
+        $namaNonUserData = $request->user_id === 'non_user' ? $request->nama_peminjam_non_user : null;
+
+        if ($request->filled('user_id') && $request->user_id !== 'non_user') {
+            $registeredUser = \App\Models\User::find($request->user_id);
+            if ($registeredUser) {
+                $namaNonUserData = null;
+            }
+        }
+
+        $suratKeteranganPath = null;
+        if ($request->hasFile('surat_keterangan')) {
+            $suratKeteranganPath = $request->file('surat_keterangan')->store('surat_keterangan', 'public');
+        }
+
+        $requiredApprovals = $request->input('approvers', []);
+        if ($request->user_id === 'non_user') {
+            $requiredApprovals = ['admin', 'kalab'];
+        }
+        $status = empty($requiredApprovals) ? 'dipinjam' : 'pending';
+
+        $peminjaman = \App\Models\Peminjaman::create([
+            'kode_peminjaman' => \App\Models\Peminjaman::generateKode(),
+            'user_id' => $userId,
+            'nama_peminjam_non_user' => $namaNonUserData,
+            'alat_id' => $request->alat_id,
+            'jumlah' => $request->jumlah,
+            'keperluan' => $request->keperluan,
+            'tanggal_pinjam' => $request->tanggal_pinjam,
+            'tanggal_kembali' => $request->tanggal_kembali,
+            'status' => $status,
+            'surat_keterangan' => $suratKeteranganPath,
+            'kalab_approved_by' => Auth::id(), // Auto-approved by Kalab!
+            'required_approvals' => empty($requiredApprovals) ? null : $requiredApprovals,
+        ]);
+
+        if (empty($requiredApprovals)) {
+            $a->decrement('stok_tersedia', $request->jumlah);
+
+            if ($peminjaman->user) {
+                $telegram->notifyPeminjamanApproved($peminjaman->user, [
+                    'kode' => $peminjaman->kode_peminjaman,
+                    'alat' => $a->nama,
+                    'jumlah' => $request->jumlah,
+                    'deadline' => $peminjaman->tanggal_kembali->format('d M Y'),
+                    'approver_role' => 'Sistem (Tanpa Persetujuan)',
+                ]);
+            }
+        } else {
+            $peminjamNama = $peminjaman->nama_peminjam;
+            $peminjamRoleDesc = $peminjaman->peminjam_role;
+
+            if (in_array('admin', $requiredApprovals)) {
+                $admins = \App\Models\User::where('role', 'admin')->whereNotNull('telegram_chat_id')->get();
+                foreach ($admins as $admin) {
+                    $telegram->notifyNewRequest($admin, [
+                        'peminjam_nama' => $peminjamNama,
+                        'peminjam_role' => $peminjamRoleDesc,
+                        'alat' => $a->nama,
+                        'jumlah' => $request->jumlah,
+                        'kode' => $peminjaman->kode_peminjaman,
+                    ]);
+                }
+            }
+            if (in_array('kaprodi', $requiredApprovals)) {
+                $borrowerProdi = $peminjaman->user?->program_studi;
+                $kaprodis = \App\Models\User::where('role', 'kaprodi')
+                    ->whereNotNull('telegram_chat_id')
+                    ->get()
+                    ->filter(function ($kaprodi) use ($borrowerProdi, $a) {
+                        if ($borrowerProdi) {
+                            $borrowerShort = str_contains($borrowerProdi, 'D3') ? 'D3' : 'D4';
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return $borrowerShort === $kProdiShort;
+                        }
+                        if ($a->program_studi) {
+                            $kProdiShort = str_contains($kaprodi->program_studi, 'D3') ? 'D3' : 'D4';
+                            return str_contains($a->program_studi, $kProdiShort);
+                        }
+                        return false;
+                    });
+                foreach ($kaprodis as $kaprodi) {
+                    $telegram->notifyNewRequest($kaprodi, [
+                        'peminjam_nama' => $peminjamNama,
+                        'peminjam_role' => $peminjamRoleDesc,
+                        'alat' => $a->nama,
+                        'jumlah' => $request->jumlah,
+                        'kode' => $peminjaman->kode_peminjaman,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('kalab.persetujuan')->with('success', 'Peminjaman manual berhasil diinput.');
     }
 
 }

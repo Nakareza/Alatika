@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.kaprodi')
 
 @section('title', 'Kelola User')
 
@@ -13,7 +13,8 @@
         showRoleModal: false, 
         roleUserId: null, 
         roleUserName: '', 
-        roleValue: '' 
+        roleValue: '',
+        roleUserProdi: ''
     }"
     class="space-y-6"
 >
@@ -29,7 +30,7 @@
             </p>
         </div>
 
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+        <a href="{{ route('kaprodi.users.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Tambah User
         </a>
@@ -76,7 +77,7 @@
     <div class="card p-6">
         <form 
             method="GET"
-            action="{{ route('admin.users.index') }}"
+            action="{{ route('kaprodi.users.index') }}"
             class="flex flex-col lg:flex-row gap-4"
         >
 
@@ -97,19 +98,7 @@
                 onchange="this.form.submit()"
                 class="inp lg:w-60"
             >
-                <option value="">Semua Role</option>
-
-                <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>
-                    Admin
-                </option>
-
-                <option value="kalab" {{ request('role') === 'kalab' ? 'selected' : '' }}>
-                    KA Lab
-                </option>
-
-                <option value="kaprodi" {{ request('role') === 'kaprodi' ? 'selected' : '' }}>
-                    KA Prodi
-                </option>
+                <option value="">Semua Role (Dosen & Mahasiswa)</option>
 
                 <option value="dosen" {{ request('role') === 'dosen' ? 'selected' : '' }}>
                     Dosen
@@ -140,6 +129,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Nama</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">NIM / NIP</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Prodi</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Role</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Terdaftar</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase">Aksi</th>
@@ -224,6 +214,10 @@
 
                             </td>
 
+                            <td class="px-6 py-4 text-sm text-slate-600">
+                                {{ $user->program_studi ?: '—' }}
+                            </td>
+
                             <td class="px-6 py-4">
                                 <span class="badge {{ $roleColors[$user->role] ?? 'badge-info' }}">
                                     {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
@@ -245,6 +239,7 @@
                                             roleUserId = {{ $user->id }};
                                             roleUserName = '{{ $user->name }}';
                                             roleValue = '{{ $user->role }}';
+                                            roleUserProdi = '{{ $user->program_studi }}';
                                         "
                                         class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition"
                                     >
@@ -325,7 +320,7 @@
                 <p class="text-sm text-slate-500 mb-8">Apakah Anda yakin ingin menghapus user <span class="font-semibold text-red-600" x-text="deleteUserName"></span>?</p>
                 <div class="flex items-center gap-3 w-full">
                     <button @click="showDeleteModal = false" class="btn btn-secondary flex-1 justify-center">Batal</button>
-                    <form :action="'/admin/users/' + deleteUserId" method="POST" class="flex-1">
+                    <form :action="'/kaprodi/users/' + deleteUserId" method="POST" class="flex-1">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn flex justify-center w-full bg-red-600 text-white hover:bg-red-700">Hapus</button>
@@ -344,18 +339,28 @@
                 </div>
                 <h3 class="text-2xl font-bold text-[#1E2B4A] mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Ubah Role</h3>
                 <p class="text-sm text-slate-500 mb-6 text-center">Ubah role untuk user <span class="font-semibold text-indigo-600" x-text="roleUserName"></span></p>
-                <form :action="'/admin/users/' + roleUserId + '/role'" method="POST" class="w-full space-y-6">
+                <form :action="'/kaprodi/users/' + roleUserId + '/role'" method="POST" class="w-full space-y-6">
                     @csrf
                     @method('PATCH')
-                    <div>
-                        <label class="form-label">Role Baru</label>
-                        <select name="role" x-model="roleValue" class="inp">
-                            <option value="admin">Admin / Teknisi</option>
-                            <option value="kalab">Kepala Lab</option>
-                            <option value="kaprodi">Kepala Program Studi</option>
-                            <option value="dosen">Dosen</option>
-                            <option value="mahasiswa">Mahasiswa</option>
-                        </select>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="form-label">Role Baru</label>
+                            <select name="role" x-model="roleValue" class="inp">
+                                <option value="dosen">Dosen</option>
+                                <option value="mahasiswa">Mahasiswa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Program Studi</label>
+                            <select name="program_studi" x-model="roleUserProdi" class="inp">
+                                <option value="">-- Tanpa Program Studi --</option>
+                                @if(str_contains(auth()->user()->program_studi, 'D3'))
+                                    <option value="D3 IK">D3 IK (D3 Teknik Informatika)</option>
+                                @else
+                                    <option value="D4 TRK">D4 TRK (STr Teknologi Rekayasa Komputer)</option>
+                                @endif
+                            </select>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3 w-full pt-2">
                         <button type="button" @click="showRoleModal = false" class="btn btn-secondary flex-1 justify-center">Batal</button>

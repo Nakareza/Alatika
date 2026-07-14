@@ -26,7 +26,7 @@ class SendBorrowingReminders extends Command
             if ($p->user->hasTelegram()) {
                 $telegram->notifyDeadlineReminder($p->user, [
                     'kode' => $p->kode_peminjaman,
-                    'alat' => $p->alat->nama,
+                    'alat' => $p->item_name,
                     'deadline' => "BESOK ({$p->tanggal_kembali->format('d M Y')})",
                 ]);
                 $p->update(['reminder_h1_sent' => true]);
@@ -44,7 +44,7 @@ class SendBorrowingReminders extends Command
             if ($p->user->hasTelegram()) {
                 $telegram->notifyDeadlineReminder($p->user, [
                     'kode' => $p->kode_peminjaman,
-                    'alat' => $p->alat->nama,
+                    'alat' => $p->item_name,
                     'deadline' => "HARI INI BUKAN MAEN",
                 ]);
                 $p->update(['reminder_hday_sent' => true]);
@@ -64,7 +64,7 @@ class SendBorrowingReminders extends Command
             if ($daysOverdue == 1 && !$p->overdue_d1_sent) {
                 $telegram->notifyOverdue($p->user, [
                     'kode' => $p->kode_peminjaman,
-                    'alat' => $p->alat->nama,
+                    'alat' => $p->item_name,
                     'deadline' => $p->tanggal_kembali->format('d M Y'),
                     'hari_terlambat' => 1,
                 ]);
@@ -75,7 +75,7 @@ class SendBorrowingReminders extends Command
             // Overdue 3 days (Escalation to User & Admin/Kalab)
             if ($daysOverdue == 3 && !$p->overdue_d3_sent) {
                 // Notify user strongly
-                $telegram->sendMessage($p->user->telegram_chat_id, "🚨 <b>PERINGATAN KERAS!</b>\n\nAlat {$p->alat->nama} ({$p->kode_peminjaman}) sudah terlambat 3 hari. Segera kembalikan atau akun akan diblokir.");
+                $telegram->sendMessage($p->user->telegram_chat_id, "🚨 <b>PERINGATAN KERAS!</b>\n\nAlat {$p->item_name} ({$p->kode_peminjaman}) sudah terlambat 3 hari. Segera kembalikan atau akun akan diblokir.");
                 
                 // Escalate to Kalab
                 $kalabs = User::where('role', 'kalab')->whereNotNull('telegram_chat_id')->get();
@@ -83,7 +83,7 @@ class SendBorrowingReminders extends Command
                     $telegram->notifyEscalation($kalab, [
                         'kode' => $p->kode_peminjaman,
                         'peminjam_nama' => $p->user->name,
-                        'alat' => $p->alat->nama,
+                        'alat' => $p->item_name,
                         'hari_terlambat' => 3,
                     ]);
                 }

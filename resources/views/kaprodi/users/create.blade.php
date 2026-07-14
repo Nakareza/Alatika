@@ -17,7 +17,7 @@
 </head>
 <body class="bg-gray-50 antialiased" x-data="{ showLogoutModal: false, selectedRole: '{{ old('role', 'dosen') }}' }">
     
-    <x-sidebar-admin />
+    <x-sidebar-kaprodi />
     
     <div id="mainContent" class="transition-all duration-300 ease-in-out ml-64">
         
@@ -26,7 +26,7 @@
             <div class="px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('admin.users.index') }}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <a href="{{ route('kaprodi.users.index') }}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                             <i class="fas fa-arrow-left"></i>
                         </a>
                         <div>
@@ -56,43 +56,13 @@
                     </div>
                 @endif
 
-                <form action="{{ route('admin.users.store') }}" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <form action="{{ route('kaprodi.users.store') }}" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     @csrf
                     
                     {{-- Role Selection --}}
                     <div class="p-6 border-b border-slate-100">
                         <label class="block text-sm font-semibold text-slate-700 mb-3">Pilih Role User</label>
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="admin" x-model="selectedRole" class="hidden peer">
-                                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all text-center">
-                                    <div class="w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-user-cog text-blue-600"></i>
-                                    </div>
-                                    <p class="text-sm font-semibold text-slate-700">Admin</p>
-                                    <p class="text-xs text-slate-500">Teknisi</p>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="kalab" x-model="selectedRole" class="hidden peer">
-                                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all text-center">
-                                    <div class="w-10 h-10 mx-auto mb-2 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-flask text-emerald-600"></i>
-                                    </div>
-                                    <p class="text-sm font-semibold text-slate-700">KA Lab</p>
-                                    <p class="text-xs text-slate-500">Kepala Lab</p>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="kaprodi" x-model="selectedRole" class="hidden peer">
-                                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center">
-                                    <div class="w-10 h-10 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-graduation-cap text-purple-600"></i>
-                                    </div>
-                                    <p class="text-sm font-semibold text-slate-700">Kaprodi</p>
-                                    <p class="text-xs text-slate-500">KA Prodi</p>
-                                </div>
-                            </label>
+                        <div class="grid grid-cols-2 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="role" value="dosen" x-model="selectedRole" class="hidden peer">
                                 <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 transition-all text-center">
@@ -150,6 +120,18 @@
                                    placeholder="Nomor Induk Pegawai (opsional)">
                         </div>
 
+                        {{-- Program Studi --}}
+                        <div x-show="selectedRole === 'mahasiswa' || selectedRole === 'dosen' || selectedRole === 'kaprodi'" x-transition>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Program Studi</label>
+                            <select name="program_studi" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                @if(str_contains(auth()->user()->program_studi, 'D3'))
+                                    <option value="D3 IK" selected>D3 IK (D3 Teknik Informatika)</option>
+                                @else
+                                    <option value="D4 TRK" selected>D4 TRK (STr Teknologi Rekayasa Komputer)</option>
+                                @endif
+                            </select>
+                        </div>
+
                         {{-- Password --}}
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password <span class="text-red-500">*</span></label>
@@ -162,7 +144,7 @@
 
                     {{-- Submit --}}
                     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <a href="{{ route('admin.users.index') }}" class="text-sm text-slate-500 hover:text-slate-700 font-medium">
+                        <a href="{{ route('kaprodi.users.index') }}" class="text-sm text-slate-500 hover:text-slate-700 font-medium">
                             <i class="fas fa-arrow-left mr-1"></i> Kembali
                         </a>
                         <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-2">
